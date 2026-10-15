@@ -107,3 +107,17 @@ IP-203AP·IP-203APB·KIP-234R2·IP-200PC·IP-200PCHB·DP-202H는 기존 형제�
 동·호수 공통 범위는 각각 **1~9999**, 경비실기 링크·AM-10KP·KAM-305의 연결 세대수는 상한 없이 처리합니다. [공통 세대번호 안내](docs/household-addresses.md). 도어폰은 우클릭으로 호출·채팅 화면을 열며 영상 없이 양방향 메시지 통화가 가능합니다.
 
 최근 검증: Forge 서버 GameTest 60개 통과. 실제 클라이언트에서 형제모델 6종의 화면·조작 및 도어폰 채팅 입력→서버 메시지 전달 확인.
+
+## KLP-203RF BUS 로비폰
+
+KOCOM KLP-203RF를 추가했습니다. 첫 사진의 외곽 비율과 렌즈/IR 창·4자리 붉은 세그먼트·금속 14버튼·엇갈린 스피커 슬롯·곡면 CARD 리더를 복원했습니다. 세대/경비실 호출, 응답 후 영상·메시지 통화, 수신기 문열림, 세대 및 로비 출입 비밀번호, RF 카드, KAM-305 로비 관리 연동을 제공합니다.
+
+관리자 진입은 세대호출(C)+경비실(G) 동시 3초 → 초기 `9999#`입니다. 직접 입력하는 동·라인, 경비번호, 호출 호수 뒤 두 자리 범위(예: `03~10`), 관리 비밀번호 설정을 제공합니다. 경비번호가 실제 경비실기와 일치해야 동작합니다. [설치·조작 안내](docs/KLP-203RF.md).
+
+```bash
+python3 tools/check_klp203rf_assets.py
+# 로비폰 테스트는 경비실기 설치 수 사양이 다른 테스트와 겹치지 않도록 별도 월드에서 실행
+./gradlew -I tools/kvm_gametest.gradle -Phomenet.testNamespaces=qwertys_homenet_klp -Phomenet.testDir=run/klp-tests runGameTestServer
+```
+
+KLP-203RF 검증: 기존 기기 GameTest 60개와 별도 로비 테스트 7개를 각각 실행합니다. 관리자 진입 시간·암호, 설정 범위, BUS 호출·영상·채팅, 로비별 암호, RF 카드 저장, 세대 암호 변경과 취소, 933/APB/KIP의 문열림을 확인합니다.
