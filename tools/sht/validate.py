@@ -54,3 +54,10 @@ print(f"Body panel depth {mount['depth']*m['scale']*1000:.3f} mm; front moved {(
 
 assert m["shell"]["sideRoll"]==[44,43,10]
 print("Photo side-roll bands: left 44/824, right 43/824; monotone elliptical falloff, no raised side rail")
+
+seams=m['shell']['seams']
+main=next(j for j in seams if j['name']=='controller_monitor')
+assert main['y0']==89 and main['y1']==672
+assert all(j['width']<main['width'] and j['depth']<main['depth'] for j in seams if j is not main)
+assert any(j['name']=='brand_keypad' and j['y0']==230 and j['x0']==298 and j['x1']==456 for j in seams)
+print('Photo joints: full-height central split, thinner panel borders, faint side covers, separate brand/keypad border')

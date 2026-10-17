@@ -26,9 +26,9 @@ final class MeshProbe {
    for(int i=0;i<=20;i++){float x=start+(edge-start)*i/20;float z=Surface.shellZ(x,100);if(z>last+.001)throw new AssertionError("Side rises before rolling down");last=z;}
    if(Math.abs(Surface.shellZ(start,100)-68)>.001||Math.abs(Surface.shellZ(edge,100)-58)>.001||Surface.shellZ((start+edge)/2,100)>=67)throw new AssertionError("Incorrect broad side rollover");
   }
-  for(float[] seam:Surface.casing.seams()){
-   float x=(seam[0]+seam[2])/2,y=(seam[1]+seam[3])/2;var v=nearest(solid.vertices,x,y);
-   if(Math.abs(v.z-Surface.bodyDepth(66.8f))>.01)throw new AssertionError("Cover joint missing or disconnected at "+x+","+y+" z="+v.z);
+  for(var seam:Surface.casing.seams()){
+   float x=(seam.x0()+seam.x1())/2,y=(seam.y0()+seam.y1())/2;var v=nearest(solid.vertices,x,y);
+   if(Math.abs(v.z-Surface.bodyDepth(68-seam.depth()))>.01)throw new AssertionError("Cover joint missing or disconnected at "+x+","+y+" z="+v.z);
   }
   var docked=new Capture();Surface.draw(new PoseStack(),type->type==expected?docked:ignored,15728880,false,true,true);
   var originalHandset=new Capture();for(var part:Surface.solids)if(part.group().equals("docked"))Surface.solid(part,new PoseStack(),type->originalHandset,15728880);

@@ -19,7 +19,19 @@ body('mount_plate',76,48,895,652,0,FRAME_DEPTH,9,EDGE)
 # One connected body skin, with true openings, replaces all separately boxed caps/panels.
 SHELL_HOLES=[[170,136,116,480],[548,129,248,216],[838,228,48,14],[838,260,48,14]]
 # Real cover boundaries; shallow continuous grooves rather than separated boxes.
-SEAMS=[[x,110,x,646] for x in [154,298,456,518,830,891]]+[[x0,y,x1,y] for y in [110,646] for x0,x1 in [(154,456),(518,891)]]
+def join(name,x0,y0,x1,y1,width,depth,color):
+ return dict(name=name,x0=x0,y0=y0,x1=x1,y1=y1,width=width,depth=depth,color=int(color,16))
+# The photograph has one strong full-height module split, thin panel borders,
+# and faint side-cover joints, rather than an equally weighted rectangular grid.
+SEAMS=[join('controller_monitor',518,89,518,672,2.4,1.8,'62695c')]
+for name,x in [('cradle_keypad',298),('keypad_controls',456),('monitor_adjustment',830)]:
+ SEAMS.append(join(name,x,110,x,646,1.2,.5,'a0a38e'))
+for name,x in [('left_cover',154),('right_cover',891)]:
+ SEAMS.append(join(name,x,101,x,660,.8,.3,'b0b29f'))
+for y in [110,646]:
+ for x0,x1 in [(154,456),(518,891)]:
+  SEAMS.append(join('panel_top' if y==110 else 'panel_bottom',x0,y,x1,y,1.0,.4,'a7aa96'))
+SEAMS.append(join('brand_keypad',298,230,456,230,1.2,.5,'a0a38e'))
 body('body_shell',110,89,824,583,40,28,12,IV)
 body('cradle_void',170,136,116,480,40,20,0,IV)
 # Deep cradle with retaining hook, contacts and visible horizontal speaker openings.
@@ -174,9 +186,12 @@ for remote,docked in [(False,False),(False,True),(True,False)]:
  im.alpha_composite(ink(remote))
  if not remote:
   d=ImageDraw.Draw(im)
-  for x0,y0,x1,y1 in SEAMS:
-   d.line((x0,y0,x1,y1),fill='#979a87',width=2)
-   d.line((x0+1,y0+1,x1+1,y1+1),fill='#faf8e9',width=1)
+  # Supersample only these authored lines to keep the faint joints subpixel thin.
+  seam_layer=Image.new('RGBA',(im.width*4,im.height*4));sd=ImageDraw.Draw(seam_layer)
+  for line in SEAMS:
+   coords=tuple(line[k]*4 for k in ['x0','y0','x1','y1']);rgb=line['color']
+   sd.line(coords,fill=((rgb>>16)&255,(rgb>>8)&255,rgb&255,255),width=max(1,round(line['width']*4)))
+  im.alpha_composite(seam_layer.resize(im.size,Image.Resampling.LANCZOS))
  im.save(a/('textures/radio_gui.png' if remote else 'textures/base_'+('docked' if docked else 'empty')+'.png'))
 Image.new('RGBA',(2,2),'white').save(a/'textures/solid.png')
 (a/'model.json').write_text(json.dumps(dict(parts=parts,keys=keys,shell=dict(bounds=[110,89,934,672],back=40,front=68,radius=12,sideRoll=[44,43,10],seams=SEAMS,holes=SHELL_HOLES),mounting=dict(frame=FRAME_DEPTH,back=40,front=68,depth=24),frame_thickness_blocks=.0005,scale=.5/824,blue=[110,89,934,672],outer=[76,48,971,700]),ensure_ascii=False))
