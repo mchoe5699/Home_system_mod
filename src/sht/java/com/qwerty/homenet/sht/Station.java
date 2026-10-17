@@ -42,7 +42,7 @@ public class Station extends ReceiverBlockEntity {
  protected Map<String,String> settingsForClient(){var s=super.settingsForClient();s.put("sht","new");s.put("mode",bus?"BUS":"STAR");s.put("status",status);s.put("docked",docked?"1":"0");s.put("folded",folded?"1":"0");s.put("alarm",alarm);s.put("armed",armed?"1":"0");s.put("away",away?"1":"0");s.put("brightness",""+brightness);s.put("contrast",""+contrast);s.put("channel",""+channel);s.put("phone",""+phone);s.put("intercom",""+internal);s.put("paired",paired()?"1":"0");s.put("lights",""+lights());var v=camera();if(v!=null){s.put("video","1");s.put("vx",""+v.getX());s.put("vy",""+v.getY());s.put("vz",""+v.getZ());}return s;}
  boolean source(BlockPos at){if(!same(at)||!level.isLoaded(at))return false;var b=level.getBlockEntity(at);if(b instanceof DoorStationBlockEntity)return hasLinkedCamera(at);if(b instanceof GuardExchange g)return at.equals(analogStation)&&supportsSwitchboard(g);if(b instanceof ReceiverBlockEntity r)return !bus&&r.kind()==DeviceRegistry.Kind.GUARD_CONSOLE&&r.guardSystem()==GuardSystem.STAR;if(b instanceof AnalogLobbyEndpoint a)return bus&&a.manufacturer().equalsIgnoreCase("SAMSUNG")&&a.supports(AnalogBus.COMMON_8_WIRE);return !bus&&b instanceof LobbyPhoneBlockEntity;}
  protected BlockPos ring(BlockPos at,String key,int depth){if(depth>3||!source(at))return null;if(away&&key.equals("lobby")){var g=switchboard();if(g instanceof ReceiverBlockEntity r)return r.ring(at,key);if(!bus&&level instanceof ServerLevel sl)for(var p:DeviceRegistry.get(sl).guards(sl,worldPosition,false))if(same(p)&&level.getBlockEntity(p) instanceof ReceiverBlockEntity r&&r.guardSystem()==GuardSystem.STAR)return r.ring(at,key);}return super.ring(at,key,depth);}
- public boolean startRinging(BlockPos at,String key){if(!source(at))return false;boolean ok=super.startRinging(at,key);if(ok)tell("착신 · 무선수화기의 통화 버튼");return ok;}
+ public boolean startRinging(BlockPos at,String key){if(!source(at))return false;boolean ok=super.startRinging(at,key);if(ok)tell("착신 · 스피커 또는 무선수화기로 응답");return ok;}
  public void callGuard(ServerPlayer p,String unused){if(!paired()){tell("수화기와 본체의 두 자리 암호를 일치시키세요");return;}boolean activeAudio=audio;endPhone();super.hangUp();audio=activeAudio;internal=0;if(bus){var g=switchboard();if(g==null){tell("연결된 삼성 BUS 경비실기가 없습니다");return;}caller=g.intercomPosition();incomingKey=g.callerKey();callState=CallState.DIALING;outgoing=false;callTicks=0;g.callFrom(this,p);}else if(level instanceof ServerLevel sl){var peers=DeviceRegistry.get(sl).guards(sl,worldPosition,false).stream().filter(at->same(at)&&sl.isLoaded(at)&&sl.getBlockEntity(at) instanceof ReceiverBlockEntity r&&r.kind()==DeviceRegistry.Kind.GUARD_CONSOLE&&r.guardSystem()==GuardSystem.STAR).toList();if(peers.isEmpty()){tell("같은 단지의 STAR 경비실기가 없습니다");return;}startOutgoing(p,peers,"경비실");}tell("경비실 호출 중");}
  public boolean acceptSwitchboardCall(BlockPos p){if(!audio||callState!=CallState.DIALING||!p.equals(caller)||switchboard()==null)return false;callState=CallState.CONNECTED;callTicks=0;tell("경비실 통화");return true;}
  public void answer(){if(paired()&&audio){super.answer();update();}}
@@ -71,7 +71,14 @@ public class Station extends ReceiverBlockEntity {
    case "talk"->talk();
    case "guard"->{if(remote)audio=true;callGuard(p,"");}
    case "door"->{if(callState==CallState.CONNECTED&&incomingKey.equals("lobby")||callState==CallState.CONNECTED&&incomingKey.equals("front_door")){openDoor();}else{super.hangUp();endPhone();internal=0;monitor=600;var at=linkedCamera();if(at!=null&&level.getBlockEntity(at) instanceof CallerBlockEntity c){if(remote){c.callFromReceiver(this);audio=true;answer();}else tell("세대 현관 영상 확인");}else tell("연결된 도어카메라가 없습니다");}}
-   case "speaker"->{if(internal==2){internal=3;tell("본체 ↔ 수화기 내선 통화");}else if(internal==3)finish();else if(status.startsWith("국선 선택"))finish();else{super.hangUp();digits="";tell("국선 선택 · 번호 입력");}}
+   case "speaker"->{
+    if(internal==2){internal=3;audio=true;tell("본체 ↔ 수화기 내선 통화");}
+    else if(internal==3)finish();
+    else if(callState!=CallState.IDLE||phone>0)talk();
+    else if(monitor>0){var at=linkedCamera();if(at!=null&&level.getBlockEntity(at) instanceof CallerBlockEntity c){c.callFromReceiver(this);audio=true;answer();tell("현관 스피커 통화");}else tell("연결된 도어카메라가 없습니다");}
+    else if(audio)finish();
+    else{audio=true;digits="";tell("국선 발신음 · 번호 입력");}
+   }
    case "intercom"->{finish();internal=remote?2:1;tell(remote?"본체 호출 · 스피커로 응답":"무선수화기 호출 · 통화로 응답");}
    case "hold"->{if(phone==3){hold=true;audio=false;tell("국선 보류");}}
    case "redial"->{boolean speaking=audio;finish();audio=remote&&speaking;if(last.isEmpty()&&remote){audio=true;tell("국선 발신음 · 번호 입력");}else dialNumber(last);}

@@ -11,7 +11,7 @@ public final class Surface {
  public static final float SCALE=.5f/824;
  public record Solid(String name,float x,float y,float w,float h,float z,float d,float r,String color,String group,float curve){}
  public record Key(String name,String label,float x,float y,float w,float h,String group){}
- public record Shell(float[] bounds,float back,float front,float radius,float[][] holes){}
+ public record Shell(float[] bounds,float back,float front,float radius,float[] sideRoll,float[][] holes){}
  public record Mount(float frame,float back,float front,float depth){}
  static Mount mounting;static Shell casing;static List<Solid> solids;static List<Key> buttons;
  static void load(){if(solids!=null)return;try(var r=Minecraft.getInstance().getResourceManager().openAsReader(Product.id("model.json"))){var o=JsonParser.parseReader(r).getAsJsonObject();Gson g=new Gson();casing=g.fromJson(o.get("shell"),Shell.class);mounting=g.fromJson(o.get("mounting"),Mount.class);solids=new ArrayList<>();buttons=new ArrayList<>();for(var e:o.getAsJsonArray("parts"))solids.add(g.fromJson(e,Solid.class));for(var e:o.getAsJsonArray("keys"))buttons.add(g.fromJson(e,Key.class));}catch(Exception e){throw new IllegalStateException(e);}}
@@ -68,8 +68,9 @@ public final class Surface {
  static float shellZ(float x,float y){
   float[] a=casing.bounds;float fromEdge=Math.min(y-a[1],a[3]-y);float t=Math.max(0,Math.min(1,fromEdge/8));
   float z=casing.front-4*(1-t)*(1-t);
-  float edge=Math.min(x-a[0],a[2]-x);float bend=Math.max(0,1-edge/12);
-  z-=4*bend*bend*t;
+  float width=x<(a[0]+a[2])/2?casing.sideRoll[0]:casing.sideRoll[1];
+  float edge=Math.min(x-a[0],a[2]-x);float u=Math.max(0,Math.min(1,1-edge/width));
+  z-=casing.sideRoll[2]*(1-(float)Math.sqrt(Math.max(0,1-u*u)))*t;
   if(y>=110&&y<=646&&Math.abs(x-518)<.65f)z-=.6f*(1-Math.abs(x-518)/.65f);
   return z;
  }

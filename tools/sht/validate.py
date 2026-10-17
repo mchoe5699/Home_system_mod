@@ -51,3 +51,6 @@ assert [548,129,248,216] in m['shell']['holes'] and [170,136,116,480] in m['shel
 print('Outer trim exactly 0.3 mm; body is one shell reaching the sheet, with no separate bars/panel boxes')
 
 print(f"Body panel depth {mount['depth']*m['scale']*1000:.3f} mm; front moved {(mount['front']-mounted(mount['front']))*m['scale']*1000:.3f} mm toward wall; handset shape remains rigid")
+
+assert m["shell"]["sideRoll"]==[44,43,10]
+print("Photo side-roll bands: left 44/824, right 43/824; monotone elliptical falloff, no raised side rail")

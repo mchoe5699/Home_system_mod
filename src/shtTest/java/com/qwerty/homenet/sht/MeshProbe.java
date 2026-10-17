@@ -21,7 +21,11 @@ final class MeshProbe {
   // Former panel/cap gaps must all be on the same continuous front skin.
   for(double[] at:new double[][]{{299,220},{456,400},{519,400},{830,400},{330,648},{530,648}}){var v=nearest(solid.vertices,at[0],at[1]);if(v.color!=0xf1efdf||Math.abs(v.z-Surface.bodyDepth(68))>.001)throw new AssertionError("Body split or stepped at "+Arrays.toString(at)+" z="+v.z);}
   for(float x:new float[]{116,122,132,144,900,912,922,928})if(Surface.shellZ(x,400)>68.001f)throw new AssertionError("Sides bulge above front");
-  if(Surface.shellZ(110,400)>=Surface.shellZ(122,400)||Surface.shellZ(934,400)>=Surface.shellZ(922,400))throw new AssertionError("Missing gentle side rollover");
+  for(float[] side:new float[][]{{154,110},{891,934}}){
+   float start=side[0],edge=side[1],last=68;
+   for(int i=0;i<=20;i++){float x=start+(edge-start)*i/20;float z=Surface.shellZ(x,400);if(z>last+.001)throw new AssertionError("Side rises before rolling down");last=z;}
+   if(Math.abs(Surface.shellZ(start,400)-68)>.001||Math.abs(Surface.shellZ(edge,400)-58)>.001||Surface.shellZ((start+edge)/2,400)>=67)throw new AssertionError("Incorrect broad side rollover");
+  }
   var docked=new Capture();Surface.draw(new PoseStack(),type->type==expected?docked:ignored,15728880,false,true,true);
   var originalHandset=new Capture();for(var part:Surface.solids)if(part.group().equals("docked"))Surface.solid(part,new PoseStack(),type->originalHandset,15728880);
   double expectedShift=Surface.bodyDepth(68)-68;

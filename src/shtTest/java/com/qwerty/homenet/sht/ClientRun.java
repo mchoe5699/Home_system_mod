@@ -41,7 +41,12 @@ public class ClientRun {
    case 11->{if(!(mc.screen instanceof Controls c)||!c.data.flag("docked"))return;step=12;server(mc,s->{var base=(Station)s.overworld().getBlockEntity(BASE);var p=s.getPlayerList().getPlayers().get(0);check(base.docked&&base.getCallState()==com.qwerty.homenet.intercom.CallState.IDLE,"Cradle did not end call");check(p.getInventory().items.stream().noneMatch(v->v.is(Product.RADIO.get())),"Duplicate handset");ready=6;});}
    case 12->{if(ready!=6)return;System.out.println("NEW_SHT_CLIENT_PASS: actual linker packets, handset pickup, remote screen, door answer, Korean chat and reply, empty-cradle docking, state sync; no screenshots");step=13;mc.setScreen(null);server(mc,s->{VideoProbe.setup(s);ready=7;});}
    case 13->{if(ready!=7||age%20!=0||!VideoProbe.verify(mc))return;step=14;server(mc,s->{for(var at:VideoProbe.positions)((ReceiverBlockEntity)s.overworld().getBlockEntity(at)).hangUp();ready=8;});}
-   case 14->{if(ready!=8||age%20!=0||!VideoProbe.cleared(mc))return;System.out.println("ALL_SHT15_CLIENT_CHECKS_PASS");step=15;mc.stop();}
+   case 14->{if(ready!=8||age%20!=0||!VideoProbe.cleared(mc))return;step=15;server(mc,s->{var camera=(DoorStationBlockEntity)s.overworld().getBlockEntity(DOOR);check(camera.startCall("")==CallerBlockEntity.CallResult.OK,"Speaker incoming call failed");ready=9;});}
+   case 15->{if(ready!=9)return;block(mc,BASE);step=16;}
+   case 16->{if(!(mc.screen instanceof Controls c)||c.radio)return;click(c,487,591);step=17;}
+   case 17->{if(age%20!=0)return;server(mc,s->{var base=(Station)s.overworld().getBlockEntity(BASE);var camera=(DoorStationBlockEntity)s.overworld().getBlockEntity(DOOR);if(base.audio&&base.docked&&camera.isConnected())ready=10;});if(ready==10&&mc.screen instanceof Controls c){c.keyPressed(org.lwjgl.glfw.GLFW.GLFW_KEY_T,0,0);c.charTyped('t',0);for(char ch:"본체 스피커 통화".toCharArray())c.charTyped(ch,0);c.keyPressed(org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER,0,0);step=18;}}
+   case 18->{if(age%20!=0)return;server(mc,s->{var camera=(DoorStationBlockEntity)s.overworld().getBlockEntity(DOOR);if(camera.getLog().stream().anyMatch(v->v.text().equals("본체 스피커 통화")))ready=11;});if(ready==11&&mc.screen instanceof Controls c){click(c,487,591);step=19;}}
+   case 19->{if(age%20!=0)return;server(mc,s->{var base=(Station)s.overworld().getBlockEntity(BASE);var camera=(DoorStationBlockEntity)s.overworld().getBlockEntity(DOOR);if(base.docked&&!base.audio&&!camera.isInCall())ready=12;});if(ready==12){System.out.println("SHT16_SPEAKER_CLIENT_PASS: base speaker button answers, sends Korean conversation, hangs up while handset remains docked");step=20;mc.stop();}}
   }
  }catch(Throwable t){t.printStackTrace();System.out.println("NEW_SHT_CLIENT_FAIL "+step);System.exit(1);}}
 }

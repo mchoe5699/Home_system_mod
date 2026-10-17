@@ -59,4 +59,16 @@ public class OperationTests {
   h.setBlock(new BlockPos(4,1,3),ModBlocks.HMC_7000.get());var led=(ReceiverBlockEntity)h.getLevel().getBlockEntity(h.absolutePos(new BlockPos(4,1,3)));h.assertTrue(!WorldVideo.supports(led),"Numeric display incorrectly gets video");h.succeed();
  }
 
+ @GameTest(template="empty") public static void speakerAnswersDoorAndStartsMonitorTalk(GameTestHelper h){
+  var s=home(h,3);var p=user(h,s);h.setBlock(new BlockPos(6,1,3),ModBlocks.DOOR_STATION.get());var c=(DoorStationBlockEntity)h.getLevel().getBlockEntity(h.absolutePos(new BlockPos(6,1,3)));c.toggleReceiver(s.getBlockPos());
+  c.startCall("");s.press("speaker",p,false);s.say(p,"본체 스피커 응답",false);h.assertTrue(s.docked&&s.audio&&c.isConnected()&&c.getLog().stream().anyMatch(l->l.text().equals("본체 스피커 응답")),"Speaker did not answer incoming door call while docked");
+  s.press("speaker",p,false);h.assertTrue(!c.isInCall()&&!s.audio,"Speaker did not hang up");
+  s.press("door",p,false);h.assertTrue(!c.isInCall(),"Monitoring rang door");s.press("speaker",p,false);h.assertTrue(c.isConnected()&&s.audio&&s.docked,"Monitoring did not switch to speaker talk");s.press("speaker",p,false);h.succeed();
+ }
+ @GameTest(template="empty") public static void speakerGuardAndTelephoneWithoutLifting(GameTestHelper h){
+  var a=home(h,3);var b=home(h,5);var p=user(h,a);var q=user(h,b);var g=guard(h);a.bindSwitchboard(g.getBlockPos());
+  a.press("guard",p,false);a.press("speaker",p,false);g.answer();a.say(p,"경비실 스피커 통화",false);h.assertTrue(a.audio&&a.docked&&g.conversation().stream().anyMatch(l->l.text().equals("경비실 스피커 통화")),"Guard speaker call failed");a.press("speaker",p,false);
+  a.number="51001";b.number="51002";a.press("speaker",p,false);for(char c:"51002#".toCharArray())a.digit(""+c,false);b.press("speaker",q,false);a.say(p,"스피커 전화",false);h.assertTrue(a.docked&&b.docked&&a.audio&&b.audio&&b.phone==3&&b.conversation().stream().anyMatch(l->l.text().equals("스피커 전화")),"Docked speaker telephone failed");a.press("speaker",p,false);h.assertTrue(a.phone==0&&b.phone==0,"Speaker telephone did not terminate");h.succeed();
+ }
+
 }

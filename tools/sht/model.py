@@ -12,7 +12,7 @@ def button(name,label,x,y,w,h,front=70,color=IV,group='base',textsize=8,labelY=N
  depth=3 if group=='radio' else (1.5 if h<15 else 2.3)
  body(name,x-w/2,y-h/2,w,h,front-depth,depth,min(w,h)/2-1,color,group,1 if group=='radio' else .6)
  keys.append(dict(name=name,label=label,x=x,y=y,w=w,h=h,group=group,size=textsize,labelY=labelY))
-# Pink mounting trim is 0.2 mm at the standard 1 block = 1 m scale.
+# Pink mounting trim is 0.3 mm at the standard 1 block = 1 m scale.
 SCALE=.5/824
 FRAME_DEPTH=.0003/SCALE
 body('mount_plate',76,48,895,652,0,FRAME_DEPTH,9,EDGE)
@@ -125,7 +125,7 @@ for remote,docked in [(False,False),(False,True),(True,False)]:
    layer=Image.new('RGBA',im.size,IV);ld=ImageDraw.Draw(layer)
    for x0,ww in [(110,44),(891,43)]:
     for xx in range(ww+1):
-     edge=(xx if x0==110 else ww-xx);v=max(0,1-edge/12);shade=int(241-12*v*v)
+     edge=(xx if x0==110 else ww-xx);u=max(0,min(1,1-edge/ww));shade=int(241-17*u*u)
      ld.line((x0+xx,89,x0+xx,672),fill=(shade,shade-2,shade-15,255))
    im.paste(layer,(0,0),mask);d=ImageDraw.Draw(im)
    continue
@@ -173,7 +173,7 @@ for remote,docked in [(False,False),(False,True),(True,False)]:
   d.line((579,175,769,175),fill='#a7afa3',width=2)
  im.alpha_composite(ink(remote));im.save(a/('textures/radio_gui.png' if remote else 'textures/base_'+('docked' if docked else 'empty')+'.png'))
 Image.new('RGBA',(2,2),'white').save(a/'textures/solid.png')
-(a/'model.json').write_text(json.dumps(dict(parts=parts,keys=keys,shell=dict(bounds=[110,89,934,672],back=40,front=68,radius=12,holes=SHELL_HOLES),mounting=dict(frame=FRAME_DEPTH,back=40,front=68,depth=24),frame_thickness_blocks=.0003,scale=.5/824,blue=[110,89,934,672],outer=[76,48,971,700]),ensure_ascii=False))
+(a/'model.json').write_text(json.dumps(dict(parts=parts,keys=keys,shell=dict(bounds=[110,89,934,672],back=40,front=68,radius=12,sideRoll=[44,43,10],holes=SHELL_HOLES),mounting=dict(frame=FRAME_DEPTH,back=40,front=68,depth=24),frame_thickness_blocks=.0003,scale=.5/824,blue=[110,89,934,672],outer=[76,48,971,700]),ensure_ascii=False))
 for folder in ['models/item','blockstates','lang']:(a/folder).mkdir(parents=True,exist_ok=True)
 for n in ['sht_101c','wireless_handset']:(a/f'models/item/{n}.json').write_text('{"parent":"builtin/entity"}')
 (a/'blockstates/sht_101c.json').write_text('{"variants":{"":{"model":"minecraft:block/air"}}}')
