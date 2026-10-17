@@ -23,8 +23,8 @@ final class MeshProbe {
   for(float x:new float[]{116,122,132,144,900,912,922,928})if(Surface.shellZ(x,400)>68.001f)throw new AssertionError("Sides bulge above front");
   for(float[] side:new float[][]{{154,110},{891,934}}){
    float start=side[0],edge=side[1],last=68;
-   for(int i=0;i<=20;i++){float x=start+(edge-start)*i/20;float z=Surface.shellZ(x,100);if(z>last+.001)throw new AssertionError("Side rises before rolling down");last=z;}
-   if(Math.abs(Surface.shellZ(start,100)-68)>.001||Math.abs(Surface.shellZ(edge,100)-58)>.001||Surface.shellZ((start+edge)/2,100)>=67)throw new AssertionError("Incorrect broad side rollover");
+   for(int i=0;i<=20;i++){float x=start+(edge-start)*i/20;float z=Surface.shellZ(x,98);if(z>last+.001)throw new AssertionError("Side rises before rolling down");last=z;}
+   if(Math.abs(Surface.shellZ(start,98)-68)>.001||Math.abs(Surface.shellZ(edge,98)-58)>.001||Surface.shellZ((start+edge)/2,98)>=67)throw new AssertionError("Incorrect broad side rollover");
   }
   for(var seam:Surface.casing.seams()){
    float x=(seam.x0()+seam.x1())/2,y=(seam.y0()+seam.y1())/2;var v=nearest(solid.vertices,x,y);

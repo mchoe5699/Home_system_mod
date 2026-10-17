@@ -58,6 +58,6 @@ print("Photo side-roll bands: left 44/824, right 43/824; monotone elliptical fal
 seams=m['shell']['seams']
 main=next(j for j in seams if j['name']=='controller_monitor')
 assert main['y0']==89 and main['y1']==672
-assert all(j['width']<main['width'] and j['depth']<main['depth'] for j in seams if j is not main)
+assert {(j['width'],j['depth'],j['color']) for j in seams}=={(2.2,1.2,0x929584)}
 assert any(j['name']=='brand_keypad' and j['y0']==230 and j['x0']==298 and j['x1']==456 for j in seams)
-print('Photo joints: full-height central split, thinner panel borders, faint side covers, separate brand/keypad border')
+print('Photo joint positions preserved; uniform original width, depth and shading restored')
