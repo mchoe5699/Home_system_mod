@@ -1,4 +1,4 @@
-# Samsung SHT-101C 추가 — 1.0.10
+# Samsung SHT-101C 추가 — 1.0.9
 
 사진 비율의 본체·무선수화기·접이식 안테나와 BUS/STAR 조작을 추가했습니다. 파란 내부 영역 가로는 0.5블록, 바깥 틀은 약 0.538 × 0.398블록입니다. [설치·조작·연결 조건과 설명서 대응](docs/SHT-101C.md)을 참고하세요.
 
@@ -10,7 +10,7 @@ gradle -b samsung.gradle build
 python3 tools/samsung/package_release.py
 ```
 
-최종 산출물: `build/samsung/release/qwertys_homenet-1.0.10.jar`. JDK 17·Gradle 8.8·Python 3가 필요합니다. 생성된 텍스처는 포함되어 있으며 재생성할 때만 Pillow와 Noto Sans CJK 폰트가 필요합니다.
+최종 산출물: `build/samsung/release/qwertys_homenet-1.0.9.jar`. JDK 17·Gradle 8.8·Python 3가 필요합니다. 생성된 텍스처는 포함되어 있으며 재생성할 때만 Pillow와 Noto Sans CJK 폰트가 필요합니다.
 
 ---
 

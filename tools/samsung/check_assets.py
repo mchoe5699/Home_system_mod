@@ -17,11 +17,3 @@ for n in ['front','gui_docked','gui_empty','handset','handset_labels','white']:a
 assert any(p['group']=='upright' and p['y']<0 for p in parts)
 assert any(p['group']=='folded' for p in parts)
 print(f'{len(parts)} rounded parts / {len(keys)} keys: exact .5 blue width, outer {1000*s:.6f} × {740*s:.6f}; finite geometry, matched hit regions, antenna states verified')
-
-# Same physical row means exactly the same button front depth/protrusion.
-for names in [['test','stop','restore'],['quick_fire','quick_police','quick_medical'],['up','down','intercom']]+[['digit_'+c for c in row] for row in ['123','456','789','*0#']]:
- row=[next(p for p in parts if p['name']==name) for name in names]
- assert len({(p['z'],p['d']) for p in row})==1,names
-antenna=[p for p in parts if p['name']=='radio_antenna'][0]
-assert antenna['w']<antenna['h'] and antenna['y']<0
-print('Uniform row protrusion and vertical cordless antenna geometry verified')

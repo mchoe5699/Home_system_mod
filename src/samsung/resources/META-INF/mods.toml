@@ -3,7 +3,7 @@ loaderVersion="[47,)"
 license="All Rights Reserved"
 [[mods]]
 modId="qwertys_homenet_samsung"
-version="1.0.10"
+version="1.0.9"
 displayName="HomeNet Samsung SHT-101C"
 description='''Samsung SHT-101C BUS/STAR home automation and cordless handset.'''
 [[dependencies.qwertys_homenet_samsung]]

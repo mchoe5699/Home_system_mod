@@ -41,9 +41,8 @@ public final class Sht101c extends ReceiverBlockEntity {
  public boolean validHandset(ItemStack stack){return !docked&&stack.is(Samsung.CORDLESS.get())&&stack.hasTag()&&stack.getTag().hasUUID("Station")&&identity.equals(stack.getTag().getUUID("Station"))&&stack.getTag().hasUUID("Token")&&token.equals(stack.getTag().getUUID("Token"));}
  public boolean remoteAllowed(ServerPlayer p){if(!scope(p.blockPosition())||p.distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(worldPosition).add(com.qwerty.homenet.move.DeviceOffsets.get(level,worldPosition)))>RADIO_RANGE*RADIO_RANGE)return false;for(var s:p.getInventory().items)if(validHandset(s)&&s.getTag().getInt("Charge")>0&&s.getTag().getBoolean("On"))return true;return false;}
  public boolean canOperate(ServerPlayer p,boolean remote){return p.level()==level&&(remote?remoteAllowed(p):Intercom.inReach(p,worldPosition));}
- public void toggleHandset(ServerPlayer p){if(docked){take(p);return;}for(int i=0;i<p.getInventory().getContainerSize();i++){var stack=p.getInventory().getItem(i);if(validHandset(stack)){dock(p,stack);return;}}note("등록된 무선수화기를 인벤토리에 가지고 있어야 거치할 수 있습니다");}
  public void take(ServerPlayer p){if(!docked){note("무선수화기가 이미 분리되어 있습니다");return;}ItemStack s=new ItemStack(Samsung.CORDLESS.get());var t=s.getOrCreateTag();t.putUUID("Station",identity);t.putUUID("Token",token);t.putLong("Base",worldPosition.asLong());t.putString("Dimension",level.dimension().location().toString());t.putInt("Charge",36000);t.putBoolean("On",true);t.putInt("Channel",radioChannel);if(!p.getInventory().add(s)){note("인벤토리에 빈 공간이 필요합니다");return;}docked=false;changed();}
- public void dock(ServerPlayer p,ItemStack s){if(!validHandset(s)){note("이 본체에 등록된 무선수화기가 아닙니다");return;}endAudio();s.shrink(1);docked=true;if(Boolean.TRUE.equals(viewers.get(p.getUUID())))viewers.remove(p.getUUID());changed();}
+ public void dock(ServerPlayer p,ItemStack s){if(!validHandset(s)){note("이 본체에 등록된 무선수화기가 아닙니다");return;}endAudio();s.shrink(1);docked=true;viewers.remove(p.getUUID());changed();}
  @Override public void openFor(ServerPlayer p){open(p,false);}
  public void open(ServerPlayer p,boolean remote){if(!canOperate(p,remote))return;viewers.put(p.getUUID(),remote);ShtNetwork.data(p,snapshot(true),remote);}
  public WallpadDataPacket snapshot(boolean open){return super.buildPacket(open);}
@@ -90,7 +89,7 @@ public final class Sht101c extends ReceiverBlockEntity {
   if(route.equals("phone")&&radioAudio){if(phone>0){if(k.equals("*"))tone=true;var target=peer();if(target!=null)CallSounds.note(level,target.worldPosition,SoundEvents.NOTE_BLOCK_BIT.value(),target.voiceVolume*.25f,.7f+"123456789*0#".indexOf(k)*.06f);return;}if(k.equals("#"))dialPhone(buffer);else if(k.equals("*")&&phone>0){tone=true;note("전자식 국선 선택");}else if(buffer.length()<18&&k.matches("[0-9]")){buffer+=k;phoneTicks=-25;changed();}}
  }
  public void press(String key,ServerPlayer p,boolean remote){
-  if(key.equals("take")){toggleHandset(p);return;}if(key.equals("antenna")){folded=!folded;changed();return;}
+  if(key.equals("take")){take(p);return;}if(key.equals("antenna")){folded=!folded;changed();return;}
   if(key.equals("mode")){if(callState!=CallState.IDLE||phone!=0||!docked){note("통화 종료·수화기 장착 후 방식을 변경하세요");return;}unlinkSwitchboard();bus=!bus;note(bus?"삼성 디지털 BUS 방식":"아날로그 STAR 방식");return;}
   if(key.equals("memory")){memoryButton(remote);return;}
   if(programming){if(key.equals("intercom")&&slot.isEmpty()&&paired()){programming=false;buffer="";note("삐 · 본체와 무선수화기 암호 일치");return;}if(key.equals("intercom")&&slot.equals("fixed")){commit(false);note(paired()?"삐 · 본체와 무선수화기 암호 일치":"본체와 무선수화기 암호를 일치시키세요");}else selectProgram(key,remote);return;}
