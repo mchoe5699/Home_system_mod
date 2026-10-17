@@ -1,19 +1,3 @@
-# Samsung SHT-101C 추가 — 1.0.9
-
-사진 비율의 본체·무선수화기·접이식 안테나와 BUS/STAR 조작을 추가했습니다. 파란 내부 영역 가로는 0.5블록, 바깥 틀은 약 0.538 × 0.398블록입니다. [설치·조작·연결 조건과 설명서 대응](docs/SHT-101C.md)을 참고하세요.
-
-이 소스 브랜치는 검증된 1.0.8 바이너리를 보존하고 삼성 코드만 별도 컴파일합니다. 기존 코콤·현대 소스를 대신하는 재작성본이 아닙니다. 기본 `gradle build` 대신 다음을 사용하세요.
-
-```bash
-bash tools/samsung/prepare_baseline.sh
-gradle -b samsung.gradle build
-python3 tools/samsung/package_release.py
-```
-
-최종 산출물: `build/samsung/release/qwertys_homenet-1.0.9.jar`. JDK 17·Gradle 8.8·Python 3가 필요합니다. 생성된 텍스처는 포함되어 있으며 재생성할 때만 Pillow와 Noto Sans CJK 폰트가 필요합니다.
-
----
-
 # QWERTY's HomeNet (Forge 1.20.1)
 
 한국 아파트식 **홈네트워크** 모드 — 월패드, 공동현관 로비폰 / 세대현관 도어폰, 그리고 월패드로 켜고 끄는 제어 블록.
