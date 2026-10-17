@@ -68,8 +68,8 @@ public final class Surface {
  static float shellZ(float x,float y){
   float[] a=casing.bounds;float fromEdge=Math.min(y-a[1],a[3]-y);float t=Math.max(0,Math.min(1,fromEdge/8));
   float z=casing.front-4*(1-t)*(1-t);
-  if(x<154){float u=Math.max(0,Math.min(1,(x-110)/44));z+=10*(float)Math.sin(Math.PI*u)*t;}
-  if(x>891){float u=Math.max(0,Math.min(1,(x-891)/43));z+=10*(float)Math.sin(Math.PI*u)*t;}
+  float edge=Math.min(x-a[0],a[2]-x);float bend=Math.max(0,1-edge/12);
+  z-=4*bend*bend*t;
   if(y>=110&&y<=646&&Math.abs(x-518)<.65f)z-=.6f*(1-Math.abs(x-518)/.65f);
   return z;
  }

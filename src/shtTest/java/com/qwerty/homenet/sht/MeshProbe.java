@@ -20,14 +20,16 @@ final class MeshProbe {
   for(double x:new double[]{590,674,758})for(double y:new double[]{190,246,300}){var v=nearest(solid.vertices,x,y);if(v.color!=0x8d9691||Math.abs(v.z-Surface.bodyDepth(65))>.001)throw new AssertionError("CRT blocked at "+x+","+y+" by "+Integer.toHexString(v.color)+" z="+v.z);}
   // Former panel/cap gaps must all be on the same continuous front skin.
   for(double[] at:new double[][]{{299,220},{456,400},{519,400},{830,400},{330,648},{530,648}}){var v=nearest(solid.vertices,at[0],at[1]);if(v.color!=0xf1efdf||Math.abs(v.z-Surface.bodyDepth(68))>.001)throw new AssertionError("Body split or stepped at "+Arrays.toString(at)+" z="+v.z);}
+  for(float x:new float[]{116,122,132,144,900,912,922,928})if(Surface.shellZ(x,400)>68.001f)throw new AssertionError("Sides bulge above front");
+  if(Surface.shellZ(110,400)>=Surface.shellZ(122,400)||Surface.shellZ(934,400)>=Surface.shellZ(922,400))throw new AssertionError("Missing gentle side rollover");
   var docked=new Capture();Surface.draw(new PoseStack(),type->type==expected?docked:ignored,15728880,false,true,true);
   var originalHandset=new Capture();for(var part:Surface.solids)if(part.group().equals("docked"))Surface.solid(part,new PoseStack(),type->originalHandset,15728880);
   double expectedShift=Surface.bodyDepth(68)-68;
   if(expectedShift>=-40||Surface.mounting.depth()>=28)throw new AssertionError("Body stayed in place or did not get thinner");
   for(double[] at:new double[][]{{180,200},{220,400},{260,550}}){var before=nearest(originalHandset.vertices,at[0],at[1]);var after=nearest(docked.vertices,at[0],at[1]);if(Math.abs((after.z-before.z)-expectedShift)>.001)throw new AssertionError("Handset not moved rigidly with body");}
-  var sheet=nearest(solid.vertices,80,400);if(Math.abs(sheet.z*Surface.SCALE-.0002)>.0000001)throw new AssertionError("Outer frame is not 0.2 mm");
+  var sheet=nearest(solid.vertices,80,400);if(Math.abs(sheet.z*Surface.SCALE-.0003)>.0000001)throw new AssertionError("Outer frame is not 0.3 mm");
   var bowl=nearest(solid.vertices,228,204);if(bowl.z>=Surface.bodyDepth(60)||bowl.color!=0xe3e1d0)throw new AssertionError("Cradle floor covered or not recessed");
   if(solid.vertices.stream().noneMatch(v->v.color==0x4c5449&&v.ny<-.99))throw new AssertionError("Vents are not on downward-facing underside");
-  System.out.println("SHT_BODY_MESH_PASS: 0.2 mm sheet, thinner body moved toward wall, rigidly translated handset, connected covers at six former seams, nine CRT rays reach glass, recessed cradle, underside vents, finite mesh");
+  System.out.println("SHT_BODY_MESH_PASS: 0.3 mm sheet, thinner body moved toward wall, rigidly translated handset, connected covers at six former seams, nine CRT rays reach glass, recessed cradle, underside vents, finite mesh");
  }
 }

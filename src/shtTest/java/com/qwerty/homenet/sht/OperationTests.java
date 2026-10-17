@@ -36,4 +36,27 @@ public class OperationTests {
  @GameTest(template="empty") public static void pinsAlarmAndPersistence(GameTestHelper h){var s=home(h,3);var p=user(h,s);program(s,p,"guard","23",false);s.press("memory",p,true);for(char c:"*#23".toCharArray())s.digit(""+c,true);program(s,p,"hold","23",false);h.assertTrue(s.paired(),"Manual PIN sequence failed");var g=guard(h);s.bindSwitchboard(g.getBlockPos());s.trigger("gas");tick(s,600);h.assertTrue(g.event,"30-second guard notification absent");s.press("stop",p,false);h.assertTrue(!s.alarm.isEmpty(),"Alarm stop removed lens");s.press("restore",p,false);h.assertTrue(s.alarm.isEmpty()&&!g.event,"Restore failed");s.press("test",p,false);s.digit("1",false);tick(s,601);h.assertTrue(!g.event&&s.test,"Trial reached real guard");s.press("channel",p,true);var copy=new Station(s.getBlockPos(),s.getBlockState());copy.load(s.saveWithoutMetadata());h.assertTrue(copy.channel==2&&copy.paired()&&copy.folded,"Persistent settings lost");h.succeed();}
  @GameTest(template="empty") public static void automaticAlarmTelephoneSequence(GameTestHelper h){var a=home(h,3);var b=home(h,5);var p=user(h,a);var q=user(h,b);a.lift(p);b.lift(q);program(a,p,"speaker","50901",false);program(b,q,"speaker","50902",false);program(a,p,"*","50902",false);a.trigger("fire");tick(a,600);h.assertTrue(b.phone==2,"Alarm did not call stored report telephone");b.press("talk",q,true);tick(a,441);h.assertTrue(b.conversation().stream().filter(v->v.text().equals("fire 경보")).count()==2&&b.conversation().stream().anyMatch(v->v.text().equals("발생지 50901")),"10s/2s/10s report sequence missing");h.succeed();}
  @GameTest(template="empty") public static void localIntercomAndModeUnlink(GameTestHelper h){var s=home(h,3);var p=user(h,s);var g=guard(h);s.bindSwitchboard(g.getBlockPos());s.press("mode",p,false);h.assertTrue(!s.bus&&s.getAnalogStation()==null&&!s.bindSwitchboard(g.getBlockPos()),"Mode change leaked BUS binding");s.lift(p);s.press("intercom",p,false);s.press("talk",p,true);s.say(p,"수화기에서 본체",true);s.say(p,"본체에서 수화기",false);h.assertTrue(s.conversation().stream().anyMatch(l->l.text().equals("수화기에서 본체"))&&s.conversation().stream().anyMatch(l->l.text().equals("본체에서 수화기")),"Local intercom missing");s.replace(p);h.assertTrue(s.docked&&s.internal==0,"Cradle did not terminate intercom");h.succeed();}
+ @GameTest(template="empty") public static void idleDoorIsSilentMonitor(GameTestHelper h){
+  var s=home(h,3);var p=user(h,s);h.setBlock(new BlockPos(6,1,3),ModBlocks.DOOR_STATION.get());
+  var c=(DoorStationBlockEntity)h.getLevel().getBlockEntity(h.absolutePos(new BlockPos(6,1,3)));h.assertTrue(c.toggleReceiver(s.getBlockPos()),"Camera link rejected");
+  s.press("door",p,false);h.assertTrue(!c.isInCall()&&s.getCallState()==CallState.IDLE&&c.getBlockPos().equals(s.camera()),"Idle base door button rang outdoor device");
+  h.assertTrue(s.getUpdateTag().getLong("Video")==c.getBlockPos().asLong(),"Physical monitor video not synchronized");
+  tick(s,600);h.assertTrue(s.camera()==null&&!s.getUpdateTag().contains("Video"),"Expired monitor video persisted");h.succeed();
+ }
+ @GameTest(template="empty") public static void wirelessBatteryDoesNotReequip(GameTestHelper h){
+  var s=home(h,3);var p=user(h,s);s.lift(p);var old=p.getInventory().getItem(0).copy();var updated=old.copy();updated.getOrCreateTag().putInt("battery",35980);
+  h.assertTrue(!Product.RADIO.get().shouldCauseReequipAnimation(old,updated,false),"Battery update shakes handset");
+  h.assertTrue(Product.RADIO.get().shouldCauseReequipAnimation(old,updated,true),"Slot change animation suppressed");
+  updated.getOrCreateTag().putUUID("ticket",UUID.randomUUID());h.assertTrue(Product.RADIO.get().shouldCauseReequipAnimation(old,updated,false),"Different handset identity suppressed");h.succeed();
+ }
+ @GameTest(template="empty") public static void physicalVideoCapabilitiesAndCallLifecycle(GameTestHelper h){
+  h.setBlock(new BlockPos(1,1,3),ModBlocks.KVM_906.get());h.setBlock(new BlockPos(6,1,3),ModBlocks.DOOR_STATION.get());
+  var k=(Kvm906BlockEntity)h.getLevel().getBlockEntity(h.absolutePos(new BlockPos(1,1,3)));k.onLoad();var c=(DoorStationBlockEntity)h.getLevel().getBlockEntity(h.absolutePos(new BlockPos(6,1,3)));
+  h.assertTrue(c.toggleReceiver(k.getBlockPos()),"KVM link rejected");h.assertTrue(c.startCall("")==CallerBlockEntity.CallResult.OK,"KVM did not ring");
+  h.assertTrue(c.getBlockPos().equals(WorldVideo.camera(k)),"Unopened KVM physical video absent");k.hangUp();h.assertTrue(WorldVideo.camera(k)==null,"Video persisted after hangup");
+  h.setBlock(new BlockPos(2,1,3),ModBlocks.WALLPAD.get());var w=(ReceiverBlockEntity)h.getLevel().getBlockEntity(h.absolutePos(new BlockPos(2,1,3)));w.onLoad();h.assertTrue(c.toggleReceiver(w.getBlockPos()),"Wallpad link rejected");c.startCall("");h.assertTrue(c.getBlockPos().equals(WorldVideo.camera(w)),"Wallpad video absent without GUI");w.hangUp();k.hangUp();
+  h.setBlock(new BlockPos(3,1,3),ModBlocks.INTERPHONE.get());var a=(ReceiverBlockEntity)h.getLevel().getBlockEntity(h.absolutePos(new BlockPos(3,1,3)));h.assertTrue(!WorldVideo.supports(a),"Audio interphone incorrectly gets video");
+  h.setBlock(new BlockPos(4,1,3),ModBlocks.HMC_7000.get());var led=(ReceiverBlockEntity)h.getLevel().getBlockEntity(h.absolutePos(new BlockPos(4,1,3)));h.assertTrue(!WorldVideo.supports(led),"Numeric display incorrectly gets video");h.succeed();
+ }
+
 }

@@ -30,6 +30,13 @@ public final class Product {
   public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientItemExtensions> c){c.accept(Client.itemExtension());}
  });
  public static final RegistryObject<Item> RADIO=ITEMS.register("wireless_handset",()->new Item(new Item.Properties().stacksTo(1)){
+  // Battery/channel updates do not mean the player equipped a different handset.
+  @Override public boolean shouldCauseReequipAnimation(ItemStack oldStack,ItemStack newStack,boolean slotChanged){
+   if(slotChanged||oldStack.getItem()!=newStack.getItem())return true;
+   var a=oldStack.getTag();var b=newStack.getTag();
+   if(a==null||b==null)return !java.util.Objects.equals(a,b);
+   return !java.util.Objects.equals(a.get("serial"),b.get("serial"))||!java.util.Objects.equals(a.get("ticket"),b.get("ticket"));
+  }
   public InteractionResultHolder<ItemStack> use(Level l,Player p,InteractionHand hand){var stack=p.getItemInHand(hand);if(p instanceof ServerPlayer s){var base=Station.find(s,stack);if(base!=null){if(p.isShiftKeyDown()){stack.getOrCreateTag().putBoolean("power",!stack.getOrCreateTag().getBoolean("power"));}else base.open(s,true);}}return InteractionResultHolder.sidedSuccess(stack,l.isClientSide);}
   public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientItemExtensions> c){c.accept(Client.itemExtension());}
  });

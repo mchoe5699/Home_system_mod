@@ -3,7 +3,7 @@ loaderVersion="[47,)"
 license="All Rights Reserved"
 [[mods]]
 modId="homenet_sht101c"
-version="1.0.14"
+version="1.0.15"
 displayName="Samsung SHT-101C"
 description='''Photo-measured Samsung SHT-101C and wireless handset.'''
 [[dependencies.homenet_sht101c]]
