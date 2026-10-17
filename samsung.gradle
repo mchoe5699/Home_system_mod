@@ -4,7 +4,7 @@ plugins {
     id 'net.minecraftforge.gradle' version '[6.0.16,6.2)'
 }
 
-version = "1.0.9"
+version = "1.0.10"
 layout.buildDirectory = file("build/samsung")
 group = mod_group_id
 

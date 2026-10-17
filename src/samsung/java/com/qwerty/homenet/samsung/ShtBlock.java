@@ -22,8 +22,14 @@ public final class ShtBlock extends WallMountedBlock {
  public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level l,BlockState s,BlockEntityType<T> t){return l.isClientSide?null:createTickerHelper(t,Samsung.BE.get(),ReceiverBlockEntity::serverTick);}
  public InteractionResult use(BlockState s,Level l,BlockPos at,Player player,InteractionHand hand,BlockHitResult hit){
   if(player.getItemInHand(hand).getItem() instanceof com.qwerty.homenet.item.HomeLinkerItem||player.getItemInHand(hand).getItem() instanceof com.qwerty.homenet.item.AnalogLinkerItem)return InteractionResult.PASS;
-  if(!l.isClientSide&&player instanceof ServerPlayer p&&l.getBlockEntity(at) instanceof Sht101c b){if(player.getItemInHand(hand).is(Samsung.CORDLESS.get()))b.dock(p,player.getItemInHand(hand));else b.openFor(p);}
+  if(!l.isClientSide&&player instanceof ServerPlayer p&&l.getBlockEntity(at) instanceof Sht101c b){if(player.getItemInHand(hand).is(Samsung.CORDLESS.get()))b.dock(p,player.getItemInHand(hand));else if(!b.docked()&&cradleHit(s,l,at,hit)){b.toggleHandset(p);}else b.openFor(p);}
   return InteractionResult.sidedSuccess(l.isClientSide);
+ }
+ static boolean cradleHit(BlockState state,Level level,BlockPos at,BlockHitResult hit){
+  var local=hit.getLocation().subtract(Vec3.atLowerCornerOf(at)).subtract(DeviceOffsets.get(level,at));
+  var facing=state.getValue(FACING);double along=switch(facing){case NORTH->.5-local.x;case SOUTH->local.x-.5;case EAST->.5-local.z;case WEST->local.z-.5;default->100;};
+  double u=500+along/(.5/930),v=740-(local.y-.30)/(.5/930);
+  return u>=86&&u<=234&&v>=96&&v<=667;
  }
  public void onRemove(BlockState s,Level l,BlockPos p,BlockState n,boolean moving){if(!s.is(n.getBlock())&&l.getBlockEntity(p) instanceof Sht101c b)b.onBroken();super.onRemove(s,l,p,n,moving);}
 }

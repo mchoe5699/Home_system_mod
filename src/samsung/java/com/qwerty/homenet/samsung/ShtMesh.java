@@ -23,7 +23,7 @@ public final class ShtMesh {
   for(int ring=0;ring<5;ring++){float a=ring*(float)Math.PI/8,an=(ring+1)*(float)Math.PI/8;for(int i=0;i<32;i++){int[] indices={i,i,(i+1)%32,(i+1)%32};float[] angles={a,an,an,a};for(int j=0;j<4;j++){float ang=Math.min(angles[j],(float)Math.PI/2);float expansion=b*(float)Math.sin(ang);var at=perimeter(p,indices[j],b-expansion);float z=p.z+p.d-b+b*(float)Math.cos(ang);if(ring==4)z=j==0||j==3?p.z+p.d-b:p.z;vertex(out,pose,at[0],at[1],z,at[2]*(float)Math.sin(ang),at[3]*(float)Math.sin(ang),(float)Math.cos(ang),c,light,.5f,.5f);}}}
  }
  public static void draw(PoseStack stack,MultiBufferSource buffers,int light,boolean docked,boolean folded,boolean cordless){
-  if(cordless){Part body=new Part("cordless",0,0,240,680,0,75,45,"#ecece1","",10);box(body,stack,buffers,light);
+  if(cordless){Part body=new Part("cordless",0,0,240,680,0,75,45,"#f4f1df","",10);box(body,stack,buffers,light);
   box(new Part("black_panel",43,190,154,61,75,1,12,"#253b34","",.5f),stack,buffers,light);
   box(new Part("talk",75,210,90,17,76,4,8,"#e1e2d5","",1),stack,buffers,light);
   for(int row=0;row<4;row++)for(int col=0;col<3;col++)box(new Part("dial",50+col*55,275+row*48,30,30,75,5,15,"#294637","",1.5f),stack,buffers,light);
@@ -32,8 +32,8 @@ public final class ShtMesh {
   for(int i=0;i<40;i++){float a=i*(float)Math.PI/20,b=(i+1)*(float)Math.PI/20;for(float[] v:new float[][]{{120+60*(float)Math.cos(a),90+60*(float)Math.sin(a),82},{120+60*(float)Math.cos(b),90+60*(float)Math.sin(b),82},{120+43*(float)Math.cos(b),90+43*(float)Math.sin(b),76},{120+43*(float)Math.cos(a),90+43*(float)Math.sin(a),76}})vertex(ear,stack.last(),v[0],v[1],v[2],0,0,1,0xcfd2c2,light,.5f,.5f);}
   for(int i=0;i<8;i++){float a=i*(float)Math.PI/4;box(new Part("ear_hole",118+22*(float)Math.cos(a),88+22*(float)Math.sin(a),4,4,75,1,2,"#77816c","",.2f),stack,buffers,light);}
   quad(stack,buffers,0,0,240,680,81,Samsung.id("textures/handset_labels.png"),light);
-stack.pushPose();stack.translate(210,740-20,35);stack.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(-7));box(new Part("antenna",0,-210,6,230,0,6,3,"#59644f","",1),stack,buffers,light);stack.popPose();return;}
-  for(var p:parts()){if(p.group.equals("docked")&&!docked||p.group.equals("folded")&&!folded||p.group.equals("upright")&&folded)continue;if(p.group.equals("radio_antenna")){if(!docked)continue;stack.pushPose();stack.translate(124,740-115,0);stack.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(-24));stack.translate(-124,-(740-115),0);box(p,stack,buffers,light);stack.popPose();}else box(p,stack,buffers,light);}
+stack.pushPose();stack.translate(210,740-20,35);box(new Part("antenna",0,-210,6,230,0,6,3,"#59644f","",1),stack,buffers,light);stack.popPose();return;}
+  for(var p:parts()){if(p.group.equals("docked")&&!docked||p.group.equals("folded")&&!folded||p.group.equals("upright")&&folded)continue;if(p.group.equals("radio_antenna")){if(!docked)continue;stack.pushPose();stack.translate(124,740-115,0);stack.translate(-124,-(740-115),0);box(p,stack,buffers,light);stack.popPose();}else box(p,stack,buffers,light);}
   // Four sloping black faces form an actual opening instead of a printed recess.
   var out=buffers.getBuffer(RenderType.entityCutoutNoCull(Samsung.id("textures/white.png")));
   float[][] outer={{565,112,57},{815,112,57},{815,330,57},{565,330,57}},inner={{578,124,43},{802,124,43},{802,317,43},{578,317,43}};
