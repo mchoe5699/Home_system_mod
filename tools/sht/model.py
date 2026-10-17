@@ -12,12 +12,14 @@ def button(name,label,x,y,w,h,front=70,color=IV,group='base',textsize=8,labelY=N
  depth=3 if group=='radio' else (1.5 if h<15 else 2.3)
  body(name,x-w/2,y-h/2,w,h,front-depth,depth,min(w,h)/2-1,color,group,1 if group=='radio' else .6)
  keys.append(dict(name=name,label=label,x=x,y=y,w=w,h=h,group=group,size=textsize,labelY=labelY))
-# Pink mounting trim is 0.3 mm at the standard 1 block = 1 m scale.
+# Pink mounting trim is 0.5 mm at the standard 1 block = 1 m scale.
 SCALE=.5/824
-FRAME_DEPTH=.0003/SCALE
+FRAME_DEPTH=.0005/SCALE
 body('mount_plate',76,48,895,652,0,FRAME_DEPTH,9,EDGE)
 # One connected body skin, with true openings, replaces all separately boxed caps/panels.
 SHELL_HOLES=[[170,136,116,480],[548,129,248,216],[838,228,48,14],[838,260,48,14]]
+# Real cover boundaries; shallow continuous grooves rather than separated boxes.
+SEAMS=[[x,110,x,646] for x in [154,298,456,518,830,891]]+[[x0,y,x1,y] for y in [110,646] for x0,x1 in [(154,456),(518,891)]]
 body('body_shell',110,89,824,583,40,28,12,IV)
 body('cradle_void',170,136,116,480,40,20,0,IV)
 # Deep cradle with retaining hook, contacts and visible horizontal speaker openings.
@@ -107,8 +109,6 @@ def ink(remote):
   d.rounded_rectangle((369,336,388,344),2,fill='#668e9f');d.line((373,336,376,332,382,332,386,336),fill='#668e9f',width=2);d.ellipse((372,342,376,346),fill='#668e9f');d.ellipse((382,342,386,346),fill='#668e9f')
   text(339,398,'화재',8);text(380,398,'가스',8)
   text(494,231,'충전',8);text(494,251,'전원',8);text(486,625,'• •',9)
-  for xx,y0,y1 in [(298,110,646),(518,110,646),(830,110,646)]:d.line((xx,y0,xx,y1),fill='#8a917a65',width=1)
-  for x0,x1,yy in [(155,455,646),(520,890,646),(520,890,110)]:d.line((x0,yy,x1,yy),fill='#8a917a65',width=1)
  return im
 for remote in (False,True):ink(remote).save(a/('textures/radio_ink.png' if remote else 'textures/base_ink.png'))
 # UI drawings use the identical geometry and key coordinates, never game screenshots.
@@ -171,9 +171,15 @@ for remote,docked in [(False,False),(False,True),(True,False)]:
    d.rounded_rectangle((548+18*q,129+25*q,796-18*q,345-17*q),max(2,8-6*q),fill=(v,v+7,v+7,255))
   d.rounded_rectangle((578,174,770,318),3,fill='#8d9691')
   d.line((579,175,769,175),fill='#a7afa3',width=2)
- im.alpha_composite(ink(remote));im.save(a/('textures/radio_gui.png' if remote else 'textures/base_'+('docked' if docked else 'empty')+'.png'))
+ im.alpha_composite(ink(remote))
+ if not remote:
+  d=ImageDraw.Draw(im)
+  for x0,y0,x1,y1 in SEAMS:
+   d.line((x0,y0,x1,y1),fill='#979a87',width=2)
+   d.line((x0+1,y0+1,x1+1,y1+1),fill='#faf8e9',width=1)
+ im.save(a/('textures/radio_gui.png' if remote else 'textures/base_'+('docked' if docked else 'empty')+'.png'))
 Image.new('RGBA',(2,2),'white').save(a/'textures/solid.png')
-(a/'model.json').write_text(json.dumps(dict(parts=parts,keys=keys,shell=dict(bounds=[110,89,934,672],back=40,front=68,radius=12,sideRoll=[44,43,10],holes=SHELL_HOLES),mounting=dict(frame=FRAME_DEPTH,back=40,front=68,depth=24),frame_thickness_blocks=.0003,scale=.5/824,blue=[110,89,934,672],outer=[76,48,971,700]),ensure_ascii=False))
+(a/'model.json').write_text(json.dumps(dict(parts=parts,keys=keys,shell=dict(bounds=[110,89,934,672],back=40,front=68,radius=12,sideRoll=[44,43,10],seams=SEAMS,holes=SHELL_HOLES),mounting=dict(frame=FRAME_DEPTH,back=40,front=68,depth=24),frame_thickness_blocks=.0005,scale=.5/824,blue=[110,89,934,672],outer=[76,48,971,700]),ensure_ascii=False))
 for folder in ['models/item','blockstates','lang']:(a/folder).mkdir(parents=True,exist_ok=True)
 for n in ['sht_101c','wireless_handset']:(a/f'models/item/{n}.json').write_text('{"parent":"builtin/entity"}')
 (a/'blockstates/sht_101c.json').write_text('{"variants":{"":{"model":"minecraft:block/air"}}}')

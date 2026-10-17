@@ -36,7 +36,7 @@ assert hashlib.sha256((p.parent/"textures"/'radio_gui.png').read_bytes()).hexdig
 print("Handset shape, antenna and GUI textures match the approved 1.0.11 version")
 
 frame=next(s for s in parts if s['name']=='mount_plate')
-assert math.isclose(frame['d']*m['scale'],.0003,abs_tol=1e-12)
+assert math.isclose(frame['d']*m['scale'],.0005,abs_tol=1e-12)
 mount=m['mounting']
 ratio=mount['depth']/(mount['front']-mount['back'])
 def mounted(z):return mount['frame']+(z-mount['back'])*ratio
@@ -48,7 +48,7 @@ assert sum(s['name']=='body_shell' for s in parts)==1
 assert not any(s['name'].startswith('face_') or s['name'] in ['mount_lip','dial_panel','dial_bottom_cap','monitor_top_cap','monitor_bottom_cap','side_strip','left_rounded_end','right_rounded_end'] for s in parts)
 assert m['shell']['bounds']==[110,89,934,672]
 assert [548,129,248,216] in m['shell']['holes'] and [170,136,116,480] in m['shell']['holes']
-print('Outer trim exactly 0.3 mm; body is one shell reaching the sheet, with no separate bars/panel boxes')
+print('Outer trim exactly 0.5 mm; body is one shell reaching the sheet, with no separate bars/panel boxes')
 
 print(f"Body panel depth {mount['depth']*m['scale']*1000:.3f} mm; front moved {(mount['front']-mounted(mount['front']))*m['scale']*1000:.3f} mm toward wall; handset shape remains rigid")
 

@@ -11,7 +11,7 @@ public final class Surface {
  public static final float SCALE=.5f/824;
  public record Solid(String name,float x,float y,float w,float h,float z,float d,float r,String color,String group,float curve){}
  public record Key(String name,String label,float x,float y,float w,float h,String group){}
- public record Shell(float[] bounds,float back,float front,float radius,float[] sideRoll,float[][] holes){}
+ public record Shell(float[] bounds,float back,float front,float radius,float[] sideRoll,float[][] seams,float[][] holes){}
  public record Mount(float frame,float back,float front,float depth){}
  static Mount mounting;static Shell casing;static List<Solid> solids;static List<Key> buttons;
  static void load(){if(solids!=null)return;try(var r=Minecraft.getInstance().getResourceManager().openAsReader(Product.id("model.json"))){var o=JsonParser.parseReader(r).getAsJsonObject();Gson g=new Gson();casing=g.fromJson(o.get("shell"),Shell.class);mounting=g.fromJson(o.get("mounting"),Mount.class);solids=new ArrayList<>();buttons=new ArrayList<>();for(var e:o.getAsJsonArray("parts"))solids.add(g.fromJson(e,Solid.class));for(var e:o.getAsJsonArray("keys"))buttons.add(g.fromJson(e,Key.class));}catch(Exception e){throw new IllegalStateException(e);}}
@@ -65,17 +65,22 @@ public final class Surface {
   }
  }
  // A single continuous shell: no independent top/bottom bars or overlapping panel boxes.
+ static float seamDistance(float x,float y){
+  float distance=Float.POSITIVE_INFINITY;
+  for(float[] line:casing.seams){float dx=line[2]-line[0],dy=line[3]-line[1];float t=Math.max(0,Math.min(1,((x-line[0])*dx+(y-line[1])*dy)/(dx*dx+dy*dy)));float u=x-line[0]-t*dx,v=y-line[1]-t*dy;distance=Math.min(distance,u*u+v*v);}
+  return (float)Math.sqrt(distance);
+ }
  static float shellZ(float x,float y){
   float[] a=casing.bounds;float fromEdge=Math.min(y-a[1],a[3]-y);float t=Math.max(0,Math.min(1,fromEdge/8));
   float z=casing.front-4*(1-t)*(1-t);
   float width=x<(a[0]+a[2])/2?casing.sideRoll[0]:casing.sideRoll[1];
   float edge=Math.min(x-a[0],a[2]-x);float u=Math.max(0,Math.min(1,1-edge/width));
   z-=casing.sideRoll[2]*(1-(float)Math.sqrt(Math.max(0,1-u*u)))*t;
-  if(y>=110&&y<=646&&Math.abs(x-518)<.65f)z-=.6f*(1-Math.abs(x-518)/.65f);
+  z-=1.2f*Math.max(0,1-seamDistance(x,y)/1.1f);
   return z;
  }
  static float shellLeft(float y){float[] a=casing.bounds;float r=casing.radius,dy=y<a[1]+r?y-a[1]-r:y>a[3]-r?y-a[3]+r:0;return a[0]+r-(float)Math.sqrt(Math.max(0,r*r-dy*dy));}
- static void skinVertex(VertexConsumer b,PoseStack p,float x,float y,int light){float nx=-(shellZ(x+.2f,y)-shellZ(x-.2f,y))*2.5f,ny=-(shellZ(x,y+.2f)-shellZ(x,y-.2f))*2.5f;float n=(float)Math.sqrt(1+nx*nx+ny*ny);vertex(b,p.last(),x,y,shellZ(x,y),nx/n,ny/n,1/n,0xf1efdf,light,.5f,.5f);}
+ static void skinVertex(VertexConsumer b,PoseStack p,float x,float y,int light){float nx=-(shellZ(x+.2f,y)-shellZ(x-.2f,y))*2.5f,ny=-(shellZ(x,y+.2f)-shellZ(x,y-.2f))*2.5f;float n=(float)Math.sqrt(1+nx*nx+ny*ny);vertex(b,p.last(),x,y,shellZ(x,y),nx/n,ny/n,1/n,seamDistance(x,y)<.46f?0x929584:0xf1efdf,light,.5f,.5f);}
  static void shell(PoseStack p,MultiBufferSource out,int light){
   var b=out.getBuffer(RenderType.entityCutoutNoCull(Product.id("textures/solid.png")));
   var xx=new TreeSet<Float>();var yy=new TreeSet<Float>();float[] a=casing.bounds;
@@ -83,6 +88,9 @@ public final class Surface {
   for(float x=110;x<=154;x+=2)xx.add(x);for(float x=891;x<=934;x+=2)xx.add(x);
   xx.add(a[2]);xx.add(517.35f);xx.add(518f);xx.add(518.65f);yy.add(a[3]);yy.add(110f);yy.add(646f);for(float y:new float[]{91,93,95,97,101,660,664,668,670})yy.add(y);
   for(float[] h:casing.holes){xx.add(h[0]);xx.add(h[0]+h[2]);yy.add(h[1]);yy.add(h[1]+h[3]);}
+  for(float[] seam:casing.seams)for(float d:new float[]{-1.1f,-.45f,0,.45f,1.1f}){
+   if(seam[0]==seam[2])xx.add(seam[0]+d);else yy.add(seam[1]+d);
+  }
   var xs=new ArrayList<>(xx);var ys=new ArrayList<>(yy);
   for(int row=0;row<ys.size()-1;row++){
    float y0=ys.get(row),y1=ys.get(row+1),l0=shellLeft(y0),l1=shellLeft(y1),r0=a[0]+a[2]-l0,r1=a[0]+a[2]-l1;
