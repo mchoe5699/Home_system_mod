@@ -30,6 +30,14 @@ final class MeshProbe {
    float x=(seam.x0()+seam.x1())/2,y=(seam.y0()+seam.y1())/2;var v=nearest(solid.vertices,x,y);
    if(Math.abs(v.z-Surface.bodyDepth(68-seam.depth()))>.01)throw new AssertionError("Cover joint missing or disconnected at "+x+","+y+" z="+v.z);
   }
+  var frame=Surface.solids.stream().filter(v->v.name().equals("mount_plate")).findFirst().orElseThrow();
+  if(Math.abs(frame.x()+frame.w()/2-(110+934)/2f)>.001||Math.abs(frame.y()+frame.h()/2-(89+672)/2f)>.001)throw new AssertionError("Outer trim is not centered on body");
+  for(var button:Surface.solids)if(button.group().equals("base")&&java.util.Set.of("security","away","memory","hold","redial","guard","door","speaker").contains(button.name())){
+   var face=new Capture();Surface.solid(button,new PoseStack(),type->face,15728880);
+   var center=nearest(face.vertices,button.x()+button.w()/2,button.y()+button.h()/2);
+   var side=nearest(face.vertices,button.x()+button.w()*.2,button.y()+button.h()/2);
+   if(center.z-side.z<.10||center.z-side.z>.5)throw new AssertionError("Central button face is flat or excessively domed: "+button.name());
+  }
   var docked=new Capture();Surface.draw(new PoseStack(),type->type==expected?docked:ignored,15728880,false,true,true);
   var originalHandset=new Capture();for(var part:Surface.solids)if(part.group().equals("docked"))Surface.solid(part,new PoseStack(),type->originalHandset,15728880);
   double expectedShift=Surface.bodyDepth(68)-68;

@@ -8,7 +8,6 @@ public final class Indicators {
   new Lamp(POWER,460,249,12,4,0xff6553,false),new Lamp(CHARGE,460,229,12,4,0x9fe16c,false),
   new Lamp(ARMED,460,268,12,4,0xa7df71,false),new Lamp(AWAY,460,305,12,4,0xa7df71,false),
   new Lamp(DOOR,460,533,12,4,0xa7df71,false),new Lamp(GUARD,460,496,12,4,0xa7df71,false),new Lamp(LINE,460,573,12,4,0xa7df71,false),
-  new Lamp(FIRE,318,182,20,20,0xff6653,true),new Lamp(GAS,366,182,20,20,0xf5df58,true),new Lamp(SECURITY,410,182,20,20,0x87e77c,true),
-  new Lamp(EMERGENCY,460,174,12,4,0xff6653,false));
+  new Lamp(FIRE,318,182,20,20,0xff6653,true),new Lamp(GAS,366,182,20,20,0xf5df58,true),new Lamp(SECURITY,410,182,20,20,0x87e77c,true));
  private Indicators(){}
 }

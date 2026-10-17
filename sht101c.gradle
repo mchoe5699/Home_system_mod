@@ -1,5 +1,5 @@
 plugins { id 'net.minecraftforge.gradle' version '[6.0.16,6.2)' }
-version='1.0.20'
+version='1.0.21'
 group='com.qwerty.homenet'
 base { archivesName='sht101c' }
 layout.buildDirectory=file('build/sht101c')

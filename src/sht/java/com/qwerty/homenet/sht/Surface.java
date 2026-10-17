@@ -148,7 +148,7 @@ public final class Surface {
    solid(s,p,out,light);
   }
   shell(p,out,light);throat(p,out,light);cradle(p,out,light);vents(p,out,light);
-  rectangle(p,out,0,0,1042,702,71.8f,Product.id("textures/base_ink.png"),light);
+  rectangle(p,out,0,0,1042,720,71.8f,Product.id("textures/base_ink.png"),light);
   p.popPose();
   // Keep handset proportions and antenna cross-sections intact; translate the docked assembly rigidly.
   if(docked){p.pushPose();p.translate(0,0,handsetShift());for(var s:solids)if(s.group.equals("docked"))solid(s,p,out,light);p.popPose();}

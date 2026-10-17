@@ -23,7 +23,7 @@ public class ClientRun {
  static void check(boolean value,String text){if(!value)throw new AssertionError(text);}
  static void server(Minecraft mc,java.util.function.Consumer<net.minecraft.server.MinecraftServer> f){mc.getSingleplayerServer().execute(()->{try{f.accept(mc.getSingleplayerServer());}catch(Throwable t){error=t;}});}
  static void block(Minecraft mc,BlockPos p){mc.gameMode.useItemOn(mc.player,InteractionHand.MAIN_HAND,new BlockHitResult(Vec3.atCenterOf(p),Direction.NORTH,p,false));}
- static void click(Controls c,float px,float py){c.mouseClicked(c.x+(px-(c.radio?0:76))*c.scale,c.y+(py-(c.radio?0:48))*c.scale,0);c.mouseReleased(0,0,0);}
+ static void click(Controls c,float px,float py){c.mouseClicked(c.x+(px-(c.radio?0:Controls.BASE_X))*c.scale,c.y+(py-(c.radio?0:Controls.BASE_Y))*c.scale,0);c.mouseReleased(0,0,0);}
  @SubscribeEvent public static void run(TickEvent.ClientTickEvent e){if(!Boolean.getBoolean("sht.clientTest")||e.phase!=TickEvent.Phase.END)return;var mc=Minecraft.getInstance();try{
   if(error!=null)throw new AssertionError(error);if(++age>3600)throw new AssertionError("Timed out stage "+step+" ready "+ready);
   switch(step){

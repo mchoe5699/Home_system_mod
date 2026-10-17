@@ -43,7 +43,7 @@ public final class Product {
  public static final RegistryObject<BlockEntityType<Station>> TYPE=ENTITIES.register("station",()->BlockEntityType.Builder.of(Station::new,STATION.get()).build(null));
  public Product(){IEventBus bus=FMLJavaModLoadingContext.get().getModEventBus();BLOCKS.register(bus);ITEMS.register(bus);ENTITIES.register(bus);TABS.register("samsung",()->CreativeModeTab.builder().title(Component.literal("SAMSUNG SHT-101C")).icon(()->new ItemStack(BASE_ITEM.get())).displayItems((a,o)->o.accept(BASE_ITEM.get())).build());TABS.register(bus);Wire.init();}
  public static class StationBlock extends WallMountedBlock {
-  public StationBlock(){super(Properties.of().strength(1.5f).noOcclusion(),4.36,4.8,11.2,1.0);registerDefaultState(stateDefinition.any().setValue(FACING,Direction.NORTH).setValue(com.qwerty.homenet.block.WallpadBlock.RINGING,false));}
+  public StationBlock(){super(Properties.of().strength(1.5f).noOcclusion(),4.36,4.7,11.2,1.0);registerDefaultState(stateDefinition.any().setValue(FACING,Direction.NORTH).setValue(com.qwerty.homenet.block.WallpadBlock.RINGING,false));}
   protected void createBlockStateDefinition(StateDefinition.Builder<Block,BlockState> b){b.add(FACING,com.qwerty.homenet.block.WallpadBlock.RINGING);}
   public net.minecraft.world.phys.shapes.VoxelShape getShape(BlockState s,BlockGetter l,BlockPos p,net.minecraft.world.phys.shapes.CollisionContext c){return com.qwerty.homenet.move.DeviceOffsets.shape(super.getShape(s,l,p,c),l,p);}
   public RenderShape getRenderShape(BlockState s){return RenderShape.ENTITYBLOCK_ANIMATED;}

@@ -3,6 +3,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.RenderType;
 final class LampProbe {
  static void verify(Station base,int alarm){
+  ClientRun.check(Indicators.LAMPS.stream().noneMatch(l->l.bit()==Indicators.EMERGENCY),"Emergency button must not emit light");
   int state=base.lights();ClientRun.check((state&Indicators.FIRE)==alarm,"Wrong synchronized lamp state");
   for(var lamp:Indicators.LAMPS){
    var capture=new MeshProbe.Capture();var type=RenderType.entityTranslucentEmissive(Product.id("textures/solid.png"));

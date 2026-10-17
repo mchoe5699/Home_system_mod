@@ -61,3 +61,11 @@ assert main['y0']==89 and main['y1']==672
 assert {(j['width'],j['depth'],j['color']) for j in seams}=={(2.2,1.2,0x929584)}
 assert any(j['name']=='brand_keypad' and j['y0']==230 and j['x0']==298 and j['x1']==456 for j in seams)
 print('Photo joint positions preserved; uniform original width, depth and shading restored')
+
+outer=m['outer'];blue=m['blue']
+assert math.isclose((outer[0]+outer[2])/2,(blue[0]+blue[2])/2)
+assert math.isclose((outer[1]+outer[3])/2,(blue[1]+blue[3])/2)
+buttons=[v for v in parts if v['group']=='base' and v['name'] in ['security','away','memory','hold','redial','guard','door','speaker']]
+assert len({(v['z'],v['d'],v['curve']) for v in buttons})==1
+assert all(v['curve']==.5 and v['d']==1.0 for v in buttons)
+print('Mounting trim centered on body in both axes; central lower buttons share a subtle convex front')

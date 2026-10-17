@@ -15,7 +15,7 @@ def button(name,label,x,y,w,h,front=70,color=IV,group='base',textsize=8,labelY=N
 # Pink mounting trim is 0.5 mm at the standard 1 block = 1 m scale.
 SCALE=.5/824
 FRAME_DEPTH=.0005/SCALE
-body('mount_plate',76,48,895,652,0,FRAME_DEPTH,9,EDGE)
+body('mount_plate',74.5,54.5,895,652,0,FRAME_DEPTH,9,EDGE)
 # One connected body skin, with true openings, replaces all separately boxed caps/panels.
 SHELL_HOLES=[[170,136,116,480],[548,129,248,216],[838,228,48,14],[838,260,48,14]]
 # Real cover boundaries; shallow continuous grooves rather than separated boxes.
@@ -51,7 +51,7 @@ for row,vs in enumerate(['123','456','789','*0#']):
  for col,k in enumerate(vs):button('n'+k,k,339+40*col,425+40*row,29,30,front=71,textsize=20)
 for n,t,x in [('up','▲',340),('down','▼',380),('intercom','호출',421)]:button(n,t,x,597,31,10,labelY=580)
 for n,t,y,h in [('emergency','비상',191,39),('security','방범',285,37),('away','외출',323,37),('memory','메모리',397,37),('hold','보류',436,37),('redial','재다이얼',475,37),('guard','경비실',514,37),('door','문/열림',552,37),('speaker','스피커',591,37)]:
- body(n,458,y-h/2,58,h,68.1,.9,0.3,'#d98748' if n=='emergency' else IV,curve=.1)
+ body(n,458,y-h/2,58,h,68.1,.9 if n=='emergency' else 1.0,.3 if n=='emergency' else .6,'#d98748' if n=='emergency' else IV,curve=.1 if n=='emergency' else .5)
  keys.append(dict(name=n,label=t,x=487,y=y,w=58,h=h,group='base',size=9,labelY=None))
 # Central gaps are genuinely flush blanks, not extra unlabeled buttons.
 for n,y in [('charge',231),('power',251),('security_lamp',270),('away_lamp',307),('guard_lamp',498),('door_lamp',535),('speaker_lamp',575)]:body(n,460,y-2,12,4,71,1,1,'#788474')
@@ -98,7 +98,7 @@ body('radio_aerial',181,-295,5,305,20,5,2,'#3e4d3d','radio')
 fonts='/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc'
 def font(sz,bold=False):return ImageFont.truetype(fonts.replace('Regular','Bold') if bold else fonts,sz,index=1)
 def ink(remote):
- im=Image.new('RGBA',(1042,950 if remote else 702));d=ImageDraw.Draw(im)
+ im=Image.new('RGBA',(1042,950 if remote else 720));d=ImageDraw.Draw(im)
  def text(x,y,t,size=9,color='#4d574b'):d.text((x,y),t,font=font(size,t=='SAMSUNG' and not remote),fill=color,anchor='mm')
  for k in keys:
   if (k['group']=='radio')!=remote:continue
@@ -125,7 +125,7 @@ def ink(remote):
 for remote in (False,True):ink(remote).save(a/('textures/radio_ink.png' if remote else 'textures/base_ink.png'))
 # UI drawings use the identical geometry and key coordinates, never game screenshots.
 for remote,docked in [(False,False),(False,True),(True,False)]:
- im=Image.new('RGBA',(1042,950 if remote else 702));d=ImageDraw.Draw(im)
+ im=Image.new('RGBA',(1042,950 if remote else 720));d=ImageDraw.Draw(im)
  for p in sorted(parts,key=lambda p:p['z']+p['d']):
   if remote and p['group']!='radio' or not remote and p['group'] not in ['base','docked','folded'] or not remote and p['group']=='docked' and not docked:continue
   x,y,w,h=p['x'],p['y'],p['w'],p['h'];rad=min(p['r'],w/2,h/2)
@@ -163,6 +163,11 @@ for remote,docked in [(False,False),(False,True),(True,False)]:
      d.rounded_rectangle((x,y,x+w,y+h),rad,fill='#eeeddf',outline='#b9bdab',width=1)
      d.line((x+rad,y+1,x+w-rad,y+1),fill='#ffffffb0',width=1)
     else:
+     if p['name']!='emergency':
+      for row in range(int(h)):
+       dome=max(0,1-(2*(row+.5)/h-1)**2);shade=round(236+7*dome)
+       d.line((x,y+row,x+w,y+row),fill=(shade,shade-2,shade-15,255))
+      d.line((x+1,y+1,x+w-1,y+1),fill='#f8f6e7',width=1)
      d.line((x,y+h,x+w,y+h),fill='#b5b9a5',width=1)
    if p['name'] in ['left_rounded_end','right_rounded_end']:
     mask=Image.new('L',im.size);ImageDraw.Draw(mask).rounded_rectangle((x,y,x+w,y+h),rad,fill=255)
@@ -194,7 +199,7 @@ for remote,docked in [(False,False),(False,True),(True,False)]:
   im.alpha_composite(seam_layer.resize(im.size,Image.Resampling.LANCZOS))
  im.save(a/('textures/radio_gui.png' if remote else 'textures/base_'+('docked' if docked else 'empty')+'.png'))
 Image.new('RGBA',(2,2),'white').save(a/'textures/solid.png')
-(a/'model.json').write_text(json.dumps(dict(parts=parts,keys=keys,shell=dict(bounds=[110,89,934,672],back=40,front=68,radius=12,sideRoll=[44,43,10],seams=SEAMS,holes=SHELL_HOLES),mounting=dict(frame=FRAME_DEPTH,back=40,front=68,depth=24),frame_thickness_blocks=.0005,scale=.5/824,blue=[110,89,934,672],outer=[76,48,971,700]),ensure_ascii=False))
+(a/'model.json').write_text(json.dumps(dict(parts=parts,keys=keys,shell=dict(bounds=[110,89,934,672],back=40,front=68,radius=12,sideRoll=[44,43,10],seams=SEAMS,holes=SHELL_HOLES),mounting=dict(frame=FRAME_DEPTH,back=40,front=68,depth=24),frame_thickness_blocks=.0005,scale=.5/824,blue=[110,89,934,672],outer=[74.5,54.5,969.5,706.5]),ensure_ascii=False))
 for folder in ['models/item','blockstates','lang']:(a/folder).mkdir(parents=True,exist_ok=True)
 for n in ['sht_101c','wireless_handset']:(a/f'models/item/{n}.json').write_text('{"parent":"builtin/entity"}')
 (a/'blockstates/sht_101c.json').write_text('{"variants":{"":{"model":"minecraft:block/air"}}}')
