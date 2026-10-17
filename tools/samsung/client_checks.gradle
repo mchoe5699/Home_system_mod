@@ -1,0 +1,7 @@
+allprojects {
+ afterEvaluate {
+  minecraft.runs.client.property 'homenet.shtClientCheck','true'
+  minecraft.runs.client.mods.qwertys_homenet_samsung.source sourceSets.test
+  tasks.matching { it.name == 'runClient' }.configureEach { dependsOn tasks.named('testClasses') }
+ }
+}
