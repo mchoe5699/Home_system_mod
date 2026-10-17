@@ -18,7 +18,7 @@ FRAME_DEPTH=.0002/SCALE
 body('mount_plate',76,48,895,652,0,FRAME_DEPTH,9,EDGE)
 # One connected body skin, with true openings, replaces all separately boxed caps/panels.
 SHELL_HOLES=[[170,136,116,480],[548,129,248,216],[838,228,48,14],[838,260,48,14]]
-body('body_shell',110,89,824,583,FRAME_DEPTH,68-FRAME_DEPTH,12,IV)
+body('body_shell',110,89,824,583,40,28,12,IV)
 body('cradle_void',170,136,116,480,40,20,0,IV)
 # Deep cradle with retaining hook, contacts and visible horizontal speaker openings.
 body('hook',207,271,32,44,56,12,4,IV)
@@ -173,7 +173,7 @@ for remote,docked in [(False,False),(False,True),(True,False)]:
   d.line((579,175,769,175),fill='#a7afa3',width=2)
  im.alpha_composite(ink(remote));im.save(a/('textures/radio_gui.png' if remote else 'textures/base_'+('docked' if docked else 'empty')+'.png'))
 Image.new('RGBA',(2,2),'white').save(a/'textures/solid.png')
-(a/'model.json').write_text(json.dumps(dict(parts=parts,keys=keys,shell=dict(bounds=[110,89,934,672],back=FRAME_DEPTH,front=68,radius=12,holes=SHELL_HOLES),frame_thickness_blocks=.0002,scale=.5/824,blue=[110,89,934,672],outer=[76,48,971,700]),ensure_ascii=False))
+(a/'model.json').write_text(json.dumps(dict(parts=parts,keys=keys,shell=dict(bounds=[110,89,934,672],back=40,front=68,radius=12,holes=SHELL_HOLES),mounting=dict(frame=FRAME_DEPTH,back=40,front=68,depth=24),frame_thickness_blocks=.0002,scale=.5/824,blue=[110,89,934,672],outer=[76,48,971,700]),ensure_ascii=False))
 for folder in ['models/item','blockstates','lang']:(a/folder).mkdir(parents=True,exist_ok=True)
 for n in ['sht_101c','wireless_handset']:(a/f'models/item/{n}.json').write_text('{"parent":"builtin/entity"}')
 (a/'blockstates/sht_101c.json').write_text('{"variants":{"":{"model":"minecraft:block/air"}}}')

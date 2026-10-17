@@ -37,9 +37,17 @@ print("Handset shape, antenna and GUI textures match the approved 1.0.11 version
 
 frame=next(s for s in parts if s['name']=='mount_plate')
 assert math.isclose(frame['d']*m['scale'],.0002,abs_tol=1e-12)
-assert frame['z']==0 and math.isclose(m['shell']['back'],frame['d'])
+mount=m['mounting']
+ratio=mount['depth']/(mount['front']-mount['back'])
+def mounted(z):return mount['frame']+(z-mount['back'])*ratio
+assert frame['z']==0 and math.isclose(mounted(m['shell']['back']),frame['d'])
+assert 0<mount['depth']<mount['front']-mount['back']
+assert mounted(mount['front'])<mount['front']-40
+assert math.isclose(mounted(mount['front'])-frame['d'],24)
 assert sum(s['name']=='body_shell' for s in parts)==1
 assert not any(s['name'].startswith('face_') or s['name'] in ['mount_lip','dial_panel','dial_bottom_cap','monitor_top_cap','monitor_bottom_cap','side_strip','left_rounded_end','right_rounded_end'] for s in parts)
 assert m['shell']['bounds']==[110,89,934,672]
 assert [548,129,248,216] in m['shell']['holes'] and [170,136,116,480] in m['shell']['holes']
 print('Outer trim exactly 0.2 mm; body is one shell reaching the sheet, with no separate bars/panel boxes')
+
+print(f"Body panel depth {mount['depth']*m['scale']*1000:.3f} mm; front moved {(mount['front']-mounted(mount['front']))*m['scale']*1000:.3f} mm toward wall; handset shape remains rigid")
