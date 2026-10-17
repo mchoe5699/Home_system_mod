@@ -1,0 +1,26 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="All Rights Reserved"
+[[mods]]
+modId="qwertys_homenet_samsung"
+version="1.0.9"
+displayName="HomeNet Samsung SHT-101C"
+description='''Samsung SHT-101C BUS/STAR home automation and cordless handset.'''
+[[dependencies.qwertys_homenet_samsung]]
+modId="qwertys_homenet"
+mandatory=true
+versionRange="[1.0.8,)"
+ordering="AFTER"
+side="BOTH"
+[[dependencies.qwertys_homenet_samsung]]
+modId="forge"
+mandatory=true
+versionRange="[47,)"
+ordering="NONE"
+side="BOTH"
+[[dependencies.qwertys_homenet_samsung]]
+modId="minecraft"
+mandatory=true
+versionRange="[1.20.1,1.21)"
+ordering="NONE"
+side="BOTH"
