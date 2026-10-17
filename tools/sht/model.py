@@ -12,26 +12,14 @@ def button(name,label,x,y,w,h,front=70,color=IV,group='base',textsize=8,labelY=N
  depth=3 if group=='radio' else (1.5 if h<15 else 2.3)
  body(name,x-w/2,y-h/2,w,h,front-depth,depth,min(w,h)/2-1,color,group,1 if group=='radio' else .6)
  keys.append(dict(name=name,label=label,x=x,y=y,w=w,h=h,group=group,size=textsize,labelY=labelY))
-# Rear boxes, mounting plate and independent shell covers. Side photo exposes ventilated lower cases.
-body('mount_plate',76,48,895,652,0,35,9,EDGE)
-body('mount_lip',86,60,875,630,35,5,8,IV)
-body('left_rounded_end',110,89,44,583,40,38,17,IV,curve=5)
-body('right_rounded_end',891,89,43,583,40,38,17,IV,curve=5)
-# Four coplanar faces leave a true opening; no white sheet covers the bowl.
-for n,x,y,w,h in [('cradle_top',155,90,143,46),('cradle_bottom',155,616,143,54),('cradle_left',155,136,15,480),('cradle_right',286,136,12,480)]:
- body('face_'+n,x,y,w,h,40,27,0,IV)
+# Pink mounting trim is 0.2 mm at the standard 1 block = 1 m scale.
+SCALE=.5/824
+FRAME_DEPTH=.0002/SCALE
+body('mount_plate',76,48,895,652,0,FRAME_DEPTH,9,EDGE)
+# One connected body skin, with true openings, replaces all separately boxed caps/panels.
+SHELL_HOLES=[[170,136,116,480],[548,129,248,216],[838,228,48,14],[838,260,48,14]]
+body('body_shell',110,89,824,583,FRAME_DEPTH,68-FRAME_DEPTH,12,IV)
 body('cradle_void',170,136,116,480,40,20,0,IV)
-body('dial_panel',300,89,155,557,40,28,3,IV)
-body('dial_bottom_cap',155,647,300,24,40,28,3,IV)
-# Leave the entire CRT aperture open at every depth in front of the glass.
-for n,x,y,w,h in [('screen_top',520,110,310,19),('screen_bottom',520,345,310,301),('screen_left',520,129,28,216),('screen_right',796,129,34,216)]:
- body('face_'+n,x,y,w,h,40,28,0,IV)
-body('monitor_top_cap',520,88,370,22,40,28,3,IV)
-# A pair of actual recessed tracks interrupt the otherwise flush right strip.
-for n,x,y,w,h in [('slider_top',830,110,59,118),('slider_middle',830,242,59,18),('slider_bottom',830,274,59,372),('slider_left',830,228,8,46),('slider_right',886,228,3,46)]:
- body('face_'+n,x,y,w,h,40,28,0,IV)
-body('monitor_bottom_cap',520,646,370,25,40,28,3,IV)
-body('side_strip',457,110,61,537,40,28,1,IV)
 # Deep cradle with retaining hook, contacts and visible horizontal speaker openings.
 body('hook',207,271,32,44,56,12,4,IV)
 for row in range(4):
@@ -54,13 +42,13 @@ for n,t,y,h in [('emergency','비상',191,39),('security','방범',285,37),('awa
 # Central gaps are genuinely flush blanks, not extra unlabeled buttons.
 for n,y in [('charge',231),('power',251),('security_lamp',270),('away_lamp',307),('guard_lamp',498),('door_lamp',535),('speaker_lamp',575)]:body(n,460,y-2,12,4,71,1,1,'#788474')
 # CRT surround: rounded outer black face and a continuous sloping cavity.
-body('crt_outer',548,129,248,216,68,3,8,'#101b1d')
-body('crt_glass',578,174,192,144,53,1,3,'#8d9691')
+body('crt_outer',548,129,248,216,68,2,8,'#101b1d')
+body('crt_glass',578,174,192,144,64,1,3,'#8d9691')
 for n,y in [('contrast',233),('brightness',265)]:
  body(n+'_recess',838,y-5,48,14,59,1,2,'#b3b6a4')
  button(n,'명암조절' if n=='contrast' else '밝기조절',862,y,21,8,front=68,labelY=y-15)
 # Hidden bottom edges have drilled ventilation, visible in the new low-angle photographs.
-for x in range(539,814,13):body('bottom_vent',x,671,5,5,54,1,2,'#525a4c','underside')
+for x in range(539,814,13):body('bottom_vent',x,672,5,5,54,1,2,'#525a4c','underside')
 # Smooth, slightly waisted back of the cordless handset. Single sculpted surface, seam at lower cap.
 body('handset_back',145,126,151,514,68,60,37,IV,'docked',13)
 body('handset_cap_seam',153,570,134,1.1,140,1,.5,'#bcbfae','docked')
@@ -119,6 +107,8 @@ def ink(remote):
   d.rounded_rectangle((369,336,388,344),2,fill='#668e9f');d.line((373,336,376,332,382,332,386,336),fill='#668e9f',width=2);d.ellipse((372,342,376,346),fill='#668e9f');d.ellipse((382,342,386,346),fill='#668e9f')
   text(339,398,'화재',8);text(380,398,'가스',8)
   text(494,231,'충전',8);text(494,251,'전원',8);text(486,625,'• •',9)
+  for xx,y0,y1 in [(298,110,646),(518,110,646),(830,110,646)]:d.line((xx,y0,xx,y1),fill='#8a917a65',width=1)
+  for x0,x1,yy in [(155,455,646),(520,890,646),(520,890,110)]:d.line((x0,yy,x1,yy),fill='#8a917a65',width=1)
  return im
 for remote in (False,True):ink(remote).save(a/('textures/radio_ink.png' if remote else 'textures/base_ink.png'))
 # UI drawings use the identical geometry and key coordinates, never game screenshots.
@@ -127,6 +117,18 @@ for remote,docked in [(False,False),(False,True),(True,False)]:
  for p in sorted(parts,key=lambda p:p['z']+p['d']):
   if remote and p['group']!='radio' or not remote and p['group'] not in ['base','docked','folded'] or not remote and p['group']=='docked' and not docked:continue
   x,y,w,h=p['x'],p['y'],p['w'],p['h'];rad=min(p['r'],w/2,h/2)
+  if not remote and p['name']=='body_shell':
+   mask=Image.new('L',im.size);md=ImageDraw.Draw(mask);md.rounded_rectangle((110,89,934,672),12,fill=255)
+   for hx,hy,hw,hh in SHELL_HOLES:
+    if hx==170:md.rounded_rectangle((hx,hy,hx+hw,hy+hh),30,fill=0)
+    else:md.rectangle((hx,hy,hx+hw,hy+hh),fill=0)
+   layer=Image.new('RGBA',im.size,IV);ld=ImageDraw.Draw(layer)
+   for x0,ww in [(110,44),(891,43)]:
+    for xx in range(ww+1):
+     u=xx/ww;v=math.sin(math.pi*u);shade=int(229+12*v)
+     ld.line((x0+xx,89,x0+xx,672),fill=(shade,shade-2,shade-15,255))
+   im.paste(layer,(0,0),mask);d=ImageDraw.Draw(im)
+   continue
   if not remote and p['name']=='cradle_void':
    mask=Image.new('L',im.size);md=ImageDraw.Draw(mask);md.rounded_rectangle((170,136,286,616),30,fill=255)
    layer=Image.new('RGBA',im.size);ld=ImageDraw.Draw(layer)
@@ -162,10 +164,6 @@ for remote,docked in [(False,False),(False,True),(True,False)]:
   if remote and p['d']>2:d.rounded_rectangle((x+1,y+1,x+w-1,y+h-1),max(0,rad-1),outline='#ffffff80',width=1)
  
  if not remote:
-  # Hairline joints describe connected shell covers instead of highlighted stacked bars.
-  for xx,y0,y1 in [(155,90,670),(298,90,647),(455,89,646),(518,110,646),(830,110,646),(890,90,670)]:
-   d.line((xx,y0,xx,y1),fill='#c2c5b2',width=1)
-  for x0,x1,yy in [(155,455,647),(520,890,646),(520,890,110)]:d.line((x0,yy,x1,yy),fill='#c2c5b2',width=1)
   # Broad bezel, sloping throat and a separate 4:3 glass face.
   d.rounded_rectangle((548,129,796,345),8,fill='#172223')
   for t in range(18):
@@ -175,7 +173,7 @@ for remote,docked in [(False,False),(False,True),(True,False)]:
   d.line((579,175,769,175),fill='#a7afa3',width=2)
  im.alpha_composite(ink(remote));im.save(a/('textures/radio_gui.png' if remote else 'textures/base_'+('docked' if docked else 'empty')+'.png'))
 Image.new('RGBA',(2,2),'white').save(a/'textures/solid.png')
-(a/'model.json').write_text(json.dumps(dict(parts=parts,keys=keys,scale=.5/824,blue=[110,89,934,672],outer=[76,48,971,700]),ensure_ascii=False))
+(a/'model.json').write_text(json.dumps(dict(parts=parts,keys=keys,shell=dict(bounds=[110,89,934,672],back=FRAME_DEPTH,front=68,radius=12,holes=SHELL_HOLES),frame_thickness_blocks=.0002,scale=.5/824,blue=[110,89,934,672],outer=[76,48,971,700]),ensure_ascii=False))
 for folder in ['models/item','blockstates','lang']:(a/folder).mkdir(parents=True,exist_ok=True)
 for n in ['sht_101c','wireless_handset']:(a/f'models/item/{n}.json').write_text('{"parent":"builtin/entity"}')
 (a/'blockstates/sht_101c.json').write_text('{"variants":{"":{"model":"minecraft:block/air"}}}')

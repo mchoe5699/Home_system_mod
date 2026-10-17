@@ -21,11 +21,11 @@ assert any(s['group']=='folded' and s['w']>400 for s in parts)
 glass=next(s for s in parts if s['name']=='crt_glass')
 assert glass['w']/glass['h']==4/3
 for s in parts:
- if s['group']!='base' or s['name'] in ['crt_outer','crt_glass','cradle_void']:continue
+ if s['group']!='base' or s['name'] in ['body_shell','crt_outer','crt_glass','cradle_void']:continue
  overlap=s['x']<glass['x']+glass['w'] and s['x']+s['w']>glass['x'] and s['y']<glass['y']+glass['h'] and s['y']+s['h']>glass['y']
  assert not (overlap and s['z']+s['d']+s['curve']>glass['z']+glass['d']),('CRT covered',s['name'])
 assert not any(s['name'] in ['rear_controller','rear_monitor','rear_lower_slot'] for s in parts)
-assert all(s['group']=='underside' and s['y']==671 for s in parts if s['name']=='bottom_vent')
+assert all(s['group']=='underside' and s['y']==672 for s in parts if s['name']=='bottom_vent')
 print(f"{len(parts)} finite solids / {len(keys)} key regions: exact .5 blue width, uniform key rows, open 4:3 CRT, underside vents, no rear boxes")
 
 import hashlib
@@ -34,3 +34,12 @@ assert hashlib.sha256(json.dumps(handset,sort_keys=True).encode()).hexdigest()==
 assert hashlib.sha256((p.parent/"textures"/'radio_ink.png').read_bytes()).hexdigest()=='ead751e40e85c27464d70b6726fa152b19a27d4f1430d2a63d3a75101d8acc44'
 assert hashlib.sha256((p.parent/"textures"/'radio_gui.png').read_bytes()).hexdigest()=='6eb8ee8a60f48e179fe360735e58a125e0d8f4ce4bf54f7061ce2cda174cc964'
 print("Handset shape, antenna and GUI textures match the approved 1.0.11 version")
+
+frame=next(s for s in parts if s['name']=='mount_plate')
+assert math.isclose(frame['d']*m['scale'],.0002,abs_tol=1e-12)
+assert frame['z']==0 and math.isclose(m['shell']['back'],frame['d'])
+assert sum(s['name']=='body_shell' for s in parts)==1
+assert not any(s['name'].startswith('face_') or s['name'] in ['mount_lip','dial_panel','dial_bottom_cap','monitor_top_cap','monitor_bottom_cap','side_strip','left_rounded_end','right_rounded_end'] for s in parts)
+assert m['shell']['bounds']==[110,89,934,672]
+assert [548,129,248,216] in m['shell']['holes'] and [170,136,116,480] in m['shell']['holes']
+print('Outer trim exactly 0.2 mm; body is one shell reaching the sheet, with no separate bars/panel boxes')

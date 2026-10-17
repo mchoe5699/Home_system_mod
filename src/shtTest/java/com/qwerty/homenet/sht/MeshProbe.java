@@ -17,9 +17,12 @@ final class MeshProbe {
  static V nearest(List<V> vs,double x,double photoY){double z=Double.NEGATIVE_INFINITY;V found=null;for(int i=0;i<vs.size();i+=4){var a=vs.get(i);for(int j=1;j<=2;j++){double at=hit(a,vs.get(i+j),vs.get(i+j+1),x,700-photoY);if(at>z){z=at;found=new V(x,photoY,z,a.color,a.ny);}}}if(found==null)throw new AssertionError("No surface at "+x+","+photoY);return found;}
  static void verify(){var solid=new Capture();var ignored=new Capture();ignored.save=false;var expected=RenderType.entityCutoutNoCull(Product.id("textures/solid.png"));Surface.draw(new PoseStack(),type->type==expected?solid:ignored,15728880,false,false,true);
   if(solid.vertices.isEmpty())throw new AssertionError("Probe captured no solid vertices");
-  for(double x:new double[]{590,674,758})for(double y:new double[]{190,246,300}){var v=nearest(solid.vertices,x,y);if(v.color!=0x8d9691||Math.abs(v.z-54)>.001)throw new AssertionError("CRT blocked at "+x+","+y+" by "+Integer.toHexString(v.color)+" z="+v.z);}
+  for(double x:new double[]{590,674,758})for(double y:new double[]{190,246,300}){var v=nearest(solid.vertices,x,y);if(v.color!=0x8d9691||Math.abs(v.z-65)>.001)throw new AssertionError("CRT blocked at "+x+","+y+" by "+Integer.toHexString(v.color)+" z="+v.z);}
+  // Former panel/cap gaps must all be on the same continuous front skin.
+  for(double[] at:new double[][]{{299,220},{456,400},{519,400},{830,400},{330,648},{530,648}}){var v=nearest(solid.vertices,at[0],at[1]);if(v.color!=0xf1efdf||Math.abs(v.z-68)>.001)throw new AssertionError("Body split or stepped at "+Arrays.toString(at)+" z="+v.z);}
+  var sheet=nearest(solid.vertices,80,400);if(Math.abs(sheet.z*Surface.SCALE-.0002)>.0000001)throw new AssertionError("Outer frame is not 0.2 mm");
   var bowl=nearest(solid.vertices,228,204);if(bowl.z>=60||bowl.color!=0xe3e1d0)throw new AssertionError("Cradle floor covered or not recessed");
   if(solid.vertices.stream().noneMatch(v->v.color==0x4c5449&&v.ny<-.99))throw new AssertionError("Vents are not on downward-facing underside");
-  System.out.println("SHT_BODY_MESH_PASS: nine CRT rays reach glass, cradle is recessed, vents face down, all generated positions and normals finite");
+  System.out.println("SHT_BODY_MESH_PASS: 0.2 mm sheet, continuous shell at six former seams, nine CRT rays reach glass, recessed cradle, underside vents, finite mesh");
  }
 }
