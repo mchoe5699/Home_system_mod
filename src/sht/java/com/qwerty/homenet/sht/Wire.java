@@ -5,7 +5,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.*;
 public class Wire {
- static final net.minecraftforge.network.simple.SimpleChannel CHANNEL=NetworkRegistry.newSimpleChannel(Product.id("station"),()->"2","2"::equals,"2"::equals);
+ static final net.minecraftforge.network.simple.SimpleChannel CHANNEL=NetworkRegistry.newSimpleChannel(Product.id("station"),()->"3","3"::equals,"3"::equals);
  public record Input(BlockPos pos,boolean remote,String action,String value){static void encode(Input p,FriendlyByteBuf b){b.writeBlockPos(p.pos);b.writeBoolean(p.remote);b.writeUtf(p.action,32);b.writeUtf(p.value,160);}static Input decode(FriendlyByteBuf b){return new Input(b.readBlockPos(),b.readBoolean(),b.readUtf(32),b.readUtf(160));}}
  record View(WallpadDataPacket state,boolean remote){static void encode(View p,FriendlyByteBuf b){WallpadDataPacket.encode(p.state,b);b.writeBoolean(p.remote);}static View decode(FriendlyByteBuf b){return new View(WallpadDataPacket.decode(b),b.readBoolean());}}
  record Video(String dimension,java.util.List<WorldVideo.Signal> signals){

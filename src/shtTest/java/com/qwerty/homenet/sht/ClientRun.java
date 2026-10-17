@@ -46,7 +46,13 @@ public class ClientRun {
    case 16->{if(!(mc.screen instanceof Controls c)||c.radio)return;click(c,487,591);step=17;}
    case 17->{if(age%20!=0)return;server(mc,s->{var base=(Station)s.overworld().getBlockEntity(BASE);var camera=(DoorStationBlockEntity)s.overworld().getBlockEntity(DOOR);if(base.audio&&base.docked&&camera.isConnected())ready=10;});if(ready==10&&mc.screen instanceof Controls c){c.keyPressed(org.lwjgl.glfw.GLFW.GLFW_KEY_T,0,0);c.charTyped('t',0);for(char ch:"본체 스피커 통화".toCharArray())c.charTyped(ch,0);c.keyPressed(org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER,0,0);step=18;}}
    case 18->{if(age%20!=0)return;server(mc,s->{var camera=(DoorStationBlockEntity)s.overworld().getBlockEntity(DOOR);if(camera.getLog().stream().anyMatch(v->v.text().equals("본체 스피커 통화")))ready=11;});if(ready==11&&mc.screen instanceof Controls c){click(c,487,591);step=19;}}
-   case 19->{if(age%20!=0)return;server(mc,s->{var base=(Station)s.overworld().getBlockEntity(BASE);var camera=(DoorStationBlockEntity)s.overworld().getBlockEntity(DOOR);if(base.docked&&!base.audio&&!camera.isInCall())ready=12;});if(ready==12){System.out.println("SHT16_SPEAKER_CLIENT_PASS: base speaker button answers, sends Korean conversation, hangs up while handset remains docked");step=20;mc.stop();}}
+   case 19->{if(age%20!=0)return;server(mc,s->{var base=(Station)s.overworld().getBlockEntity(BASE);var camera=(DoorStationBlockEntity)s.overworld().getBlockEntity(DOOR);if(base.docked&&!base.audio&&!camera.isInCall())ready=12;});if(ready==12){System.out.println("SHT16_SPEAKER_CLIENT_PASS: base speaker button answers, sends Korean conversation, hangs up while handset remains docked");step=20;mc.setScreen(null);}}
+   case 20->{step=21;server(mc,s->{var base=(Station)s.overworld().getBlockEntity(BASE);base.finish();base.trigger("fire");ready=13;});}
+   case 21->{if(ready!=13||age%20!=0)return;var base=(Station)mc.level.getBlockEntity(BASE);if((base.lights()&Indicators.FIRE)==0)return;LampProbe.verify(base,Indicators.FIRE);block(mc,BASE);step=22;}
+   case 22->{if(!(mc.screen instanceof Controls c)||c.radio||Integer.parseInt(c.data.setting("lights","0"))!=( (Station)mc.level.getBlockEntity(BASE)).lights())return;click(c,378,323);step=23;}
+   case 23->{if(age%20!=0)return;server(mc,s->{var base=(Station)s.overworld().getBlockEntity(BASE);if(base.mute&&(base.lights()&Indicators.FIRE)!=0)ready=14;});if(ready==14&&mc.screen instanceof Controls c){click(c,418,323);step=24;}}
+   case 24->{if(age%20!=0)return;var base=(Station)mc.level.getBlockEntity(BASE);if((base.lights()&Indicators.FIRE)!=0)return;LampProbe.verify(base,0);System.out.println("SHT18_LAMPS_CLIENT_PASS: actual world lamp packets, shared control flags, emissive light geometry, latched fire after stop, clear after restore");step=25;mc.stop();}
+
   }
  }catch(Throwable t){t.printStackTrace();System.out.println("NEW_SHT_CLIENT_FAIL "+step);System.exit(1);}}
 }

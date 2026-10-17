@@ -33,6 +33,17 @@ public final class Surface {
   }
  }
  public static void rectangle(PoseStack p,MultiBufferSource out,float x,float y,float w,float h,float z,ResourceLocation tex,int light){var b=out.getBuffer(RenderType.entityTranslucent(tex));for(float[] v:new float[][]{{x,y+h,0,1},{x+w,y+h,1,1},{x+w,y,1,0},{x,y,0,0}})vertex(b,p.last(),v[0],v[1],z,0,0,1,0xffffff,light,v[2],v[3]);}
+ static void indicator(PoseStack p,MultiBufferSource out,Indicators.Lamp lamp){
+  var b=out.getBuffer(RenderType.entityTranslucentEmissive(Product.id("textures/solid.png")));
+  float z=lamp.round()?71.4f:72.2f;
+  if(lamp.round()){
+   float cx=lamp.x()+lamp.w()/2f,cy=lamp.y()+lamp.h()/2f;
+   for(int i=0;i<32;i++){
+    double a=-i*Math.PI/16,c=-(i+1)*Math.PI/16;
+    for(float[] v:new float[][]{{cx,cy},{cx+(float)Math.cos(a)*lamp.w()/2,cy+(float)Math.sin(a)*lamp.h()/2},{cx+(float)Math.cos(c)*lamp.w()/2,cy+(float)Math.sin(c)*lamp.h()/2},{cx,cy}})vertex(b,p.last(),v[0],v[1],z,0,0,1,lamp.rgb(),15728880,.5f,.5f);
+   }
+  }else for(float[] v:new float[][]{{lamp.x(),lamp.y()+lamp.h()},{lamp.x()+lamp.w(),lamp.y()+lamp.h()},{lamp.x()+lamp.w(),lamp.y()},{lamp.x(),lamp.y()}})vertex(b,p.last(),v[0],v[1],z,0,0,1,lamp.rgb(),15728880,.5f,.5f);
+ }
  static void patch(PoseStack p,MultiBufferSource out,float x,float y,float w,float h,float z,int color,int light){var b=out.getBuffer(RenderType.entityCutoutNoCull(Product.id("textures/solid.png")));for(float[] v:new float[][]{{x,y+h},{x+w,y+h},{x+w,y},{x,y}})vertex(b,p.last(),v[0],v[1],z,0,0,1,color,light,.5f,.5f);}
  static void rim(PoseStack p,MultiBufferSource out,int light,Solid outer,Solid inner,int color){
   var b=out.getBuffer(RenderType.entityCutoutNoCull(Product.id("textures/solid.png")));

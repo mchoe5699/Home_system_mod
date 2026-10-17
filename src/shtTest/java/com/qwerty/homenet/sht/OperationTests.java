@@ -71,4 +71,21 @@ public class OperationTests {
   a.number="51001";b.number="51002";a.press("speaker",p,false);for(char c:"51002#".toCharArray())a.digit(""+c,false);b.press("speaker",q,false);a.say(p,"스피커 전화",false);h.assertTrue(a.docked&&b.docked&&a.audio&&b.audio&&b.phone==3&&b.conversation().stream().anyMatch(l->l.text().equals("스피커 전화")),"Docked speaker telephone failed");a.press("speaker",p,false);h.assertTrue(a.phone==0&&b.phone==0,"Speaker telephone did not terminate");h.succeed();
  }
 
+ @GameTest(template="empty") public static void lampStatesMatchActualFunctions(GameTestHelper h){
+  var s=home(h,3);var p=user(h,s);
+  h.assertTrue(s.lights()==(Indicators.POWER|Indicators.CHARGE),"Idle lamps incorrect");s.lift(p);h.assertTrue((s.lights()&Indicators.CHARGE)==0,"Charge lamp remained on after pickup");s.replace(p);
+  s.press("speaker",p,false);h.assertTrue((s.lights()&Indicators.LINE)!=0,"Speaker dial tone did not light line indicator");s.press("speaker",p,false);h.assertTrue((s.lights()&Indicators.LINE)==0,"Line lamp remained on after hangup");
+  s.press("intercom",p,false);s.press("talk",p,true);h.assertTrue((s.lights()&Indicators.LINE)==0,"Local intercom incorrectly lights external line");s.finish();
+  h.setBlock(new BlockPos(6,1,3),ModBlocks.DOOR_STATION.get());var c=(DoorStationBlockEntity)h.getLevel().getBlockEntity(h.absolutePos(new BlockPos(6,1,3)));c.toggleReceiver(s.getBlockPos());s.press("door",p,false);
+  h.assertTrue((s.lights()&Indicators.DOOR)!=0&&(s.lights()&(Indicators.GUARD|Indicators.LINE))==0,"Monitor lamp is missing or wrong");tick(s,600);h.assertTrue((s.lights()&Indicators.DOOR)==0,"Monitor lamp did not expire");
+  c.startCall("");s.press("speaker",p,false);h.assertTrue((s.lights()&Indicators.DOOR)!=0&&(s.lights()&Indicators.LINE)==0,"Door talk lights wrong line");s.finish();
+  var g=guard(h);s.bindSwitchboard(g.getBlockPos());s.press("guard",p,false);h.assertTrue((s.lights()&Indicators.GUARD)!=0&&(s.lights()&Indicators.DOOR)==0,"Guard selection lamp incorrect");s.finish();
+  s.press("away",p,false);h.assertTrue((s.lights()&Indicators.AWAY)!=0&&(s.lights()&Indicators.ARMED)!=0&&!s.armed,"Away setup lamps/delay not reflected");tick(s,1200);h.assertTrue((s.lights()&Indicators.ARMED)!=0,"Delayed arming lamp absent");s.press("away",p,false);h.assertTrue((s.lights()&(Indicators.AWAY|Indicators.ARMED))==0,"Away/arming lamps stuck");h.succeed();
+ }
+ @GameTest(template="empty") public static void alarmLampsLatchAndRestoreIndependently(GameTestHelper h){
+  var s=home(h,3);var p=user(h,s);String[] alarms={"fire","gas","security","emergency"};int[] bits={Indicators.FIRE,Indicators.GAS,Indicators.SECURITY,Indicators.EMERGENCY};int all=Indicators.FIRE|Indicators.GAS|Indicators.SECURITY|Indicators.EMERGENCY;
+  for(int i=0;i<alarms.length;i++){s.trigger(alarms[i]);h.assertTrue((s.lights()&all)==bits[i],"Wrong alarm lens "+alarms[i]);h.assertTrue(s.getUpdateTag().getInt("Lights")==s.lights()&&Integer.parseInt(s.snapshot().setting("lights","0"))==s.lights(),"World and controls disagree on lamps");s.press("stop",p,false);h.assertTrue((s.lights()&all)==bits[i],"Stopping alarm removed latched lens");s.press("restore",p,false);h.assertTrue((s.lights()&all)==0,"Restoring alarm left lens on");}
+  s.phone=3;s.audio=true;s.lastVisualLights=s.lights();s.phoneTime=2400;s.tickExtra();h.assertTrue((s.lights()&Indicators.LINE)==0&&s.lastVisualLights==s.lights(),"Telephone timeout left stale physical lamp");h.succeed();
+ }
+
 }
