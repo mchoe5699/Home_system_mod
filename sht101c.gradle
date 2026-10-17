@@ -1,0 +1,41 @@
+plugins { id 'net.minecraftforge.gradle' version '[6.0.16,6.2)' }
+version='1.0.11'
+group='com.qwerty.homenet'
+base { archivesName='sht101c' }
+layout.buildDirectory=file('build/sht101c')
+java.toolchain.languageVersion=JavaLanguageVersion.of(17)
+sourceSets.main.java.setSrcDirs(['src/sht/java'])
+sourceSets.main.resources.setSrcDirs(['src/sht/resources'])
+sourceSets.test.java.setSrcDirs(['src/shtTest/java'])
+sourceSets.test.resources.setSrcDirs(['src/shtTest/resources'])
+minecraft {
+ mappings channel:'official',version:'1.20.1'
+ copyIdeResources=true
+ runs {
+  configureEach {
+   workingDirectory project.file(project.findProperty('sht.runDir') ?: '/tmp/sht101c-new')
+   property 'forge.logging.console.level','info'
+   mods { homenet_sht101c { source sourceSets.main } }
+  }
+  client {}
+  gameTestServer {
+   property 'forge.enabledGameTestNamespaces','homenet_sht101c'
+   mods { homenet_sht101c { source sourceSets.test } }
+  }
+ }
+}
+dependencies {
+ minecraft 'net.minecraftforge:forge:1.20.1-47.3.0'
+ compileOnly files('.device-baseline/dev.jar')
+ runtimeOnly files('.device-baseline/dev.jar')
+ testImplementation files('.device-baseline/dev.jar')
+}
+tasks.withType(JavaCompile).configureEach { options.encoding='UTF-8' }
+tasks.named('jar').configure { finalizedBy 'reobfJar' }
+tasks.matching { it.name=='downloadAssets' }.configureEach { enabled=false }
+tasks.matching { it.name=='runGameTestServer' }.configureEach { dependsOn tasks.named('testClasses') }
+if(project.hasProperty('sht.clientTest')) {
+ minecraft.runs.client.property 'sht.clientTest','true'
+ minecraft.runs.client.mods.homenet_sht101c.source sourceSets.test
+ tasks.matching { it.name=='runClient' }.configureEach { dependsOn tasks.named('testClasses') }
+}

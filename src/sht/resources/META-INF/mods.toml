@@ -1,0 +1,14 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="All Rights Reserved"
+[[mods]]
+modId="homenet_sht101c"
+version="1.0.11"
+displayName="Samsung SHT-101C"
+description='''Photo-measured Samsung SHT-101C and wireless handset.'''
+[[dependencies.homenet_sht101c]]
+modId="qwertys_homenet"
+mandatory=true
+versionRange="[1.0.8,)"
+ordering="AFTER"
+side="BOTH"
