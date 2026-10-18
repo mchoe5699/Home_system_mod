@@ -33,6 +33,12 @@ public final class Product {
  public static final RegistryObject<Item> BASE102_ITEM=ITEMS.register("sht_102c",()->new BlockItem(STATION102.get(),new Item.Properties()){
   public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientItemExtensions> c){c.accept(Client.itemExtension());}
  });
+ public static final RegistryObject<Portable> PORTABLE102=ITEMS.register("sht_102c_portable",Portable::new);
+ public static final RegistryObject<Charger> CHARGER=BLOCKS.register("sht_102c_charger",Charger::new);
+ public static final RegistryObject<Item> CHARGER_ITEM=ITEMS.register("sht_102c_charger",()->new BlockItem(CHARGER.get(),new Item.Properties()){
+  public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientItemExtensions> c){c.accept(Client.itemExtension());}
+ });
+ public static final RegistryObject<BlockEntityType<Charger.Dock>> CHARGER_TYPE=ENTITIES.register("charger102",()->BlockEntityType.Builder.of(Charger.Dock::new,CHARGER.get()).build(null));
  public static final RegistryObject<Item> RADIO=ITEMS.register("wireless_handset",()->new Item(new Item.Properties().stacksTo(1)){
   // Battery/channel updates do not mean the player equipped a different handset.
   @Override public boolean shouldCauseReequipAnimation(ItemStack oldStack,ItemStack newStack,boolean slotChanged){
@@ -46,7 +52,7 @@ public final class Product {
  });
  public static final RegistryObject<BlockEntityType<Station>> TYPE=ENTITIES.register("station",()->BlockEntityType.Builder.of(Station::new,STATION.get()).build(null));
  public static final RegistryObject<BlockEntityType<Station102>> TYPE102=ENTITIES.register("station102",()->BlockEntityType.Builder.of(Station102::new,STATION102.get()).build(null));
- public Product(){IEventBus bus=FMLJavaModLoadingContext.get().getModEventBus();BLOCKS.register(bus);ITEMS.register(bus);ENTITIES.register(bus);TABS.register("samsung",()->CreativeModeTab.builder().title(Component.literal("SAMSUNG 홈오토메이션")).icon(()->new ItemStack(BASE_ITEM.get())).displayItems((a,o)->{o.accept(BASE_ITEM.get());o.accept(BASE102_ITEM.get());}).build());TABS.register(bus);Wire.init();}
+ public Product(){IEventBus bus=FMLJavaModLoadingContext.get().getModEventBus();BLOCKS.register(bus);ITEMS.register(bus);ENTITIES.register(bus);TABS.register("samsung",()->CreativeModeTab.builder().title(Component.literal("SAMSUNG 홈오토메이션")).icon(()->new ItemStack(BASE_ITEM.get())).displayItems((a,o)->{o.accept(BASE_ITEM.get());o.accept(BASE102_ITEM.get());o.accept(PORTABLE102.get());o.accept(CHARGER_ITEM.get());}).build());TABS.register(bus);Wire.init();}
  public static class StationBlock extends WallMountedBlock {
   final boolean wired;
   public StationBlock(){this(false);}
@@ -58,7 +64,7 @@ public final class Product {
   public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level l,BlockState s,BlockEntityType<T> t){return l.isClientSide?null:wired?createTickerHelper(t,TYPE102.get(),ReceiverBlockEntity::serverTick):createTickerHelper(t,TYPE.get(),ReceiverBlockEntity::serverTick);}
   public InteractionResult use(BlockState s,Level l,BlockPos at,Player player,InteractionHand hand,BlockHitResult hit){
    var held=player.getItemInHand(hand);if(held.getItem() instanceof com.qwerty.homenet.item.HomeLinkerItem||held.getItem() instanceof com.qwerty.homenet.item.AnalogLinkerItem)return InteractionResult.PASS;
-   if(player instanceof ServerPlayer p&&l.getBlockEntity(at) instanceof Station b){if(held.is(RADIO.get()))b.replace(p);else if(!b.docked&&cradle(s,l,at,hit))b.replace(p);else b.open(p,false);}
+   if(player instanceof ServerPlayer p&&l.getBlockEntity(at) instanceof Station b){if(held.is(PORTABLE102.get())){if(b instanceof Station102 w)Portable.bind(p,w,held);else b.tell("SHT-102C 전용 휴대장치입니다");}else if(held.is(RADIO.get()))b.replace(p);else if(!b.docked&&cradle(s,l,at,hit))b.replace(p);else b.open(p,false);}
    return InteractionResult.sidedSuccess(l.isClientSide);
   }
   public static boolean cradle(BlockState s,Level l,BlockPos at,BlockHitResult hit){var v=hit.getLocation().subtract(Vec3.atLowerCornerOf(at)).subtract(com.qwerty.homenet.move.DeviceOffsets.get(l,at));double across=switch(s.getValue(FACING)){case NORTH->.5-v.x;case SOUTH->v.x-.5;case EAST->.5-v.z;case WEST->v.z-.5;default->10;};double x=523.5+across/(.5/824),y=700-(v.y-.30)/(.5/824);return x>=145&&x<=294&&y>=126&&y<=640;}

@@ -12,8 +12,8 @@ import net.minecraftforge.fml.common.Mod;
 @Mod.EventBusSubscriber(modid=Product.ID,bus=Mod.EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
 public class Client {
  static void address(Wire.Address a){Minecraft.getInstance().setScreen(new AddressControls(a.pos(),a.unit()));}
- static void receive(Wire.View v){var mc=Minecraft.getInstance();if(v.state().open())mc.setScreen(new Controls(v.state(),v.remote()));else if(mc.screen instanceof Controls c&&c.data.pos().equals(v.state().pos()))c.data=v.state();}
- @SubscribeEvent public static void renderers(EntityRenderersEvent.RegisterRenderers e){e.registerBlockEntityRenderer(Product.TYPE.get(),c->new Renderer());e.registerBlockEntityRenderer(Product.TYPE102.get(),c->new Renderer());}
+ static void receive(Wire.View v){var mc=Minecraft.getInstance();if(v.state().open())mc.setScreen(v.remote()&&v.state().flag("wired")?new PortableControls(v.state()):new Controls(v.state(),v.remote()));else if(mc.screen instanceof Controls c&&c.data.pos().equals(v.state().pos()))c.data=v.state();}
+ @SubscribeEvent public static void renderers(EntityRenderersEvent.RegisterRenderers e){e.registerBlockEntityRenderer(Product.CHARGER_TYPE.get(),c->new PortableVisual.Renderer());e.registerBlockEntityRenderer(Product.TYPE.get(),c->new Renderer());e.registerBlockEntityRenderer(Product.TYPE102.get(),c->new Renderer());}
  static class Renderer implements BlockEntityRenderer<Station>{
   com.qwerty.homenet.client.kvm.KvmCameraView video=new com.qwerty.homenet.client.kvm.KvmCameraView();
   public boolean shouldRenderOffScreen(Station b){return true;}
@@ -23,6 +23,8 @@ public class Client {
  }
  static BlockEntityWithoutLevelRenderer renderer;
  static net.minecraftforge.client.extensions.common.IClientItemExtensions itemExtension(){return new net.minecraftforge.client.extensions.common.IClientItemExtensions(){public BlockEntityWithoutLevelRenderer getCustomRenderer(){if(renderer==null){var mc=Minecraft.getInstance();renderer=new BlockEntityWithoutLevelRenderer(mc.getBlockEntityRenderDispatcher(),mc.getEntityModels()){
-  public void renderByItem(ItemStack stack,ItemDisplayContext context,PoseStack p,MultiBufferSource out,int light,int overlay){boolean radio=stack.is(Product.RADIO.get());Surface.select(stack.is(Product.BASE102_ITEM.get()));p.pushPose();p.translate(radio?.36:-.02,radio?.45:.18,.5);float s=radio?.00078f:.0009f;p.scale(s,s,s);Surface.draw(p,out,light,radio,true,!stack.is(Product.BASE102_ITEM.get()));p.popPose();}
+  public void renderByItem(ItemStack stack,ItemDisplayContext context,PoseStack p,MultiBufferSource out,int light,int overlay){if(stack.is(Product.PORTABLE102.get())){p.pushPose();p.translate(.4,.15,.4);p.scale(.0008f,.0008f,.0008f);p.translate(0,200,0);PortableVisual.handset(p,out,light,stack.hasTag()&&(stack.getTag().getBoolean("ringing")||stack.getTag().getBoolean("talking")));p.popPose();return;}
+   if(stack.is(Product.CHARGER_ITEM.get())){p.pushPose();p.translate(.3,.1,.3);p.scale(.001f,.001f,.001f);PortableVisual.stand(p,out,light,true,false,false);p.popPose();return;}
+   boolean radio=stack.is(Product.RADIO.get());Surface.select(stack.is(Product.BASE102_ITEM.get()));p.pushPose();p.translate(radio?.36:-.02,radio?.45:.18,.5);float s=radio?.00078f:.0009f;p.scale(s,s,s);Surface.draw(p,out,light,radio,true,!stack.is(Product.BASE102_ITEM.get()));p.popPose();}
  };}return renderer;}};}
 }
