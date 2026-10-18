@@ -14,7 +14,7 @@ public final class Portable extends Item {
  static final int CAPACITY=36000;
  Portable(){super(new Properties().stacksTo(1));}
  static Station base(Level l,ItemStack stack){
-  if(!stack.is(Product.PORTABLE102.get())||!stack.hasTag())return null;var t=stack.getTag();
+  if(!stack.is(Product.PORTABLE102.get())||!stack.hasTag())return null;MovementSupport.relocatePortable(l,stack);var t=stack.getTag();
   if(!t.getString("dimension").equals(l.dimension().location().toString())||!t.contains("base"))return null;
   var at=BlockPos.of(t.getLong("base"));return l.isLoaded(at)&&l.getBlockEntity(at) instanceof Station s&&supports(s)&&s.ownsPortable(stack)?s:null;
  }
