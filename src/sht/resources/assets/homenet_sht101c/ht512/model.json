@@ -125,6 +125,12 @@
     "rimColor": "#aab4bc",
     "faceColor": "#485e82"
   },
+  "panel": {
+    "x": 70.0,
+    "y": 210,
+    "w": 324,
+    "h": 96
+  },
   "mode": "BUS",
   "modelOnly": true
 }

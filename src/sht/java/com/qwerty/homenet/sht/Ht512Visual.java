@@ -18,10 +18,12 @@ import java.util.*;
 final class Ht512Visual {
  static final float W=464,H=610,SCALE=(float)(Ht512.HEIGHT/H);
  static final ResourceLocation FRONT=Product.id("ht512/front.png"),INK=Product.id("ht512/key_ink.png");
+ record Panel(float x,float y,float w,float h){}
+ static Panel panel;
  record Key(String label,float x,float y,float w,float h){}
  record KeyStyle(float socketRadius,float rimInset,float rimRadius,float faceInset,float faceRadius,float labelInset,String socketColor,String rimColor,String faceColor){}
  static KeyStyle keyStyle;static List<Key> keys;
- static void load(){if(keys!=null)return;try(var r=Minecraft.getInstance().getResourceManager().openAsReader(Product.id("ht512/model.json"))){var root=com.google.gson.JsonParser.parseReader(r).getAsJsonObject();var list=new ArrayList<Key>();for(var e:root.getAsJsonArray("keys"))list.add(new com.google.gson.Gson().fromJson(e,Key.class));keyStyle=new com.google.gson.Gson().fromJson(root.get("keyStyle"),KeyStyle.class);keys=List.copyOf(list);}catch(Exception e){throw new IllegalStateException("HT-512 model",e);}}
+ static void load(){if(keys!=null)return;try(var r=Minecraft.getInstance().getResourceManager().openAsReader(Product.id("ht512/model.json"))){var root=com.google.gson.JsonParser.parseReader(r).getAsJsonObject();var list=new ArrayList<Key>();for(var e:root.getAsJsonArray("keys"))list.add(new com.google.gson.Gson().fromJson(e,Key.class));panel=new com.google.gson.Gson().fromJson(root.get("panel"),Panel.class);keyStyle=new com.google.gson.Gson().fromJson(root.get("keyStyle"),KeyStyle.class);keys=List.copyOf(list);}catch(Exception e){throw new IllegalStateException("HT-512 model",e);}}
  static void vertex(VertexConsumer b,PoseStack.Pose p,float x,float y,float z,float nx,float ny,float nz,int c,int light,float u,float v){Surface.vertex(b,p,x,y,z,nx,ny,nz,c,light,u,v);}
  static void face(PoseStack p,MultiBufferSource out,int light,float[][] points,ResourceLocation texture,int color){
   var b=out.getBuffer(RenderType.entityCutoutNoCull(texture));var a=points[0];var c=points[1];var d=points[2];float ux=c[0]-a[0],uy=c[1]-a[1],uz=c[2]-a[2],vx=d[0]-a[0],vy=d[1]-a[1],vz=d[2]-a[2];float nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;float len=(float)Math.sqrt(nx*nx+ny*ny+nz*nz);if(len==0){nx=ny=0;nz=1;len=1;}if(nz<0){nx=-nx;ny=-ny;nz=-nz;}
@@ -43,18 +45,19 @@ final class Ht512Visual {
   float[][] a={{inset0,inset0,z0},{W-inset0,inset0,z0},{W-inset0,H-inset0,z0},{inset0,H-inset0,z0}},b={{inset1,inset1,z1},{W-inset1,inset1,z1},{W-inset1,H-inset1,z1},{inset1,H-inset1,z1}};
   for(int i=0;i<4;i++)face(p,o,light,new float[][]{a[i],a[(i+1)%4],b[(i+1)%4],b[i]},tex,color);
  }
- static boolean cut(float x,float y){return x>=78&&x<=402&&y>=210&&y<=306||x>=107&&x<=198.8f&&y>=330&&y<=442.2f||x>=112&&x<=194&&y>=462&&y<=538;}
+ static boolean cut(float x,float y){return x>=panel.x&&x<=panel.x+panel.w&&y>=panel.y&&y<=panel.y+panel.h||x>=107&&x<=198.8f&&y>=330&&y<=442.2f||x>=112&&x<=194&&y>=462&&y<=538;}
  static void mesh(PoseStack p,MultiBufferSource o){int l=0;load();var white=Product.id("textures/solid.png");
   solid(p,o,l,"ht_back",0,0,W,H,0,4,1,0x8f8d74,0);
   trim(p,o,l,0,4,1.5f,7,white,0xb9b79d);trim(p,o,l,1.5f,7,17,18,FRONT,0xffffff);
   // Hairline reveal between the four mitered rails and the flat inner plate.
   trim(p,o,l,17,18,18,15,white,0x555c4a);
-  float[] xs={18,78,107,112,194,198.8f,402,W-18},ys={18,210,306,330,442.2f,462,538,H-18};
+  float[] xs={18,panel.x,107,112,194,198.8f,panel.x+panel.w,W-18},ys={18,210,306,330,442.2f,462,538,H-18};
   for(int x=0;x<xs.length-1;x++)for(int y=0;y<ys.length-1;y++)if(!cut((xs[x]+xs[x+1])/2,(ys[y]+ys[y+1])/2))rect(p,o,l,xs[x],ys[y],xs[x+1]-xs[x],ys[y+1]-ys[y],15,FRONT);
-  solid(p,o,l,"display_bezel",78,210,324,96,12,4,1,0x111915,0);rect(p,o,l,80,212,320,92,16.05f,FRONT);
+  solid(p,o,l,"display_bezel",panel.x,panel.y,panel.w,panel.h,12,4,1,0x111915,0);rect(p,o,l,panel.x+2,panel.y+2,panel.w-4,panel.h-4,16.05f,FRONT);
+  float panelShift=panel.x-78;
   // Lens ring and recessed front optics behind the smoked cover.
-  Surface.rim(p,o,l,new Surface.Solid("lens",157,255,23,23,16.5f,0,11.5f,"","",0),new Surface.Solid("lens",162,260,13,13,16.1f,0,6.5f,"","",0),0x444f40);
-  rect(p,o,l,162,260,13,13,16.15f,FRONT);
+  Surface.rim(p,o,l,new Surface.Solid("lens",157+panelShift,255,23,23,16.5f,0,11.5f,"","",0),new Surface.Solid("lens",162+panelShift,260,13,13,16.1f,0,6.5f,"","",0),0x444f40);
+  rect(p,o,l,162+panelShift,260,13,13,16.15f,FRONT);
   // The rectangular cell fills the panel around a real sixteen-sided round aperture.
   for(int row=0;row<11;row++)for(int col=0;col<9;col++){
    float cx=112.1f+col*10.2f,cy=335.1f+row*10.2f;

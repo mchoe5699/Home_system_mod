@@ -11,10 +11,10 @@ im=Image.fromarray(np.uint8(np.clip(base,0,255)),'RGB').convert('RGBA');d=ImageD
 ink=Image.new('RGBA',im.size);k=ImageDraw.Draw(ink)
 fontfile='/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc'
 def font(s,b=False):return ImageFont.truetype(fontfile.replace('Regular','Bold') if b else fontfile,round(s*S),index=1)
-def rect(box,c,draw=d):draw.rectangle(tuple(round(v*S) for v in box),fill=c)
-def line(pts,c,w=1,draw=d):draw.line([(round(x*S),round(y*S)) for x,y in pts],fill=c,width=max(1,round(w*S)))
-def text(x,y,t,s=7,c='#343a31',b=False,draw=d):draw.text((round(x*S),round(y*S)),t,font=font(s,b),fill=c)
-def rr(box,c,r=2,draw=d):draw.rounded_rectangle(tuple(round(v*S) for v in box),round(r*S),fill=c)
+def rect(box,c,draw=None):(draw or d).rectangle(tuple(round(v*S) for v in box),fill=c)
+def line(pts,c,w=1,draw=None):(draw or d).line([(round(x*S),round(y*S)) for x,y in pts],fill=c,width=max(1,round(w*S)))
+def text(x,y,t,s=7,c='#343a31',b=False,draw=None):(draw or d).text((round(x*S),round(y*S)),t,font=font(s,b),fill=c)
+def rr(box,c,r=2,draw=None):(draw or d).rounded_rectangle(tuple(round(v*S) for v in box),round(r*S),fill=c)
 # Mitered trim is sculpted separately in the world; the atlas is also the orthographic model view.
 for pts,c in [([(0,0),(W,0),(W-17,17),(17,17)],'#c4c2a7'), ([(0,0),(17,17),(17,H-17),(0,H)],'#bebca2'), ([(W,0),(W,H),(W-17,H-17),(W-17,17)],'#aaa78e'), ([(0,H),(17,H-17),(W-17,H-17),(W,H)],'#aaa78c')]:d.polygon([(a*S,b*S) for a,b in pts],fill=c)
 for xx in [17,W-17]:line([(xx,17),(xx,H-17)],'#5e6051',.8)
@@ -31,6 +31,9 @@ text(207,177,'■ 버튼을 잘못 누른 경우에는  #  취소 버튼을',6.2
 text(217,190,'누르고 처음부터 다시 하십시오.',6.4)
 for box in [(216,121,231,130), (207+font(6.2).getlength('■ 경비실과 통화하려면  ')/S-1,143,207+font(6.2).getlength('■ 경비실과 통화하려면  경비실')/S+1,152), (207+font(6.2).getlength('■ 버튼을 잘못 누른 경우에는  ')/S-1,178,207+font(6.2).getlength('■ 버튼을 잘못 누른 경우에는  #')/S+1,187)]:
  d.rectangle(tuple(round(v*S) for v in box),outline='#646751',width=S//2+1)
+# Draw the complete panel as one group, centered on the body rather than an approximate photo X.
+panel_bounds=dict(x=(W-324)/2,y=210,w=324,h=96)
+panel_layer=Image.new('RGBA',im.size);base_draw=d;d=ImageDraw.Draw(panel_layer)
 # Smoked glass, purple camera window and red four-digit LED (static photo appearance).
 rect((78,210,402,306),'#101512')
 for yy in range(213,304):
@@ -48,6 +51,7 @@ for xx in [281,300,319,338]:
  for pts in [[(xx+4,263),(xx+15,263)],[(xx+3,274),(xx+14,274)],[(xx+2,284),(xx+13,284)],[(xx+3,264),(xx+2,272)],[(xx+16,264),(xx+15,272)],[(xx+2,276),(xx+1,282)],[(xx+15,276),(xx+14,282)]]:
   line(pts,'#8e2344',3.5);line(pts,'#d82e58',1.4)
 text(361,274,'호',7,'#d8dbcf')
+im.alpha_composite(panel_layer,(round((panel_bounds['x']-78)*S),0));d=base_draw
 # Exactly 9 x 11 round perforations, cut into the 3D front panel too.
 for row in range(11):
  for col in range(9):
@@ -95,7 +99,7 @@ im.save(T/'front.png');ink.save(T/'key_ink.png')
 with zipfile.ZipFile(R/'.device-baseline/base.jar') as z:
  e=json.loads(z.read('assets/qwertys_homenet/models/block/klp_203.json'))['elements']
  h=(max(q['to'][1] for q in e)-min(q['from'][1] for q in e))/16
-spec=dict(width=W,height=H,blockHeight=h,blockWidth=h*W/H,depthPixels=20,frame=17,faceZ=15,speaker=dict(x=107,y=330,cols=9,rows=11,pitch=10.2,radius=2.6),keys=keys,keyStyle=style,mode='BUS',modelOnly=True)
+spec=dict(width=W,height=H,blockHeight=h,blockWidth=h*W/H,depthPixels=20,frame=17,faceZ=15,speaker=dict(x=107,y=330,cols=9,rows=11,pitch=10.2,radius=2.6),keys=keys,keyStyle=style,panel=panel_bounds,mode='BUS',modelOnly=True)
 (T/'model.json').write_text(json.dumps(spec,ensure_ascii=False,indent=2))
 for sub,obj in [('blockstates/ht_512.json',{'variants':{'':{'model':'minecraft:block/air'}}}),('models/item/ht_512.json',{'parent':'builtin/entity'}),('loot_tables/blocks/ht_512.json',{'type':'minecraft:block','pools':[{'rolls':1,'entries':[{'type':'minecraft:item','name':'homenet_sht101c:ht_512'}],'conditions':[{'condition':'minecraft:survives_explosion'}]}]})]:
  # Loot tables live in data, not assets.

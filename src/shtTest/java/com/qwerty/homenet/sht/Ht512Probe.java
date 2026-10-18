@@ -14,6 +14,9 @@ final class Ht512Probe {
   var all=new MeshProbe.Capture();Ht512Visual.draw(new PoseStack(),t->all,15728880);
   check(Ht512Visual.keys.size()==14,"HT-512 needs exactly 12 dial and two call keys");
   check(Math.abs(Ht512.WIDTH/Ht512.HEIGHT-464d/610)<1e-8,"HT-512 photo ratio changed");
+  check(Math.abs(Ht512Visual.panel.x()+Ht512Visual.panel.w()/2-Ht512Visual.W/2)<.0001,"HT display group is off center");
+  for(float x:new float[]{69,395})check(Math.abs(MeshProbe.nearest(all.vertices,x,230).z()-15)<.001,"HT old display opening remains visible");
+  check(MeshProbe.nearest(all.vertices,71,230).z()>15.5&&MeshProbe.nearest(all.vertices,393,230).z()>15.5,"HT centered bezel missing");
   // Compare actual KLP-203 model extents loaded from the unchanged baseline.
   try(var r=Minecraft.getInstance().getResourceManager().openAsReader(com.qwerty.homenet.HomeNet.id("models/block/klp_203.json"))){var e=com.google.gson.JsonParser.parseReader(r).getAsJsonObject().getAsJsonArray("elements");double lo=100,hi=-100;for(var q:e){var o=q.getAsJsonObject();lo=Math.min(lo,o.getAsJsonArray("from").get(1).getAsDouble());hi=Math.max(hi,o.getAsJsonArray("to").get(1).getAsDouble());}check(Math.abs(Ht512.HEIGHT-(hi-lo)/16)<1e-8,"HT-512 height does not match KLP-203");}catch(java.io.IOException e){throw new AssertionError(e);}
   check(Math.abs(all.vertices.stream().mapToDouble(MeshProbe.V::x).max().orElseThrow()-464)<.001,"HT width bounds");
