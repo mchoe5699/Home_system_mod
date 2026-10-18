@@ -46,14 +46,18 @@ add('power_round',321,305,10,10,68,1,5,'#526052')
 add('wired_handle',154,132,120,508,68,39,9,IV,'docked',2)
 add('wired_handle_join',155,627,118,1,107,0.3,.3,'#b9bcaa','docked')
 add('black_aerial_hinge',478,45,16,37,54,18,5,'#252b28')
-add('black_aerial',483,-205,7,250,57,7,3,'#202522','extended')
-add('black_aerial_tip',482,-215,9,20,57,7,4,'#171c19','extended')
-add('black_aerial_folded',488,49,250,7,57,7,3,'#202522','folded')
-add('black_aerial_folded_tip',730,48,18,9,57,7,4,'#171c19','folded')
+add('black_aerial',483,-385,7,430,57,7,3,'#202522','extended')
+add('black_aerial_tip',482,-395,9,20,57,7,4,'#171c19','extended')
+add('black_aerial_folded',488,49,430,7,57,7,3,'#202522','folded')
+add('black_aerial_folded_tip',914,47,10,11,57,7,4,'#171c19','folded')
 m['shell']['holes'][0]=[160,136,114,480]
 for j in m['shell']['seams']:
  if j['name']=='cradle_keypad':j['x0']=j['x1']=285
  if j['name']=='brand_keypad':j['x0']=285
+# The black antenna has exactly the SHT-101C envelope in either position.
+for group,axis,size in [('extended','y','h'),('folded','x','w')]:
+ reference=[p for p in old['parts'] if p['group']==group];actual=[p for p in parts if p['group']==group]
+ assert max(p[axis]+p[size] for p in reference)-min(p[axis] for p in reference)==max(p[axis]+p[size] for p in actual)-min(p[axis] for p in actual)
 m['variant']='SHT-102C';m['wired']=True
 (a/'model.json').write_text(json.dumps(m,ensure_ascii=False))
 # Ink is authored separately; no reference photograph is pasted into the model.

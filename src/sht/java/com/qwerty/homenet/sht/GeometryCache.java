@@ -9,8 +9,15 @@ import java.util.function.BiConsumer;
 final class GeometryCache {
  private static final Map<String,List<Batch>> MESHES=new HashMap<>();
  private record Batch(RenderType type,float[] data){}
+ private static final Map<String,net.minecraft.world.phys.AABB> BOUNDS=new HashMap<>();
  static int builds;
- static void clear(){MESHES.clear();builds=0;}
+ static void clear(){MESHES.clear();BOUNDS.clear();builds=0;}
+ static net.minecraft.world.phys.AABB bounds(String key){
+  var result=BOUNDS.get(key);if(result!=null)return result;var mesh=MESHES.get(key);if(mesh==null)return null;
+  double minX=Double.POSITIVE_INFINITY,minY=minX,minZ=minX,maxX=Double.NEGATIVE_INFINITY,maxY=maxX,maxZ=maxX;
+  for(var batch:mesh)if(batch.type==RenderType.entityCutoutNoCull(Product.id("textures/solid.png")))for(int i=0;i<batch.data.length;i+=11){var a=batch.data;minX=Math.min(minX,a[i]);minY=Math.min(minY,a[i+1]);minZ=Math.min(minZ,a[i+2]);maxX=Math.max(maxX,a[i]);maxY=Math.max(maxY,a[i+1]);maxZ=Math.max(maxZ,a[i+2]);}
+  if(!Double.isFinite(minX))return null;result=new net.minecraft.world.phys.AABB(minX,minY,minZ,maxX,maxY,maxZ);BOUNDS.put(key,result);return result;
+ }
  static void draw(String key,PoseStack pose,MultiBufferSource out,int light,BiConsumer<PoseStack,MultiBufferSource> build){
   var mesh=MESHES.get(key);
   if(mesh==null){

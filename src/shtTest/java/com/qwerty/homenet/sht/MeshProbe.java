@@ -27,8 +27,15 @@ final class MeshProbe {
   for(double x:new double[]{590,674,758})for(double y:new double[]{190,246,300}){var v=nearest(solid.vertices,x,y);if(v.color!=0x8d9691||Math.abs(v.z-Surface.bodyDepth(65))>.001)throw new AssertionError("102 CRT blocked");}
   if(Surface.solids.stream().anyMatch(p->p.name().startsWith("radio_")||p.name().contains("cable")))throw new AssertionError("102 has wireless/cable geometry");
   var handset=nearest(solid.vertices,214,350);if(handset.z()<Surface.bodyDepth(68)+35)throw new AssertionError("Wired handset absent");
+  var empty=new Capture();Surface.draw(new PoseStack(),t->t==type?empty:ignored,15728880,false,false,false);
+  if(empty.vertices.stream().anyMatch(v->v.x()<285&&v.z()>Surface.bodyDepth(68)+5))throw new AssertionError("Lifted SHT-102C handset still floats beside cradle");
+  double blackTop=Surface.solids.stream().filter(v->v.group().equals("extended")).mapToDouble(Surface.Solid::y).min().orElseThrow(),blackBottom=Surface.solids.stream().filter(v->v.group().equals("extended")).mapToDouble(v->v.y()+v.h()).max().orElseThrow();
+  double blackLeft=Surface.solids.stream().filter(v->v.group().equals("folded")).mapToDouble(Surface.Solid::x).min().orElseThrow(),blackRight=Surface.solids.stream().filter(v->v.group().equals("folded")).mapToDouble(v->v.x()+v.w()).max().orElseThrow();
+  Surface.select(false);double silverTop=Surface.solids.stream().filter(v->v.group().equals("extended")).mapToDouble(Surface.Solid::y).min().orElseThrow(),silverBottom=Surface.solids.stream().filter(v->v.group().equals("extended")).mapToDouble(v->v.y()+v.h()).max().orElseThrow();
+  double silverLeft=Surface.solids.stream().filter(v->v.group().equals("folded")).mapToDouble(Surface.Solid::x).min().orElseThrow(),silverRight=Surface.solids.stream().filter(v->v.group().equals("folded")).mapToDouble(v->v.x()+v.w()).max().orElseThrow();
+  if(blackBottom-blackTop!=silverBottom-silverTop||blackRight-blackLeft!=silverRight-silverLeft)throw new AssertionError("SHT-102C antenna length differs from SHT-101C");Surface.select(true);
   if(Surface.buttons.stream().noneMatch(k->k.name().equals("line")&&k.y()==591))throw new AssertionError("National line key moved");
-  Surface.select(false);System.out.println("SHT102_MESH_PASS: clear 4:3 CRT, wired handset, black aerial, no cordless/cable, fixed national key, independent model cache");
+  Surface.select(false);System.out.println("SHT102_MESH_PASS: clear 4:3 CRT, wired handset, black aerial, no cordless/cable, fixed national key, independent model cache, fully removed off-hook handset and 101-length antenna");
  }
  static void verify(){var solid=new Capture();var ignored=new Capture();ignored.save=false;var expected=RenderType.entityCutoutNoCull(Product.id("textures/solid.png"));Surface.draw(new PoseStack(),type->type==expected?solid:ignored,15728880,false,false,true);
   if(solid.vertices.isEmpty())throw new AssertionError("Probe captured no solid vertices");

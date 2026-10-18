@@ -152,8 +152,9 @@ public final class Surface {
  static float bodyDepth(float z){load();return mounting.frame+(z-mounting.back)*mounting.depth/(mounting.front-mounting.back);}
  static float handsetShift(){return bodyDepth(mounting.front)-mounting.front;}
  static void bodyPose(PoseStack p){load();p.pushPose();p.translate(0,0,mounting.frame);p.scale(1,1,mounting.depth/(mounting.front-mounting.back));p.translate(0,0,-mounting.back);}
+ static String meshKey(boolean radio,boolean docked,boolean folded){return "station/"+wiredModel+"/"+radio+"/"+docked+"/"+folded;}
  static void draw(PoseStack p,MultiBufferSource out,int light,boolean radio,boolean docked,boolean folded){
-  load();GeometryCache.draw("station/"+wiredModel+"/"+radio+"/"+docked+"/"+folded,p,out,light,(pose,buffers)->drawRaw(pose,buffers,0,radio,docked,folded));
+  load();GeometryCache.draw(meshKey(radio,docked,folded),p,out,light,(pose,buffers)->drawRaw(pose,buffers,0,radio,docked,folded));
  }
  static void drawRaw(PoseStack p,MultiBufferSource out,int light,boolean radio,boolean docked,boolean folded){
   load();
@@ -170,6 +171,6 @@ public final class Surface {
   rectangle(p,out,0,0,1042,720,71.8f,texture("textures/base_ink.png"),light);
   p.popPose();
   // Keep handset proportions and antenna cross-sections intact; translate the docked assembly rigidly.
-  if(docked||wiredModel){p.pushPose();p.translate(wiredModel&&!docked?-65:0,wiredModel&&!docked?5:0,handsetShift()+(wiredModel&&!docked?15:0));for(var s:solids)if(s.group.equals("docked"))solid(s,p,out,light);p.popPose();}
+  if(docked){p.pushPose();p.translate(0,0,handsetShift());for(var s:solids)if(s.group.equals("docked"))solid(s,p,out,light);p.popPose();}
  }
 }

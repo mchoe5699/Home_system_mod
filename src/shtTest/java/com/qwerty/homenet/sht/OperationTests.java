@@ -196,4 +196,12 @@ public class OperationTests {
   h.setBlock(new BlockPos(7,1,3),ModBlocks.DOOR_STATION.get());var camera=(DoorStationBlockEntity)h.getLevel().getBlockEntity(h.absolutePos(new BlockPos(7,1,3)));camera.toggleReceiver(s.getBlockPos());camera.startCall("");h.assertTrue(dock.refresh()&&dock.stack.getTag().getBoolean("ringing"),"Incoming alert change was suppressed");h.assertTrue(!dock.refresh(),"Unchanged ringing flag requests redundant update");s.finish();h.assertTrue(dock.refresh()&&!dock.stack.getTag().getBoolean("ringing"),"Call-end alert change was suppressed");h.succeed();
  }
 
+ @GameTest(template="empty") public static void opaqueCoverGlassOpeningAndBackWall(GameTestHelper h){
+  var l=h.getLevel();var eye=net.minecraft.world.phys.Vec3.atLowerCornerOf(h.absolutePos(new BlockPos(2,2,0))).add(.5,.5,.5);var base=h.absolutePos(BlockPos.ZERO);var box=new net.minecraft.world.phys.AABB(2.1,2.1,5.1,2.9,2.9,5.2).move(base);
+  h.assertTrue(!OpaqueCover.covered(l,eye,box,null),"Open sight was hidden");var wall=new BlockPos(2,2,3);h.setBlock(wall,net.minecraft.world.level.block.Blocks.STONE);h.assertTrue(OpaqueCover.covered(l,eye,box,null),"Opaque cover did not suppress rendering");
+  h.setBlock(wall,net.minecraft.world.level.block.Blocks.GLASS);h.assertTrue(!OpaqueCover.covered(l,eye,box,null),"Glass incorrectly hides device");h.setBlock(wall,net.minecraft.world.level.block.Blocks.OAK_STAIRS);h.assertTrue(!OpaqueCover.covered(l,eye,box,null),"Partial block incorrectly hides whole device");h.setBlock(wall,net.minecraft.world.level.block.Blocks.AIR);
+  h.setBlock(new BlockPos(2,2,7),net.minecraft.world.level.block.Blocks.STONE);h.assertTrue(!OpaqueCover.covered(l,eye,box,null),"Wall behind receiver incorrectly hides it");
+  for(int x=1;x<=3;x++)for(int y=1;y<=3;y++)h.setBlock(new BlockPos(x,y,3),net.minecraft.world.level.block.Blocks.STONE);var wide=new net.minecraft.world.phys.AABB(1.2,1.2,5.1,3.8,3.8,5.2).move(base);h.assertTrue(OpaqueCover.covered(l,eye,wide,null),"Full wall did not hide device");h.setBlock(wall,net.minecraft.world.level.block.Blocks.AIR);h.assertTrue(!OpaqueCover.covered(l,eye,wide,null),"Opening did not expose receiver immediately");h.succeed();
+ }
+
 }

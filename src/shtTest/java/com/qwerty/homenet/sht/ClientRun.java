@@ -72,10 +72,22 @@ public class ClientRun {
    case 42->{if(!mc.player.getMainHandItem().is(Product.PORTABLE102.get()))return;mc.gameMode.useItem(mc.player,InteractionHand.MAIN_HAND);step=43;}
    case 43->{if(!(mc.screen instanceof PortableControls c)||c.data.flag("wired"))return;step=44;server(mc,s->{check(((DoorStationBlockEntity)s.overworld().getBlockEntity(DOOR)).startCall("")==CallerBlockEntity.CallResult.OK,"Shared 101 incoming failed");ready=25;});}
    case 44->{if(ready!=25||!(mc.screen instanceof PortableControls c))return;click(c,76,490);step=45;}
-   case 45->{if(age%20!=0)return;server(mc,s->{var base=(Station)s.overworld().getBlockEntity(BASE);if(base.portableActive&&base.audio&&((DoorStationBlockEntity)s.overworld().getBlockEntity(DOOR)).isConnected())ready=26;});if(ready==26){System.out.println("SAMSUNG_SHARED_LINKER_CLIENT_PASS: real Home Linker packets link charger and portable to SHT-102C and SHT-101C, shared portable UI independent of wired flag, pickup/return, answer with separate original-radio PIN; no screenshots");step=46;mc.stop();}}
+   case 45->{if(age%20!=0)return;server(mc,s->{var base=(Station)s.overworld().getBlockEntity(BASE);if(base.portableActive&&base.audio&&((DoorStationBlockEntity)s.overworld().getBlockEntity(DOOR)).isConnected())ready=26;});if(ready==26){System.out.println("SAMSUNG_SHARED_LINKER_CLIENT_PASS: real Home Linker packets link charger and portable to SHT-102C and SHT-101C, shared portable UI independent of wired flag, pickup/return, answer with separate original-radio PIN; no screenshots");step=46;mc.setScreen(null);server(mc,s->{for(int x=-1;x<=1;x++)for(int y=0;y<=2;y++)s.overworld().setBlockAndUpdate(BASE.offset(x,y,-1),net.minecraft.world.level.block.Blocks.STONE.defaultBlockState());ready=27;});}}
+   case 46->{if(ready!=27||!coverIs(mc,net.minecraft.world.level.block.Blocks.STONE))return;checkRenderCover(mc,true);step=47;server(mc,s->{for(int x=-1;x<=1;x++)for(int y=0;y<=2;y++)s.overworld().setBlockAndUpdate(BASE.offset(x,y,-1),net.minecraft.world.level.block.Blocks.GLASS.defaultBlockState());ready=28;});}
+   case 47->{if(ready!=28||!coverIs(mc,net.minecraft.world.level.block.Blocks.GLASS))return;checkRenderCover(mc,false);step=48;server(mc,s->{for(int x=-1;x<=1;x++)for(int y=0;y<=2;y++)s.overworld().setBlockAndUpdate(BASE.offset(x,y,-1),net.minecraft.world.level.block.Blocks.AIR.defaultBlockState());ready=29;});}
+   case 48->{if(ready!=29||!coverIs(mc,net.minecraft.world.level.block.Blocks.AIR))return;checkRenderCover(mc,false);System.out.println("SAMSUNG_OPAQUE_COVER_CLIENT_PASS: real base and dock renderers emit zero vertices behind stone, render through glass and after wall removal; no screenshots");step=49;mc.stop();}
+
 
   }
  }catch(Throwable t){t.printStackTrace();System.out.println("NEW_SHT_CLIENT_FAIL "+step);System.exit(1);}}
+ static boolean coverIs(Minecraft mc,net.minecraft.world.level.block.Block block){for(int x=-1;x<=1;x++)for(int y=0;y<=2;y++)if(!mc.level.getBlockState(BASE.offset(x,y,-1)).is(block))return false;return true;}
+ static void checkRenderCover(Minecraft mc,boolean hidden){
+  var base=(Station)mc.level.getBlockEntity(BASE);var dock=(Charger.Dock)mc.level.getBlockEntity(BASE.east());var sink=new PerformanceProbe.Sink();net.minecraft.client.renderer.MultiBufferSource out=t->sink;
+  Surface.select(base.wired());Surface.draw(new com.mojang.blaze3d.vertex.PoseStack(),out,15728880,false,base.docked,base.folded);
+  PortableVisual.stand(new com.mojang.blaze3d.vertex.PoseStack(),out,15728880,!dock.stack.isEmpty(),false,false,false);DeviceVisibility.clear();sink.vertices=0;
+  new Client.Renderer().render(base,0,new com.mojang.blaze3d.vertex.PoseStack(),out,15728880,0);check(hidden?sink.vertices==0:sink.vertices>0,"Base opaque cover render mismatch: hidden="+hidden+", vertices="+sink.vertices);sink.vertices=0;
+  new PortableVisual.Renderer().render(dock,0,new com.mojang.blaze3d.vertex.PoseStack(),out,15728880,0);check(hidden?sink.vertices==0:sink.vertices>0,"Dock opaque cover render mismatch: hidden="+hidden+", vertices="+sink.vertices);
+ }
  static void verifyKvmCaption(Minecraft mc){
   try(var stream=mc.getResourceManager().open(new net.minecraft.resources.ResourceLocation("qwertys_homenet","textures/block/kvm931t/gui.png"));var image=com.mojang.blaze3d.platform.NativeImage.read(stream)){
    for(int y=186;y<=191;y++)for(int x=429;x<=444;x++)check(image.getPixelRGBA(x,y)==0xff131410,"KVM-931T still prints lobby caption");
