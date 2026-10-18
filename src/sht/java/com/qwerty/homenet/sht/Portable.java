@@ -34,10 +34,12 @@ public final class Portable extends Item {
   else{var s=base(l,stack);if(s!=null)s.openPortable(p);else p.displayClientMessage(net.minecraft.network.chat.Component.literal("홈링커로 삼성 무선 지원 내부기기와 휴대장치 충전기를 연결하세요"),true);}
  }return InteractionResultHolder.sidedSuccess(stack,l.isClientSide);}
  public void inventoryTick(ItemStack stack,Level l,Entity entity,int slot,boolean selected){
-  if(l.isClientSide||l.getGameTime()%20!=0||!(entity instanceof ServerPlayer p))return;var t=stack.getOrCreateTag();var s=base(l,stack);
+  if(l.isClientSide||l.getGameTime()%20!=0||!(entity instanceof ServerPlayer p))return;refresh(stack,l,p);
+ }
+ static void refresh(ItemStack stack,Level l,ServerPlayer p){var t=stack.getOrCreateTag();var s=base(l,stack);
   boolean powered=t.getBoolean("power")&&t.getInt("battery")>0;if(powered)t.putInt("battery",Math.max(0,t.getInt("battery")-20));
-  boolean inRange=powered&&s!=null&&s.allowed(p,true);boolean ringing=inRange&&(s.phone==2||s.getCallState()==com.qwerty.homenet.intercom.CallState.RINGING||s.internal==1);
-  t.putBoolean("ringing",ringing);t.putBoolean("talking",inRange&&s.audio&&(s.portableActive||s.internal==3));
+  boolean inRange=powered&&s!=null&&s.allowed(p,true);boolean ringing=inRange&&s.portableRinging();
+  t.putBoolean("intercom",inRange&&s.internal>0);t.putBoolean("ringing",ringing);t.putBoolean("talking",inRange&&s.audio&&(s.portableActive||s.internal==3));
   if(ringing)com.qwerty.homenet.intercom.CallSounds.note(l,p.blockPosition(),net.minecraft.sounds.SoundEvents.NOTE_BLOCK_BELL.value(),s.ring*.25f,1.1f);
   if(s!=null&&(s.portableActive||s.internal==3)&&!inRange){s.finish();s.tell("휴대장치 전원·배터리·통신 범위 확인");}
  }

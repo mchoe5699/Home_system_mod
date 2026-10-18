@@ -35,19 +35,20 @@ public final class Station102 extends Station {
  void startDoorTalk(){var at=linkedCamera();if(at!=null&&level.getBlockEntity(at) instanceof CallerBlockEntity c){c.callFromReceiver(this);audio=true;answer();tell("현관 통화");}else tell("연결된 도어카메라가 없습니다");}
  @Override public boolean startRinging(BlockPos at,String key){boolean accepted=super.startRinging(at,key);if(accepted)tell(portableRegistered?"착신 · 유선 수화기 또는 휴대장치로 응답":"착신 · 유선 수화기를 드세요");return accepted;}
  @Override public void digit(String key,boolean remote){
-  if(key.equals("*")&&bus&&callState==CallState.CONNECTED&&!outgoing&&incomingKey.equals("lobby")&&audio&&!hold&&(remote?portableActive:!docked&&!portableActive)){openDoor();return;}
+  if(key.equals("*")&&callState==CallState.CONNECTED&&(incomingKey.equals("lobby")||incomingKey.equals("front_door"))&&audio&&!hold&&(remote?portableActive:!docked&&!portableActive)){openDoor();return;}
   if(remote){super.digit(key,true);return;}
   if(memory&&editing.equals("slot")&&key.matches("[0-9*#]")){editing=key;digits="";update();return;}
   super.digit(key,false);
  }
  @Override public void press(String key,ServerPlayer p,boolean remote){
   if(remote){remotePress(key,p);return;}
+  if(key.equals("door"))key="front";
   if(java.util.Set.of("speaker","talk","channel").contains(key))return;
   if(key.equals("handset")){replace(p);return;}
   if(portableActive&&(phone>0||getCallState()!=CallState.IDLE)&&java.util.Set.of("front","line","guard","redial","fire_call","police_call","medical_call").contains(key)){tell("휴대장치 통화 중 · 내선으로 본체에 전환하세요");return;}
   if(key.equals("front")){
    if(memory){editing="front";digits="";update();return;}
-   if(callState==CallState.CONNECTED&&(incomingKey.equals("front_door")||incomingKey.equals("lobby"))){openDoor();return;}
+   if(callState==CallState.CONNECTED&&(incomingKey.equals("front_door")||incomingKey.equals("lobby"))){tell("현관 영상 · 문열림은 통화 중 *");return;}
    finish();monitor=600;
    if(!docked)startDoorTalk();else tell("현관 영상 감시 · 수화기를 들면 통화");return;
   }

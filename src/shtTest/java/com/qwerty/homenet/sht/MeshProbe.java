@@ -15,6 +15,13 @@ final class MeshProbe {
  }
  static double hit(V a,V b,V c,double x,double y){double det=(b.y-c.y)*(a.x-c.x)+(c.x-b.x)*(a.y-c.y);if(Math.abs(det)<1e-8)return Double.NEGATIVE_INFINITY;double u=((b.y-c.y)*(x-c.x)+(c.x-b.x)*(y-c.y))/det,v=((c.y-a.y)*(x-c.x)+(a.x-c.x)*(y-c.y))/det;if(u<-.00001||v<-.00001||u+v>1.00001)return Double.NEGATIVE_INFINITY;return u*a.z+v*b.z+(1-u-v)*c.z;}
  static V nearest(List<V> vs,double x,double photoY){double z=Double.NEGATIVE_INFINITY;V found=null;for(int i=0;i<vs.size();i+=4){var a=vs.get(i);for(int j=1;j<=2;j++){double at=hit(a,vs.get(i+j),vs.get(i+j+1),x,700-photoY);if(at>z){z=at;found=new V(x,photoY,z,a.color,a.ny);}}}if(found==null)throw new AssertionError("No surface at "+x+","+photoY);return found;}
+ static void portable(){
+  var solid=new Capture();var ignored=new Capture();ignored.save=false;var type=RenderType.entityCutoutNoCull(Product.id("textures/solid.png"));PortableVisual.handset(new PoseStack(),t->t==type?solid:ignored,15728880,false);
+  if(nearest(solid.vertices,112,485).color()!=0x56615b)throw new AssertionError("Portable control band buried inside case");
+  for(double y:new double[]{371,379,387})if(nearest(solid.vertices,112,y).color()!=0x6d7767)throw new AssertionError("Portable speaker slit hidden");
+  for(var k:PortableVisual.keys)if(nearest(solid.vertices,k.x(),k.y()).color()!=0xe8e8d7)throw new AssertionError("Portable key obscured: "+k.name());
+  System.out.println("SAMSUNG_PORTABLE_MESH_PASS: exposed speaker slits, control band and all 21 keys; manual rounded head");
+ }
  static void wired(){
   Surface.select(true);var solid=new Capture();var ignored=new Capture();ignored.save=false;var type=RenderType.entityCutoutNoCull(Product.id("textures/solid.png"));Surface.draw(new PoseStack(),t->t==type?solid:ignored,15728880,false,true,false);
   for(double x:new double[]{590,674,758})for(double y:new double[]{190,246,300}){var v=nearest(solid.vertices,x,y);if(v.color!=0x8d9691||Math.abs(v.z-Surface.bodyDepth(65))>.001)throw new AssertionError("102 CRT blocked");}

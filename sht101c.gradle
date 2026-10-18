@@ -1,5 +1,5 @@
 plugins { id 'net.minecraftforge.gradle' version '[6.0.16,6.2)' }
-version='1.0.24'
+version='1.0.25'
 group='com.qwerty.homenet'
 base { archivesName='sht101c' }
 tasks.named('jar') { archiveFileName='sht101c.jar' }
@@ -25,11 +25,35 @@ minecraft {
   }
  }
 }
+// Mirror the release packager's three caption-resource replacements in development runs.
+// The pinned baseline archive and all baseline classes remain unchanged.
+def captionPaths=['face','gui','gui_open'].collect { "assets/qwertys_homenet/textures/block/kvm931t/${it}.png".toString() }
+def baselineRuntime=layout.buildDirectory.file('baseline-runtime.jar')
+def prepareBaselineRuntime=tasks.register('prepareBaselineRuntime') {
+ inputs.file('.device-baseline/dev.jar')
+ inputs.files(captionPaths.collect { file("src/sht/resources/${it}") })
+ outputs.file(baselineRuntime)
+ doLast {
+  def target=baselineRuntime.get().asFile
+  target.parentFile.mkdirs()
+  new java.util.zip.ZipFile(file('.device-baseline/dev.jar')).withCloseable { original ->
+   new java.util.zip.ZipOutputStream(new FileOutputStream(target)).withCloseable { output ->
+    original.entries().each { entry ->
+     output.putNextEntry(new java.util.zip.ZipEntry(entry.name))
+     if(captionPaths.contains(entry.name)) output.write(file("src/sht/resources/${entry.name}").bytes)
+     else original.getInputStream(entry).withCloseable { output << it }
+     output.closeEntry()
+    }
+   }
+  }
+ }
+}
+def runtimeBaselineFiles=files(baselineRuntime).builtBy(prepareBaselineRuntime)
 dependencies {
  minecraft 'net.minecraftforge:forge:1.20.1-47.3.0'
  compileOnly files('.device-baseline/dev.jar')
- runtimeOnly files('.device-baseline/dev.jar')
- testImplementation files('.device-baseline/dev.jar')
+ runtimeOnly runtimeBaselineFiles
+ testImplementation runtimeBaselineFiles
 }
 tasks.withType(JavaCompile).configureEach { options.encoding='UTF-8' }
 tasks.named('jar').configure { finalizedBy 'reobfJar' }
@@ -40,3 +64,5 @@ if(project.hasProperty('sht.clientTest')) {
  minecraft.runs.client.mods.homenet_sht101c.source sourceSets.test
  tasks.matching { it.name=='runClient' }.configureEach { dependsOn tasks.named('testClasses') }
 }
+
+tasks.matching { it.name in ['prepareRuns','runClient','runGameTestServer'] }.configureEach { dependsOn prepareBaselineRuntime }

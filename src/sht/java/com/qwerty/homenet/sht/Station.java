@@ -48,7 +48,7 @@ public class Station extends ReceiverBlockEntity {
  public void openPortable(ServerPlayer p){if(!allowed(p,true)||!Portable.carried(p,this))return;portableViews.add(p.getUUID());observers.put(p.getUUID(),true);Wire.show(p,buildPacket(true),true,true);}
  public WallpadDataPacket snapshot(){return buildPacket(false);}
  public void syncScreens(){if(!(level instanceof ServerLevel sl))return;for(var e:new ArrayList<>(observers.entrySet())){var p=sl.getServer().getPlayerList().getPlayer(e.getKey());if(p==null||!allowed(p,e.getValue())||portableViews.contains(e.getKey())&&!Portable.carried(p,this)){observers.remove(e.getKey());portableViews.remove(e.getKey());}else Wire.show(p,buildPacket(false),e.getValue(),portableViews.contains(p.getUUID()));}}
- protected Map<String,String> settingsForClient(){var s=super.settingsForClient();s.put("portable_registered",portableRegistered?"1":"0");s.put("portable_active",portableActive?"1":"0");s.put("sht","new");s.put("wired",wired()?"1":"0");s.put("mode",bus?"BUS":"STAR");s.put("status",status);s.put("docked",docked?"1":"0");s.put("folded",folded?"1":"0");s.put("alarm",alarm);s.put("armed",armed?"1":"0");s.put("away",away?"1":"0");s.put("brightness",""+brightness);s.put("contrast",""+contrast);s.put("channel",""+channel);s.put("phone",""+phone);s.put("intercom",""+internal);s.put("paired",paired()?"1":"0");s.put("lights",""+lights());var v=camera();if(v!=null){s.put("video","1");s.put("vx",""+v.getX());s.put("vy",""+v.getY());s.put("vz",""+v.getZ());}return s;}
+ protected Map<String,String> settingsForClient(){var s=super.settingsForClient();s.put("portable_ringing",portableRinging()?"1":"0");s.put("portable_registered",portableRegistered?"1":"0");s.put("portable_active",portableActive?"1":"0");s.put("sht","new");s.put("wired",wired()?"1":"0");s.put("mode",bus?"BUS":"STAR");s.put("status",status);s.put("docked",docked?"1":"0");s.put("folded",folded?"1":"0");s.put("alarm",alarm);s.put("armed",armed?"1":"0");s.put("away",away?"1":"0");s.put("brightness",""+brightness);s.put("contrast",""+contrast);s.put("channel",""+channel);s.put("phone",""+phone);s.put("intercom",""+internal);s.put("paired",paired()?"1":"0");s.put("lights",""+lights());var v=camera();if(v!=null){s.put("video","1");s.put("vx",""+v.getX());s.put("vy",""+v.getY());s.put("vz",""+v.getZ());}return s;}
  boolean source(BlockPos at){if(!same(at)||!level.isLoaded(at))return false;var b=level.getBlockEntity(at);if(b instanceof DoorStationBlockEntity)return hasLinkedCamera(at);if(b instanceof GuardExchange g)return at.equals(analogStation)&&supportsSwitchboard(g);if(b instanceof ReceiverBlockEntity r)return !bus&&r.kind()==DeviceRegistry.Kind.GUARD_CONSOLE&&r.guardSystem()==GuardSystem.STAR;if(b instanceof AnalogLobbyEndpoint a)return bus?a.manufacturer().equalsIgnoreCase("SAMSUNG")&&a.supports(AnalogBus.COMMON_8_WIRE):a.supports(AnalogBus.DEDICATED);return !bus&&b instanceof LobbyPhoneBlockEntity;}
  protected BlockPos ring(BlockPos at,String key,int depth){if(depth>3||!source(at))return null;if(away&&key.equals("lobby")){var g=switchboard();if(g instanceof ReceiverBlockEntity r)return r.ring(at,key);if(!bus&&level instanceof ServerLevel sl)for(var p:DeviceRegistry.get(sl).guards(sl,worldPosition,false))if(same(p)&&level.getBlockEntity(p) instanceof ReceiverBlockEntity r&&r.guardSystem()==GuardSystem.STAR)return r.ring(at,key);}return super.ring(at,key,depth);}
  public boolean startRinging(BlockPos at,String key){if(!source(at))return false;boolean ok=super.startRinging(at,key);if(ok)tell("착신 · 스피커 또는 무선수화기로 응답");return ok;}
@@ -88,6 +88,7 @@ public class Station extends ReceiverBlockEntity {
   pressCore(key,p,remote);
  }
  void remotePress(String key,ServerPlayer p){boolean before=portableCommand;portableCommand=true;try{remoteCore(key,p);}finally{portableCommand=before;}}
+ void portableDigit(String key){if(key.equals("*")&&portableActive&&audio&&!hold&&callState==CallState.CONNECTED&&(incomingKey.equals("front_door")||incomingKey.equals("lobby"))){openDoor();return;}digit(key,true);}
  void portableSay(ServerPlayer p,String text){boolean before=portableCommand;portableCommand=true;try{say(p,text,true);}finally{portableCommand=before;}}
  void requestInternal(boolean remote){
   if(!portableRegistered){tell("등록된 삼성 휴대장치가 없습니다");return;}
@@ -99,6 +100,7 @@ public class Station extends ReceiverBlockEntity {
  void acceptInternal(boolean remote){if(transfer!=0){internal=transfer=0;hold=false;portableActive=remote;audio=true;tell(remote?"휴대장치로 통화전환 완료":"본체로 통화전환 완료");}else{internal=3;audio=true;tell("본체 ↔ 삼성 휴대장치 내선 통화");}}
  void portablePickup(ServerPlayer p){if(!allowed(p,true)||!Portable.carried(p,this))return;if(internal==1)acceptInternal(true);else if(phone==2||getCallState()==CallState.RINGING){portableActive=true;audio=false;remotePress("talk",p);}update();}
  void portableReturn(){if(transfer==2){tell("휴대장치 거치 · 본체의 전환 응답 대기");return;}if(portableActive||internal==3)finish();}
+ boolean portableRinging(){return phone==2||getCallState()==CallState.RINGING||internal==1;}
  void remoteCore(String key,ServerPlayer p){
   if(!portableActive&&transfer!=1&&(phone==3||getCallState()==CallState.CONNECTED||getCallState()==CallState.DIALING)){tell("본체 통화 중 · 본체 내선 버튼으로 전환하세요");return;}
   if(key.equals("intercom")){requestInternal(true);return;}
@@ -112,7 +114,9 @@ public class Station extends ReceiverBlockEntity {
   if(memory){pressCore(key,p,true);return;}
   if(key.equals("flash")){if(phone==3){hold=!hold;audio=!hold;tell(hold?"휴대장치 국선 보류":"휴대장치 국선 재통화");}else{phoneTime=-60;tell("포즈 · 번호 입력");}return;}
   if(key.equals("redial")){finish();portableActive=true;audio=true;if(!last.isEmpty())dialNumber(last);else tell("재다이얼 번호가 없습니다");return;}
-  if(key.equals("door")||key.equals("guard")){portableActive=true;pressCore(key,p,true);return;}
+  if(key.equals("channel")){channel=channel%16+1;tell("휴대장치 채널 "+channel);return;}
+  if(key.equals("door")){if(getCallState()==CallState.CONNECTED){tell("현관 영상 · 문열림은 통화 중 *");return;}portableActive=true;pressCore(key,p,true);return;}
+  if(key.equals("guard")){portableActive=true;pressCore(key,p,true);return;}
  }
  void pressCore(String key,ServerPlayer p,boolean remote){
   if(key.equals("handset")){if(!remote)replace(p);return;}

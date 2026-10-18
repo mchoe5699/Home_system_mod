@@ -4,11 +4,12 @@ r=Path(__file__).resolve().parents[2]
 base=r/'.device-baseline/base.jar';extra=r/'build/sht101c/libs/sht101c.jar';target=r/'build/sht101c/release/qwertys_homenet.jar'
 assert hashlib.sha256(base.read_bytes()).hexdigest()=='f523a392449c967bdca61081f9425ed0cb706f7d2d03096b4964d732f8695593'
 target.parent.mkdir(parents=True,exist_ok=True)
+caption_overrides={f'assets/qwertys_homenet/textures/block/kvm931t/{name}.png' for name in ['face','gui','gui_open']}
 with zipfile.ZipFile(base) as b,zipfile.ZipFile(extra) as a,zipfile.ZipFile(target,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as out:
  for path in b.namelist():
-  raw=b.read(path)
-  if path=='META-INF/mods.toml':raw=raw.replace(b'version="1.0.8"',b'version="1.0.24"')+b'\n[[mods]]'+a.read(path).split(b'[[mods]]',1)[1]
-  if path=='META-INF/MANIFEST.MF':raw=raw.replace(b'Implementation-Version: 1.0.8',b'Implementation-Version: 1.0.24')
+  raw=a.read(path) if path in caption_overrides else b.read(path)
+  if path=='META-INF/mods.toml':raw=raw.replace(b'version="1.0.8"',b'version="1.0.25"')+b'\n[[mods]]'+a.read(path).split(b'[[mods]]',1)[1]
+  if path=='META-INF/MANIFEST.MF':raw=raw.replace(b'Implementation-Version: 1.0.8',b'Implementation-Version: 1.0.25')
   out.writestr(path,raw)
  for path in a.namelist():
   if path.startswith(('com/qwerty/homenet/sht/','assets/homenet_sht101c/','data/homenet_sht101c/')):
