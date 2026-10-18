@@ -25,6 +25,11 @@ public final class Product {
  static final DeferredRegister<Item> ITEMS=DeferredRegister.create(ForgeRegistries.ITEMS,ID);
  static final DeferredRegister<BlockEntityType<?>> ENTITIES=DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES,ID);
  static final DeferredRegister<CreativeModeTab> TABS=DeferredRegister.create(net.minecraft.core.registries.Registries.CREATIVE_MODE_TAB,ID);
+ public static final RegistryObject<Ht512> HT512=BLOCKS.register("ht_512",Ht512::new);
+ public static final RegistryObject<Item> HT512_ITEM=ITEMS.register("ht_512",()->new BlockItem(HT512.get(),new Item.Properties()){
+  public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientItemExtensions> c){c.accept(Client.itemExtension());}
+ });
+ public static final RegistryObject<BlockEntityType<Ht512.Unit>> HT512_TYPE=ENTITIES.register("ht512",()->BlockEntityType.Builder.of(Ht512.Unit::new,HT512.get()).build(null));
  public static final RegistryObject<StationBlock> STATION=BLOCKS.register("sht_101c",StationBlock::new);
  public static final RegistryObject<Item> BASE_ITEM=ITEMS.register("sht_101c",()->new BlockItem(STATION.get(),new Item.Properties()){
   public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientItemExtensions> c){c.accept(Client.itemExtension());}
@@ -52,7 +57,7 @@ public final class Product {
  });
  public static final RegistryObject<BlockEntityType<Station>> TYPE=ENTITIES.register("station",()->BlockEntityType.Builder.of(Station::new,STATION.get()).build(null));
  public static final RegistryObject<BlockEntityType<Station102>> TYPE102=ENTITIES.register("station102",()->BlockEntityType.Builder.of(Station102::new,STATION102.get()).build(null));
- public Product(){IEventBus bus=FMLJavaModLoadingContext.get().getModEventBus();BLOCKS.register(bus);ITEMS.register(bus);ENTITIES.register(bus);TABS.register("samsung",()->CreativeModeTab.builder().title(Component.literal("SAMSUNG 홈오토메이션")).icon(()->new ItemStack(BASE_ITEM.get())).displayItems((a,o)->{o.accept(BASE_ITEM.get());o.accept(BASE102_ITEM.get());o.accept(PORTABLE102.get());o.accept(CHARGER_ITEM.get());}).build());TABS.register(bus);Wire.init();MovementSupport.init();}
+ public Product(){IEventBus bus=FMLJavaModLoadingContext.get().getModEventBus();BLOCKS.register(bus);ITEMS.register(bus);ENTITIES.register(bus);TABS.register("samsung",()->CreativeModeTab.builder().title(Component.literal("SAMSUNG 홈오토메이션")).icon(()->new ItemStack(BASE_ITEM.get())).displayItems((a,o)->{o.accept(HT512_ITEM.get());o.accept(BASE_ITEM.get());o.accept(BASE102_ITEM.get());o.accept(PORTABLE102.get());o.accept(CHARGER_ITEM.get());}).build());TABS.register(bus);Wire.init();MovementSupport.init();}
  public static class StationBlock extends WallMountedBlock {
   final boolean wired;
   public StationBlock(){this(false);}

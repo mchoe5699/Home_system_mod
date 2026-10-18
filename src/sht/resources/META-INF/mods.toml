@@ -3,9 +3,9 @@ loaderVersion="[47,)"
 license="All Rights Reserved"
 [[mods]]
 modId="homenet_sht101c"
-version="1.0.29"
-displayName="Samsung SHT-101C / SHT-102C"
-description='''Photo-measured Samsung SHT-101C / SHT-102C and wireless handset.'''
+version="1.0.30"
+displayName="Samsung SHT-101C / SHT-102C / HT-512"
+description='''Photo-measured Samsung SHT-101C / SHT-102C, wireless handset and HT-512 lobby station.'''
 [[dependencies.homenet_sht101c]]
 modId="qwertys_homenet"
 mandatory=true

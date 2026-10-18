@@ -19,7 +19,7 @@ public final class UsageHelp {
  static final Set<String> SCREENS=Set.of("WallpadScreen","DoorStationScreen","Am10kpScreen","GuardMasterScreen","Ha4100hConfigScreen","Hmc7000Screen","Ip203apScreen","Kam305Screen","Klp203rfScreen","Kvm906Screen","LobbyPhoneScreen","KhnWallpadScreen","DeviceConfigScreen");
  private static final Map<Screen,State> STATES=new WeakHashMap<>();
  static final class State { boolean open;int scroll,max;Button button;List<FormattedCharSequence> lines=List.of();int wrap=-1; }
- static boolean supports(Screen s){return s instanceof Controls||s instanceof AddressControls||s.getClass().getName().startsWith("com.qwerty.homenet.client.")&&SCREENS.contains(s.getClass().getSimpleName());}
+ static boolean supports(Screen s){return s instanceof Ht512Visual.ModelScreen||s instanceof Controls||s instanceof AddressControls||s.getClass().getName().startsWith("com.qwerty.homenet.client.")&&SCREENS.contains(s.getClass().getSimpleName());}
  static State state(Screen s){return STATES.get(s);}
  @SubscribeEvent public static void init(ScreenEvent.Init.Post e){var s=e.getScreen();if(!supports(s))return;var st=STATES.computeIfAbsent(s,k->new State());st.wrap=-1;st.button=Button.builder(Component.literal("사용법"),b->{st.open=true;st.scroll=0;}).bounds(Math.max(2,s.width-66),3,62,20).build();e.addListener(st.button);}
  static boolean active(Screen s){var st=state(s);return st!=null&&st.open;}

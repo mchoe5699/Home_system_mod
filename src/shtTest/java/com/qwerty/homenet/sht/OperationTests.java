@@ -227,4 +227,9 @@ public class OperationTests {
   }h.assertTrue(moved>20,"Too few registered devices exercised");System.out.println("ALL_BRANDS_MOVEMENT_PASS: "+moved+" registered device blocks nudged and crossed a block boundary");h.getLevel().setBlockAndUpdate(origin,net.minecraft.world.level.block.Blocks.AIR.defaultBlockState());h.succeed();
  }
 
+ @GameTest(template="empty") public static void ht512ModelOnlyInstallationAndMovement(GameTestHelper h){
+  var pos=h.absolutePos(new BlockPos(2,1,2));h.setBlock(new BlockPos(2,1,2),Product.HT512.get());var unit=h.getLevel().getBlockEntity(pos);h.assertTrue(unit instanceof Ht512.Unit,"HT-512 entity not registered");unit.onLoad();h.assertTrue(!(unit instanceof com.qwerty.homenet.intercom.IntercomCaller),"Model-only HT invented call behavior");h.assertTrue(Product.HT512.get().getTicker(h.getLevel(),unit.getBlockState(),Product.HT512_TYPE.get())==null,"Model-only HT has polling ticker");
+  var holder=home(h,6);var p=user(h,holder);p.teleportTo(pos.getX(),pos.getY(),pos.getZ());var moved=com.qwerty.homenet.move.DeviceOffsets.nudgeMm(p,pos,Direction.UP,125);h.assertTrue(moved.pos().equals(pos)&&com.qwerty.homenet.move.DeviceOffsets.millimetres(unit)[1]==125,"HT-512 micro movement failed");var result=com.qwerty.homenet.move.DeviceOffsets.nudgeMm(p,pos,Direction.NORTH,1000);h.assertTrue(h.getLevel().getBlockEntity(result.pos()) instanceof Ht512.Unit,"HT-512 block crossing lost model entity");h.assertTrue(Product.HT512_ITEM.get() instanceof net.minecraft.world.item.BlockItem,"HT-512 has no creative inventory item");h.succeed();
+ }
+
 }
