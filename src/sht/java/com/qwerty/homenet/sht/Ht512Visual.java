@@ -19,8 +19,9 @@ final class Ht512Visual {
  static final float W=464,H=610,SCALE=(float)(Ht512.HEIGHT/H);
  static final ResourceLocation FRONT=Product.id("ht512/front.png"),INK=Product.id("ht512/key_ink.png");
  record Key(String label,float x,float y,float w,float h){}
- static List<Key> keys;
- static void load(){if(keys!=null)return;try(var r=Minecraft.getInstance().getResourceManager().openAsReader(Product.id("ht512/model.json"))){var root=com.google.gson.JsonParser.parseReader(r).getAsJsonObject();var list=new ArrayList<Key>();for(var e:root.getAsJsonArray("keys"))list.add(new com.google.gson.Gson().fromJson(e,Key.class));keys=List.copyOf(list);}catch(Exception e){throw new IllegalStateException("HT-512 model",e);}}
+ record KeyStyle(float socketRadius,float rimInset,float rimRadius,float faceInset,float faceRadius,float labelInset,String socketColor,String rimColor,String faceColor){}
+ static KeyStyle keyStyle;static List<Key> keys;
+ static void load(){if(keys!=null)return;try(var r=Minecraft.getInstance().getResourceManager().openAsReader(Product.id("ht512/model.json"))){var root=com.google.gson.JsonParser.parseReader(r).getAsJsonObject();var list=new ArrayList<Key>();for(var e:root.getAsJsonArray("keys"))list.add(new com.google.gson.Gson().fromJson(e,Key.class));keyStyle=new com.google.gson.Gson().fromJson(root.get("keyStyle"),KeyStyle.class);keys=List.copyOf(list);}catch(Exception e){throw new IllegalStateException("HT-512 model",e);}}
  static void vertex(VertexConsumer b,PoseStack.Pose p,float x,float y,float z,float nx,float ny,float nz,int c,int light,float u,float v){Surface.vertex(b,p,x,y,z,nx,ny,nz,c,light,u,v);}
  static void face(PoseStack p,MultiBufferSource out,int light,float[][] points,ResourceLocation texture,int color){
   var b=out.getBuffer(RenderType.entityCutoutNoCull(texture));var a=points[0];var c=points[1];var d=points[2];float ux=c[0]-a[0],uy=c[1]-a[1],uz=c[2]-a[2],vx=d[0]-a[0],vy=d[1]-a[1],vz=d[2]-a[2];float nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;float len=(float)Math.sqrt(nx*nx+ny*ny+nz*nz);if(len==0){nx=ny=0;nz=1;len=1;}if(nz<0){nx=-nx;ny=-ny;nz=-nz;}
@@ -67,7 +68,13 @@ final class Ht512Visual {
   for(float[] q:new float[][]{{112,462,82,33},{112,500,82,38},{112,495,12,5},{182,495,12,5}})rect(p,o,l,q[0],q[1],q[2],q[3],15.3f,FRONT);
   solid(p,o,l,"card_slot",124,495,58,5,8,1,0,0x172016,0);
   face(p,o,l,new float[][]{{124,495,15.3f},{182,495,15.3f},{182,496,9},{124,496,9}},white,0x7e836a);
-  for(var k:keys){keySolid(p,o,l,k.x-.75f,k.y-.75f,k.w+1.5f,k.h+1.5f,15,1.1f,3,0x111a19,0);keySolid(p,o,l,k.x,k.y,k.w,k.h,16.1f,1,3,0xc3c4b4,0);keySolid(p,o,l,k.x+2,k.y+2,k.w-4,k.h-4,17.1f,2.3f,2,0x536780,.25f);rect(p,o,l,k.x+3,k.y+3,k.w-6,k.h-6,19.7f,INK);}
+  var style=keyStyle;float ri=style.rimInset,fi=style.faceInset,li=style.labelInset;
+  for(var k:keys){
+   keySolid(p,o,l,k.x,k.y,k.w,k.h,15,1.1f,style.socketRadius,Integer.parseInt(style.socketColor.substring(1),16),0);
+   keySolid(p,o,l,k.x+ri,k.y+ri,k.w-2*ri,k.h-2*ri,16.1f,1,style.rimRadius,Integer.parseInt(style.rimColor.substring(1),16),0);
+   keySolid(p,o,l,k.x+fi,k.y+fi,k.w-2*fi,k.h-2*fi,17.1f,2.3f,style.faceRadius,Integer.parseInt(style.faceColor.substring(1),16),.25f);
+   rect(p,o,l,k.x+li,k.y+li,k.w-2*li,k.h-2*li,19.7f,INK);
+  }
  }
  static void draw(PoseStack p,MultiBufferSource o,int light){GeometryCache.draw("ht512",p,o,light,Ht512Visual::mesh);}
  static void pose(Ht512.Unit b,PoseStack p){var offset=com.qwerty.homenet.move.DeviceOffsets.get(b.getLevel(),b.getBlockPos());p.translate(offset.x,offset.y,offset.z);double bottom=.5-Ht512.HEIGHT/2;switch(b.getBlockState().getValue(WallMountedBlock.FACING)){case NORTH->{p.translate(.5,bottom,1);p.mulPose(Axis.YP.rotationDegrees(180));}case SOUTH->p.translate(.5,bottom,0);case EAST->{p.translate(0,bottom,.5);p.mulPose(Axis.YP.rotationDegrees(90));}case WEST->{p.translate(1,bottom,.5);p.mulPose(Axis.YP.rotationDegrees(-90));}default->{}}p.scale(SCALE,SCALE,SCALE);p.translate(-W/2,H-700,0);}

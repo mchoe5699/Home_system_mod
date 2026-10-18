@@ -22,6 +22,12 @@ final class Ht512Probe {
   check(MeshProbe.nearest(all.vertices,151,497.5).z()<10,"Card slot is painted instead of recessed");
   check(MeshProbe.nearest(all.vertices,250,400).z()==15,"Main panel is not flat");
   double front=-1;for(var k:Ht512Visual.keys){double z=MeshProbe.nearest(all.vertices,k.x()+k.w()/2,k.y()+k.h()/2).z();check(z>19.3,"HT button buried");if(front>=0)check(Math.abs(z-front)<.01,"HT keys have different protrusion");front=z;}
+  // Probe the gaps in the actual mesh, not only the JSON dimensions.
+  for(float x:new float[]{302,333})check(Math.abs(MeshProbe.nearest(all.vertices,x,333.5).z()-15)<.001,"HT numeric sockets merge across the photo gap");
+  check(Math.abs(MeshProbe.nearest(all.vertices,318,466).z()-15)<.001,"HT action keys merge across the photo gap");
+  var one=Ht512Visual.keys.get(0);check(one.w()==26&&one.h()==28&&one.x()==273.5f&&one.y()==319.5f,"HT keypad not aligned to rectified photo");
+  var guard=Ht512Visual.keys.get(12);var call=Ht512Visual.keys.get(13);check(guard.y()==452&&call.y()==452&&Math.abs(call.x()-guard.x()-guard.w()-6.5)<.001,"HT lower row alignment/gap wrong");
+  check(Math.abs(Ht512Visual.keyStyle.faceInset()-Ht512Visual.keyStyle.rimInset()-.7)<.001,"HT bright rim is too thick");
   int builds=GeometryCache.builds;var discard=new MeshProbe.Capture();discard.save=false;for(int i=0;i<10;i++)Ht512Visual.draw(new PoseStack(),t->discard,15728880);check(GeometryCache.builds==builds,"HT mesh rebuilt each frame");check(all.vertices.size()<40000,"HT mesh excessive");
   HelpProbe.verify(new Ht512Visual.ModelScreen());Minecraft.getInstance().setScreen(null);
   System.out.println("HT512_MESH_PASS: KLP-203 exact height, photo ratio, 99 open speaker holes, inset card slot, 14 equally raised keys, cached mesh; no images");

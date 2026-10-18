@@ -52,15 +52,36 @@ text(361,274,'호',7,'#d8dbcf')
 for row in range(11):
  for col in range(9):
   xx=112.1+col*10.2;yy=335.1+row*10.2;d.ellipse(((xx-2.6)*S,(yy-2.6)*S,(xx+2.6)*S,(yy+2.6)*S),fill='#101611')
+# Outer key boundaries measured after projective rectification of photo 1.
+# Coordinates describe the black socket, not an inner cap with extra borders added outside it.
 keys=[]
 for row,chars in enumerate(['123','456','789','*0#']):
- for col,ch in enumerate(chars):keys.append(dict(label=ch,x=282+31*col,y=326+31*row,w=28,h=28))
-keys += [dict(label='경비실',x=283,y=455,w=41,h=28),dict(label='호출',x=329,y=455,w=41,h=28)]
+ for col,ch in enumerate(chars):keys.append(dict(label=ch,x=273.5+31*col,y=319.5+31.5*row,w=26,h=28))
+keys += [dict(label='경비실',x=273,y=452,w=42,h=28),dict(label='호출',x=321.5,y=452,w=42,h=28)]
+style=dict(socketRadius=1.8,rimInset=1.1,rimRadius=1.1,faceInset=1.8,faceRadius=.8,labelInset=2.2,
+           socketColor='#141c24',rimColor='#aab4bc',faceColor='#485e82')
 for q in keys:
- xx,yy,ww,hh=(q[v] for v in ['x','y','w','h']);rr((xx-.75,yy-.75,xx+ww+.75,yy+hh+.75),'#111b1b',3);rr((xx,yy,xx+ww,yy+hh),'#c7c8ba',3);rr((xx+2,yy+2,xx+ww-2,yy+hh-2),'#576b82',2)
- sz=21 if len(q['label'])==1 else 9.5;f=font(sz);bb=d.textbbox((0,0),q['label'],font=f);tx=xx+(ww-(bb[2]-bb[0])/S)/2;ty=yy+(hh-(bb[3]-bb[1])/S)/2-bb[1]/S
- for dd in [d,k]:text(tx,ty,q['label'],sz,'#f0f1e7',draw=dd)
-text(379,426,'취소',5.8)
+ xx,yy,ww,hh=(q[v] for v in ['x','y','w','h'])
+ rr((xx,yy,xx+ww,yy+hh),style['socketColor'],style['socketRadius'])
+ ri,fi=style['rimInset'],style['faceInset']
+ rr((xx+ri,yy+ri,xx+ww-ri,yy+hh-ri),style['rimColor'],style['rimRadius'])
+ rr((xx+fi,yy+fi,xx+ww-fi,yy+hh-fi),style['faceColor'],style['faceRadius'])
+ # Narrow blue bevel highlights follow the real cap; the silver line is only 0.7 px wide.
+ line([(xx+fi+1,yy+fi),(xx+ww-fi-1,yy+fi)],'#7388a2',.45)
+ line([(xx+ww-fi,yy+fi+1),(xx+ww-fi,yy+hh-fi-1)],'#344764',.45)
+ if q['label']=='*':
+  # The photographed asterisk is a centered six-spoke mark, not a small raised font glyph.
+  cx,cy=xx+ww/2,yy+hh/2
+  for dd in [d,k]:
+   for angle in [30,90,150]:
+    a=np.deg2rad(angle);dx,dy=6.2*np.cos(a),6.2*np.sin(a)
+    line([(cx-dx,cy-dy),(cx+dx,cy+dy)],'#f1f2ed',1.9,draw=dd)
+ else:
+  numeric=len(q['label'])==1
+  f=ImageFont.truetype('/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf',22*S) if numeric else font(10.2,True)
+  bb=d.textbbox((0,0),q['label'],font=f);tx=xx*S+(ww*S-bb[2]+bb[0])/2-bb[0];ty=yy*S+(hh*S-bb[3]+bb[1])/2-bb[1]
+  for dd in [d,k]:dd.text((round(tx),round(ty)),q['label'],font=f,fill='#f1f2ed')
+text(368,421,'취소',5.8)
 # Card insertion pocket and arrow.
 rect((112,462,194,538),'#2f352a');rect((113.5,463.5,192.5,536.5),'#b9b497')
 rect((124,495,182,500),'#34392c');line([(124,500),(182,500)],'#d8d2b2',1)
@@ -74,7 +95,7 @@ im.save(T/'front.png');ink.save(T/'key_ink.png')
 with zipfile.ZipFile(R/'.device-baseline/base.jar') as z:
  e=json.loads(z.read('assets/qwertys_homenet/models/block/klp_203.json'))['elements']
  h=(max(q['to'][1] for q in e)-min(q['from'][1] for q in e))/16
-spec=dict(width=W,height=H,blockHeight=h,blockWidth=h*W/H,depthPixels=20,frame=17,faceZ=15,speaker=dict(x=107,y=330,cols=9,rows=11,pitch=10.2,radius=2.6),keys=keys,mode='BUS',modelOnly=True)
+spec=dict(width=W,height=H,blockHeight=h,blockWidth=h*W/H,depthPixels=20,frame=17,faceZ=15,speaker=dict(x=107,y=330,cols=9,rows=11,pitch=10.2,radius=2.6),keys=keys,keyStyle=style,mode='BUS',modelOnly=True)
 (T/'model.json').write_text(json.dumps(spec,ensure_ascii=False,indent=2))
 for sub,obj in [('blockstates/ht_512.json',{'variants':{'':{'model':'minecraft:block/air'}}}),('models/item/ht_512.json',{'parent':'builtin/entity'}),('loot_tables/blocks/ht_512.json',{'type':'minecraft:block','pools':[{'rolls':1,'entries':[{'type':'minecraft:item','name':'homenet_sht101c:ht_512'}],'conditions':[{'condition':'minecraft:survives_explosion'}]}]})]:
  # Loot tables live in data, not assets.
