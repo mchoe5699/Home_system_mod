@@ -13,6 +13,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import java.util.*;
 /** Fresh SHT-101C operation controller. Existing product bytecode is never replaced. */
 public class Station extends ReceiverBlockEntity {
+ @Override public net.minecraft.world.phys.AABB getRenderBoundingBox(){var bounds=new net.minecraft.world.phys.AABB(worldPosition).inflate(.25,1,.25);if(level!=null){var offset=com.qwerty.homenet.move.DeviceOffsets.get(level,worldPosition);return bounds.move(offset);}return bounds;}
  public boolean docked=true,bus=true,folded=true;
  boolean portableRegistered,portableActive,portableCommand;int transfer,transferTicks;
  final Set<UUID> portableViews=new HashSet<>();

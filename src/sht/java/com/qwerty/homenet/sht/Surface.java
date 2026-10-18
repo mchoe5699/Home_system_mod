@@ -153,6 +153,9 @@ public final class Surface {
  static float handsetShift(){return bodyDepth(mounting.front)-mounting.front;}
  static void bodyPose(PoseStack p){load();p.pushPose();p.translate(0,0,mounting.frame);p.scale(1,1,mounting.depth/(mounting.front-mounting.back));p.translate(0,0,-mounting.back);}
  static void draw(PoseStack p,MultiBufferSource out,int light,boolean radio,boolean docked,boolean folded){
+  load();GeometryCache.draw("station/"+wiredModel+"/"+radio+"/"+docked+"/"+folded,p,out,light,(pose,buffers)->drawRaw(pose,buffers,0,radio,docked,folded));
+ }
+ static void drawRaw(PoseStack p,MultiBufferSource out,int light,boolean radio,boolean docked,boolean folded){
   load();
   if(radio){for(var s:solids)if(s.group.equals("radio"))solid(s,p,out,light);rectangle(p,out,0,0,1042,950,73,Product.id("textures/radio_ink.png"),light);return;}
   // The sheet stays on the wall. Every base feature moves together and becomes 14% thinner.

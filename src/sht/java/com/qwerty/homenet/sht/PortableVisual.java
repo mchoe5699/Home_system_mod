@@ -12,10 +12,12 @@ final class PortableVisual {
  static List<Surface.Solid> parts;static List<Surface.Key> keys;
  static void load(){if(parts!=null)return;try(var r=Minecraft.getInstance().getResourceManager().openAsReader(Product.id("portable102/model.json"))){var m=JsonParser.parseReader(r).getAsJsonObject();var g=new Gson();parts=new ArrayList<>();keys=new ArrayList<>();for(var p:m.getAsJsonArray("parts"))parts.add(g.fromJson(p,Surface.Solid.class));for(var k:m.getAsJsonArray("keys"))keys.add(g.fromJson(k,Surface.Key.class));}catch(Exception e){throw new IllegalStateException(e);}}
  static void handset(PoseStack p,MultiBufferSource out,int light,boolean active){handset(p,out,light,active,false);}
- static void handset(PoseStack p,MultiBufferSource out,int light,boolean active,boolean intercom){load();for(var s:parts)Surface.solid(s,p,out,light);Surface.rectangle(p,out,0,0,240,950,73.8f,Product.id("portable102/textures/radio_ink.png"),light);if(active)Surface.patch(p,out,intercom?148:76,474,8,3,75,0xa0ef7a,15728880);}
+ static void handset(PoseStack p,MultiBufferSource out,int light,boolean active,boolean intercom){GeometryCache.draw("portable/"+active+"/"+intercom,p,out,light,(pose,buffers)->handsetRaw(pose,buffers,0,active,intercom));}
+ static void handsetRaw(PoseStack p,MultiBufferSource out,int light,boolean active,boolean intercom){load();for(var s:parts)Surface.solid(s,p,out,light);Surface.rectangle(p,out,0,0,240,950,73.8f,Product.id("portable102/textures/radio_ink.png"),light);if(active)Surface.patch(p,out,intercom?148:76,474,8,3,75,0xa0ef7a,15728880);}
  static void vertex(VertexConsumer b,PoseStack.Pose p,float x,float y,float z,int rgb,int light,float nx,float ny,float nz){b.vertex(p.pose(),x,y,z).color(rgb>>16&255,rgb>>8&255,rgb&255,255).uv(.5f,.5f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(p.normal(),nx,ny,nz).endVertex();}
  static void stand(PoseStack p,MultiBufferSource out,int light,boolean inserted,boolean charging,boolean active){stand(p,out,light,inserted,charging,active,false);}
- static void stand(PoseStack p,MultiBufferSource out,int light,boolean inserted,boolean charging,boolean active,boolean intercom){
+ static void stand(PoseStack p,MultiBufferSource out,int light,boolean inserted,boolean charging,boolean active,boolean intercom){GeometryCache.draw("stand/"+inserted+"/"+charging+"/"+active+"/"+intercom,p,out,light,(pose,buffers)->standRaw(pose,buffers,0,inserted,charging,active,intercom));}
+ static void standRaw(PoseStack p,MultiBufferSource out,int light,boolean inserted,boolean charging,boolean active,boolean intercom){
   var b=out.getBuffer(RenderType.entityCutoutNoCull(Product.id("textures/solid.png")));var pose=p.last();
   // Rounded footprint, continuously sloping top, low front and raised back.
   for(int i=0;i<64;i++){

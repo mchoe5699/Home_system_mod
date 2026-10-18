@@ -190,4 +190,10 @@ public class OperationTests {
   }}h.succeed();
  }
 
+ @GameTest(template="empty") public static void chargerOnlySynchronizesChangedState(GameTestHelper h){
+  var s=wiredHome(h,3);var p=user(h,s);var item=portable(s,p);h.setBlock(new BlockPos(5,1,3),Product.CHARGER.get());var dock=(Charger.Dock)h.getLevel().getBlockEntity(h.absolutePos(new BlockPos(5,1,3)));dock.stack=item.copy();dock.refresh();
+  h.assertTrue(!dock.refresh(),"Full idle charger must not request another block update");dock.stack.getTag().putInt("battery",Portable.CAPACITY-240);h.assertTrue(dock.refresh(),"Charging progress must still synchronize");dock.refresh();h.assertTrue(!dock.refresh(),"Completed charge kept synchronizing");
+  h.setBlock(new BlockPos(7,1,3),ModBlocks.DOOR_STATION.get());var camera=(DoorStationBlockEntity)h.getLevel().getBlockEntity(h.absolutePos(new BlockPos(7,1,3)));camera.toggleReceiver(s.getBlockPos());camera.startCall("");h.assertTrue(dock.refresh()&&dock.stack.getTag().getBoolean("ringing"),"Incoming alert change was suppressed");h.assertTrue(!dock.refresh(),"Unchanged ringing flag requests redundant update");s.finish();h.assertTrue(dock.refresh()&&!dock.stack.getTag().getBoolean("ringing"),"Call-end alert change was suppressed");h.succeed();
+ }
+
 }
