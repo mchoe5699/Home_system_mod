@@ -12,7 +12,7 @@ import net.minecraftforge.fml.common.Mod;
 @Mod.EventBusSubscriber(modid=Product.ID,bus=Mod.EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
 public class Client {
  static void address(Wire.Address a){Minecraft.getInstance().setScreen(new AddressControls(a.pos(),a.unit()));}
- static void receive(Wire.View v){var mc=Minecraft.getInstance();if(v.state().open())mc.setScreen(v.remote()&&v.state().flag("wired")?new PortableControls(v.state()):new Controls(v.state(),v.remote()));else if(mc.screen instanceof Controls c&&c.data.pos().equals(v.state().pos()))c.data=v.state();}
+ static void receive(Wire.View v){var mc=Minecraft.getInstance();if(v.state().open())mc.setScreen(v.accessory()||v.remote()&&v.state().flag("wired")?new PortableControls(v.state()):new Controls(v.state(),v.remote()));else if(mc.screen instanceof Controls c&&c.data.pos().equals(v.state().pos()))c.data=v.state();}
  @SubscribeEvent public static void renderers(EntityRenderersEvent.RegisterRenderers e){e.registerBlockEntityRenderer(Product.CHARGER_TYPE.get(),c->new PortableVisual.Renderer());e.registerBlockEntityRenderer(Product.TYPE.get(),c->new Renderer());e.registerBlockEntityRenderer(Product.TYPE102.get(),c->new Renderer());}
  static class Renderer implements BlockEntityRenderer<Station>{
   com.qwerty.homenet.client.kvm.KvmCameraView video=new com.qwerty.homenet.client.kvm.KvmCameraView();

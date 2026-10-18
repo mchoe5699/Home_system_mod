@@ -12,7 +12,8 @@ public class Controls extends Screen {
  static final int BASE_X=74,BASE_Y=54,BASE_W=896,BASE_H=653,BASE_ATLAS_H=720;
  public WallpadDataPacket data;boolean radio;EditBox text,setting;float scale;int x,y;boolean ignoreT;
  final com.qwerty.homenet.client.kvm.KvmCameraView video=new com.qwerty.homenet.client.kvm.KvmCameraView();
- Controls(WallpadDataPacket d,boolean r){super(Component.literal(r?(d.flag("wired")?"SHT-102C 휴대장치":"SHT-101C 무선수화기"):d.flag("wired")?"SAMSUNG SHT-102C":"SAMSUNG SHT-101C"));data=d;radio=r;}
+ Controls(WallpadDataPacket d,boolean r){this(d,r,Component.literal(r?(d.flag("wired")?"SHT-102C 휴대장치":"SHT-101C 무선수화기"):d.flag("wired")?"SAMSUNG SHT-102C":"SAMSUNG SHT-101C"));}
+ Controls(WallpadDataPacket d,boolean r,Component label){super(label);data=d;radio=r;}
  public boolean isPauseScreen(){return false;}
  void send(String a,String v){Wire.send(data.pos(),radio,a,v);}
  protected void init(){int usable=width-com.qwerty.homenet.client.IntercomConversation.width(width)-30;scale=Math.min(usable/(radio?240f:(float)BASE_W),(height-155)/(radio?950f:(float)BASE_H));x=(int)((usable-(radio?240:BASE_W)*scale)/2);y=52;
