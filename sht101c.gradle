@@ -1,7 +1,8 @@
 plugins { id 'net.minecraftforge.gradle' version '[6.0.16,6.2)' }
-version='1.0.21'
+version='1.0.22'
 group='com.qwerty.homenet'
 base { archivesName='sht101c' }
+tasks.named('jar') { archiveFileName='sht101c.jar' }
 layout.buildDirectory=file('build/sht101c')
 java.toolchain.languageVersion=JavaLanguageVersion.of(17)
 sourceSets.main.java.setSrcDirs(['src/sht/java'])

@@ -15,7 +15,7 @@ final class VideoProbe {
  static final List<BlockPos> positions=new ArrayList<>();
  static void setup(MinecraftServer server){
   var l=server.overworld();ZoneData.get(l).add("physical video test",1,-100,-100,100,100);
-  List<Block> blocks=List.of(ModBlocks.KVM_906.get(),ModBlocks.KVM_904.get(),ModBlocks.KVM_930.get(),ModBlocks.KVM_960.get(),ModBlocks.KVM_933.get(),ModBlocks.KVM_940.get(),ModBlocks.KVM_931.get(),ModBlocks.KVM_931_LAMP.get(),ModBlocks.KVM_932T.get(),ModBlocks.KVM_932.get(),ModBlocks.KVM_936.get(),ModBlocks.KVM_931T.get(),ModBlocks.KVM_940R3.get(),ModBlocks.VIDEO_PHONE.get(),ModBlocks.WALLPAD.get(),ModBlocks.HA_4100H.get(),Product.STATION.get());
+  List<Block> blocks=List.of(ModBlocks.KVM_906.get(),ModBlocks.KVM_904.get(),ModBlocks.KVM_930.get(),ModBlocks.KVM_960.get(),ModBlocks.KVM_933.get(),ModBlocks.KVM_940.get(),ModBlocks.KVM_931.get(),ModBlocks.KVM_931_LAMP.get(),ModBlocks.KVM_932T.get(),ModBlocks.KVM_932.get(),ModBlocks.KVM_936.get(),ModBlocks.KVM_931T.get(),ModBlocks.KVM_940R3.get(),ModBlocks.VIDEO_PHONE.get(),ModBlocks.WALLPAD.get(),ModBlocks.HA_4100H.get(),Product.STATION.get(),Product.STATION102.get());
   for(int i=0;i<blocks.size();i++){
    var at=new BlockPos(i*2,80,6);var door=at.south(2);positions.add(at);
    l.setBlockAndUpdate(at,blocks.get(i).defaultBlockState().setValue(WallMountedBlock.FACING,Direction.values()[2+i%4]));
@@ -38,7 +38,7 @@ final class VideoProbe {
     ClientRun.check(Math.abs(maxY-minY-144*Surface.SCALE)<.00001,"SHT world video height wrong");
    }
   }
-  System.out.println("PHYSICAL_VIDEO_PASS: 13 KVM models, generic video phone, wallpad, HA-4100H, SHT-101C; incoming calls before opening UI; four wall orientations; actual video vertices");return true;
+  System.out.println("PHYSICAL_VIDEO_PASS: 13 KVM models, generic video phone, wallpad, HA-4100H, SHT-101C and SHT-102C; incoming calls before opening UI; four wall orientations; actual video vertices");return true;
  }
  @SuppressWarnings({"rawtypes","unchecked"}) static boolean cleared(Minecraft mc){
   var videoType=RenderType.entityTranslucentEmissive(com.qwerty.homenet.HomeNet.id("textures/block/ha4100h/video_white.png"));
@@ -46,7 +46,7 @@ final class VideoProbe {
    ((net.minecraft.client.renderer.blockentity.BlockEntityRenderer)mc.getBlockEntityRenderDispatcher().getRenderer(b)).render(b,0,new PoseStack(),t->t==videoType?capture:ignore,15728880,0);
    if(!capture.vertices.isEmpty())return false;
   }
-  System.out.println("PHYSICAL_VIDEO_CLEAR_PASS: all 17 physical screens clear after call termination");return true;
+  System.out.println("PHYSICAL_VIDEO_CLEAR_PASS: all 18 physical screens clear after call termination");return true;
  }
 
 }

@@ -15,6 +15,14 @@ final class MeshProbe {
  }
  static double hit(V a,V b,V c,double x,double y){double det=(b.y-c.y)*(a.x-c.x)+(c.x-b.x)*(a.y-c.y);if(Math.abs(det)<1e-8)return Double.NEGATIVE_INFINITY;double u=((b.y-c.y)*(x-c.x)+(c.x-b.x)*(y-c.y))/det,v=((c.y-a.y)*(x-c.x)+(a.x-c.x)*(y-c.y))/det;if(u<-.00001||v<-.00001||u+v>1.00001)return Double.NEGATIVE_INFINITY;return u*a.z+v*b.z+(1-u-v)*c.z;}
  static V nearest(List<V> vs,double x,double photoY){double z=Double.NEGATIVE_INFINITY;V found=null;for(int i=0;i<vs.size();i+=4){var a=vs.get(i);for(int j=1;j<=2;j++){double at=hit(a,vs.get(i+j),vs.get(i+j+1),x,700-photoY);if(at>z){z=at;found=new V(x,photoY,z,a.color,a.ny);}}}if(found==null)throw new AssertionError("No surface at "+x+","+photoY);return found;}
+ static void wired(){
+  Surface.select(true);var solid=new Capture();var ignored=new Capture();ignored.save=false;var type=RenderType.entityCutoutNoCull(Product.id("textures/solid.png"));Surface.draw(new PoseStack(),t->t==type?solid:ignored,15728880,false,true,false);
+  for(double x:new double[]{590,674,758})for(double y:new double[]{190,246,300}){var v=nearest(solid.vertices,x,y);if(v.color!=0x8d9691||Math.abs(v.z-Surface.bodyDepth(65))>.001)throw new AssertionError("102 CRT blocked");}
+  if(Surface.solids.stream().anyMatch(p->p.name().startsWith("radio_")||p.name().contains("cable")))throw new AssertionError("102 has wireless/cable geometry");
+  var handset=nearest(solid.vertices,214,350);if(handset.z()<Surface.bodyDepth(68)+35)throw new AssertionError("Wired handset absent");
+  if(Surface.buttons.stream().noneMatch(k->k.name().equals("line")&&k.y()==591))throw new AssertionError("National line key moved");
+  Surface.select(false);System.out.println("SHT102_MESH_PASS: clear 4:3 CRT, wired handset, black aerial, no cordless/cable, fixed national key, independent model cache");
+ }
  static void verify(){var solid=new Capture();var ignored=new Capture();ignored.save=false;var expected=RenderType.entityCutoutNoCull(Product.id("textures/solid.png"));Surface.draw(new PoseStack(),type->type==expected?solid:ignored,15728880,false,false,true);
   if(solid.vertices.isEmpty())throw new AssertionError("Probe captured no solid vertices");
   for(double x:new double[]{590,674,758})for(double y:new double[]{190,246,300}){var v=nearest(solid.vertices,x,y);if(v.color!=0x8d9691||Math.abs(v.z-Surface.bodyDepth(65))>.001)throw new AssertionError("CRT blocked at "+x+","+y+" by "+Integer.toHexString(v.color)+" z="+v.z);}

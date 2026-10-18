@@ -19,12 +19,14 @@ public class Station extends ReceiverBlockEntity {
  boolean memory,verify,audio,hold,away,armed,test,mute,tone=true,recall;
  int channel=1,volume=2,ring=2,brightness=2,contrast=2,internal,monitor,alarmTime,awayTime,resetTime,clock,phone,phoneTime,reportStage=-1,reportTimer,reportAudio;
  BlockPos phoneAt,clientVideo;int clientLights,lastVisualLights=Integer.MIN_VALUE;Map<String,String> stored=new HashMap<>();Set<String> edges=new HashSet<>();Map<UUID,Boolean> observers=new HashMap<>();
- public Station(BlockPos p,BlockState s){super(Product.TYPE.get(),p,s);productLogo.set("logo_text","SAMSUNG");}
+ public Station(BlockPos p,BlockState s){this(Product.TYPE.get(),p,s);}
+ protected Station(net.minecraft.world.level.block.entity.BlockEntityType<?> type,BlockPos p,BlockState s){super(type,p,s);productLogo.set("logo_text","SAMSUNG");}
+ public boolean wired(){return false;}
  public DeviceRegistry.Kind kind(){return DeviceRegistry.Kind.VIDEO_PHONE;}
  public GuardSystem guardSystem(){return bus?GuardSystem.BUS:GuardSystem.STAR;}
  public String manufacturer(){return "SAMSUNG";}
  public AnalogBus analogBus(){return bus?AnalogBus.COMMON_8_WIRE:AnalogBus.DEDICATED;}
- public boolean canSetUnitLocally(){return !bus;}
+ public boolean canSetUnitLocally(){return true;}
  public boolean supportsSwitchboard(GuardExchange g){return super.supportsSwitchboard(g)&&g.supports(analogBus());}
  boolean same(BlockPos p){return p!=null&&level!=null&&ZoneData.connected(level,worldPosition,p);}
  boolean paired(){return pin.equals(radioPin)&&pin.equals(fixedPin);}
@@ -39,7 +41,7 @@ public class Station extends ReceiverBlockEntity {
  public void open(ServerPlayer p,boolean remote){if(!allowed(p,remote))return;observers.put(p.getUUID(),remote);Wire.show(p,buildPacket(true),remote);}
  public WallpadDataPacket snapshot(){return buildPacket(false);}
  public void syncScreens(){if(!(level instanceof ServerLevel sl))return;for(var e:new ArrayList<>(observers.entrySet())){var p=sl.getServer().getPlayerList().getPlayer(e.getKey());if(p==null||!allowed(p,e.getValue()))observers.remove(e.getKey());else Wire.show(p,buildPacket(false),e.getValue());}}
- protected Map<String,String> settingsForClient(){var s=super.settingsForClient();s.put("sht","new");s.put("mode",bus?"BUS":"STAR");s.put("status",status);s.put("docked",docked?"1":"0");s.put("folded",folded?"1":"0");s.put("alarm",alarm);s.put("armed",armed?"1":"0");s.put("away",away?"1":"0");s.put("brightness",""+brightness);s.put("contrast",""+contrast);s.put("channel",""+channel);s.put("phone",""+phone);s.put("intercom",""+internal);s.put("paired",paired()?"1":"0");s.put("lights",""+lights());var v=camera();if(v!=null){s.put("video","1");s.put("vx",""+v.getX());s.put("vy",""+v.getY());s.put("vz",""+v.getZ());}return s;}
+ protected Map<String,String> settingsForClient(){var s=super.settingsForClient();s.put("sht","new");s.put("wired",wired()?"1":"0");s.put("mode",bus?"BUS":"STAR");s.put("status",status);s.put("docked",docked?"1":"0");s.put("folded",folded?"1":"0");s.put("alarm",alarm);s.put("armed",armed?"1":"0");s.put("away",away?"1":"0");s.put("brightness",""+brightness);s.put("contrast",""+contrast);s.put("channel",""+channel);s.put("phone",""+phone);s.put("intercom",""+internal);s.put("paired",paired()?"1":"0");s.put("lights",""+lights());var v=camera();if(v!=null){s.put("video","1");s.put("vx",""+v.getX());s.put("vy",""+v.getY());s.put("vz",""+v.getZ());}return s;}
  boolean source(BlockPos at){if(!same(at)||!level.isLoaded(at))return false;var b=level.getBlockEntity(at);if(b instanceof DoorStationBlockEntity)return hasLinkedCamera(at);if(b instanceof GuardExchange g)return at.equals(analogStation)&&supportsSwitchboard(g);if(b instanceof ReceiverBlockEntity r)return !bus&&r.kind()==DeviceRegistry.Kind.GUARD_CONSOLE&&r.guardSystem()==GuardSystem.STAR;if(b instanceof AnalogLobbyEndpoint a)return bus&&a.manufacturer().equalsIgnoreCase("SAMSUNG")&&a.supports(AnalogBus.COMMON_8_WIRE);return !bus&&b instanceof LobbyPhoneBlockEntity;}
  protected BlockPos ring(BlockPos at,String key,int depth){if(depth>3||!source(at))return null;if(away&&key.equals("lobby")){var g=switchboard();if(g instanceof ReceiverBlockEntity r)return r.ring(at,key);if(!bus&&level instanceof ServerLevel sl)for(var p:DeviceRegistry.get(sl).guards(sl,worldPosition,false))if(same(p)&&level.getBlockEntity(p) instanceof ReceiverBlockEntity r&&r.guardSystem()==GuardSystem.STAR)return r.ring(at,key);}return super.ring(at,key,depth);}
  public boolean startRinging(BlockPos at,String key){if(!source(at))return false;boolean ok=super.startRinging(at,key);if(ok)tell("착신 · 스피커 또는 무선수화기로 응답");return ok;}

@@ -88,4 +88,24 @@ public class OperationTests {
   s.phone=3;s.audio=true;s.lastVisualLights=s.lights();s.phoneTime=2400;s.tickExtra();h.assertTrue((s.lights()&Indicators.LINE)==0&&s.lastVisualLights==s.lights(),"Telephone timeout left stale physical lamp");h.succeed();
  }
 
+
+ static Station102 wiredHome(GameTestHelper h,int x){h.setBlock(new BlockPos(x,1,3),Product.STATION102.get());var s=(Station102)h.getLevel().getBlockEntity(h.absolutePos(new BlockPos(x,1,3)));s.onLoad();return s;}
+ @GameTest(template="empty") public static void samsungDirectAddressBothModes(GameTestHelper h){
+  for(var s:List.of(home(h,3),wiredHome(h,5))){var p=user(h,s);Wire.apply(new Wire.Input(s.getBlockPos(),false,"unit","102-1002"),p);h.assertTrue(s.getUnit().equals("102-1002"),"BUS direct address missing");s.press("mode",p,false);Wire.apply(new Wire.Input(s.getBlockPos(),false,"unit","103-1003"),p);h.assertTrue(s.getUnit().equals("103-1003"),"STAR direct address missing");var saved=s.saveWithoutMetadata();Station copy=s.wired()?new Station102(s.getBlockPos(),s.getBlockState()):new Station(s.getBlockPos(),s.getBlockState());copy.load(saved);h.assertTrue(copy.getUnit().equals("103-1003")&&!copy.bus,"Address/mode persistence missing");}
+  h.succeed();
+ }
+ @GameTest(template="empty") public static void wiredDoorMonitorAndCradle(GameTestHelper h){
+  var s=wiredHome(h,3);var p=user(h,s);h.setBlock(new BlockPos(6,1,3),ModBlocks.DOOR_STATION.get());var c=(DoorStationBlockEntity)h.getLevel().getBlockEntity(h.absolutePos(new BlockPos(6,1,3)));h.assertTrue(c.toggleReceiver(s.getBlockPos()),"Wired camera link failed");
+  s.press("front",p,false);h.assertTrue(s.camera()!=null&&!c.isInCall()&&!s.audio&&s.docked,"On-hook front key must only monitor");s.lift(p);h.assertTrue(c.isConnected()&&s.audio&&!s.docked&&p.getInventory().isEmpty(),"Wired lift must answer without inventory radio");s.say(p,"유선 현관 통화",false);h.assertTrue(c.getLog().stream().anyMatch(v->v.text().equals("유선 현관 통화")),"Wired audio missing");s.replace(p);h.assertTrue(s.docked&&!c.isInCall(),"Wired cradle failed");c.startCall("");s.lift(p);h.assertTrue(c.isConnected(),"Incoming wired answer failed");s.replace(p);h.assertTrue(!s.allowed(p,true),"Wired accepted portable control");h.succeed();
+ }
+ @GameTest(template="empty") public static void wiredNationalOnHookHoldAndRecall(GameTestHelper h){
+  var a=wiredHome(h,3);var b=wiredHome(h,5);var p=user(h,a);var q=user(h,b);
+  for(var s:List.of(a,b)){var u=s==a?p:q;s.press("memory",u,false);s.press("line",u,false);s.press("line",u,false);for(char c:(s==a?"52001":"52002").toCharArray())s.digit(""+c,false);s.press("memory",u,false);}
+  h.assertTrue(a.number.equals("52001")&&b.number.equals("52002"),"Wired own-number programming failed");a.press("line",p,false);for(char c:"52002#".toCharArray())a.digit(""+c,false);h.assertTrue(b.phone==2&&a.docked&&!a.audio,"On-hook national dialing failed: peer="+b.phone+" audio="+a.audio+" docked="+a.docked+" status="+a.status+" unit="+a.getUnit()+" dialed="+a.phoneAt+" expected="+b.getBlockPos()+" current="+(h.getLevel().getBlockEntity(b.getBlockPos())==b));b.lift(q);a.lift(p);h.assertTrue(a.phone==3&&a.audio&&b.audio,"Wired phone pickup failed");a.press("hold",p,false);a.replace(p);tick(a,2500);h.assertTrue(a.phone==3&&a.hold&&a.docked,"Held line lost when replacing handset");a.press("line",p,false);a.lift(p);a.say(p,"유선 국선 재통화",false);h.assertTrue(b.conversation().stream().anyMatch(v->v.text().equals("유선 국선 재통화")),"Held line resume failed");a.replace(p);h.assertTrue(b.phone==0,"Phone peer not disconnected");h.succeed();
+ }
+
+ @GameTest(template="empty") public static void samsungLegacyAddressAndReach(GameTestHelper h){
+  var s=home(h,3);var p=user(h,s);h.setBlock(new BlockPos(5,1,3),ModBlocks.SHT_5500S.get());var at=h.absolutePos(new BlockPos(5,1,3));var r=(ReceiverBlockEntity)h.getLevel().getBlockEntity(at);
+  h.assertTrue(SamsungAddress.set(p,at,"104-1004")&&r.getUnit().equals("104-1004"),"Legacy Samsung direct address missing");h.assertTrue(!SamsungAddress.set(p,at,"bad")&&r.getUnit().equals("104-1004"),"Invalid address changed device");p.setPos(at.getX()+100,at.getY(),at.getZ());h.assertTrue(!SamsungAddress.set(p,at,"104-1005")&&r.getUnit().equals("104-1004"),"Remote address change bypassed reach");h.succeed();
+ }
 }

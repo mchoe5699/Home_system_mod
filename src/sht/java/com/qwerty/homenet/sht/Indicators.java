@@ -9,5 +9,12 @@ public final class Indicators {
   new Lamp(ARMED,460,268,12,4,0xa7df71,false),new Lamp(AWAY,460,305,12,4,0xa7df71,false),
   new Lamp(DOOR,460,533,12,4,0xa7df71,false),new Lamp(GUARD,460,496,12,4,0xa7df71,false),new Lamp(LINE,460,573,12,4,0xa7df71,false),
   new Lamp(FIRE,318,182,20,20,0xff6653,true),new Lamp(GAS,366,182,20,20,0xf5df58,true),new Lamp(SECURITY,410,182,20,20,0x87e77c,true));
+ public static java.util.List<Lamp> forModel(boolean wired){
+  if(!wired)return LAMPS;
+  return java.util.List.of(new Lamp(POWER,321,305,10,10,0xe66b86,true),
+   new Lamp(ARMED,460,268,12,4,0xa7df71,false),new Lamp(AWAY,460,305,12,4,0xa7df71,false),
+   new Lamp(DOOR,460,533,12,4,0xa7df71,false),new Lamp(GUARD,460,496,12,4,0xa7df71,false),new Lamp(LINE,460,573,12,4,0xa7df71,false),
+   new Lamp(FIRE,310,182,20,20,0xff6653,true),new Lamp(GAS,360,182,20,20,0xf5df58,true),new Lamp(SECURITY,410,182,20,20,0x87e77c,true));
+ }
  private Indicators(){}
 }

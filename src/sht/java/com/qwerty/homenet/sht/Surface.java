@@ -15,7 +15,19 @@ public final class Surface {
  public record Shell(float[] bounds,float back,float front,float radius,float[] sideRoll,Join[] seams,float[][] holes){}
  public record Mount(float frame,float back,float front,float depth){}
  static Mount mounting;static Shell casing;static List<Solid> solids;static List<Key> buttons;
- static void load(){if(solids!=null)return;try(var r=Minecraft.getInstance().getResourceManager().openAsReader(Product.id("model.json"))){var o=JsonParser.parseReader(r).getAsJsonObject();Gson g=new Gson();casing=g.fromJson(o.get("shell"),Shell.class);mounting=g.fromJson(o.get("mounting"),Mount.class);solids=new ArrayList<>();buttons=new ArrayList<>();for(var e:o.getAsJsonArray("parts"))solids.add(g.fromJson(e,Solid.class));for(var e:o.getAsJsonArray("keys"))buttons.add(g.fromJson(e,Key.class));}catch(Exception e){throw new IllegalStateException(e);}}
+ record Model(Mount mount,Shell shell,List<Solid> solids,List<Key> buttons){}
+ static final Map<Boolean,Model> models=new HashMap<>();static boolean wiredModel;
+ static ResourceLocation texture(String path){return Product.id((wiredModel?"sht102/":"")+path);}
+ static void load(){if(solids==null)select(false);}
+ static void select(boolean wired){
+  if(solids!=null&&wiredModel==wired)return;
+  var model=models.get(wired);
+  if(model==null)try(var r=Minecraft.getInstance().getResourceManager().openAsReader(Product.id((wired?"sht102/":"")+"model.json"))){
+   var o=JsonParser.parseReader(r).getAsJsonObject();Gson g=new Gson();var ss=new ArrayList<Solid>();var bb=new ArrayList<Key>();for(var e:o.getAsJsonArray("parts"))ss.add(g.fromJson(e,Solid.class));for(var e:o.getAsJsonArray("keys"))bb.add(g.fromJson(e,Key.class));
+   model=new Model(g.fromJson(o.get("mounting"),Mount.class),g.fromJson(o.get("shell"),Shell.class),ss,bb);models.put(wired,model);
+  }catch(Exception e){throw new IllegalStateException(e);}
+  wiredModel=wired;mounting=model.mount;casing=model.shell;solids=model.solids;buttons=model.buttons;
+ }
  static void vertex(VertexConsumer b,PoseStack.Pose pose,float x,float y,float z,float nx,float ny,float nz,int col,int light,float u,float v){b.vertex(pose.pose(),x,700-y,z).color(col>>16&255,col>>8&255,col&255,255).uv(u,v).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(pose.normal(),nx,-ny,nz).endVertex();}
  static float[] edge(Solid p,int n,float inset){if(p.name.length()==2&&(p.name.charAt(0)=='r'||p.name.charAt(0)=='n')){double t=2*Math.PI*(n%64)/64;float nx=(float)Math.cos(t),ny=(float)Math.sin(t);return new float[]{p.x+p.w/2+(p.w/2-inset)*nx,p.y+p.h/2+(p.h/2-inset)*ny,nx,ny};}float rad=Math.max(0,Math.min(p.r,Math.min(p.w,p.h)/2)-inset);int corner=(n%64)/16;double a=(corner*90+(n%16)*6)*Math.PI/180;float cx=p.x+(corner==0||corner==3?p.w-p.r:p.r),cy=p.y+(corner<2?p.h-p.r:p.r);float x=cx+rad*(float)Math.cos(a),y=cy+rad*(float)Math.sin(a);if(p.name.equals("handset_back")||p.name.equals("radio_face"))x=p.x+p.w/2+(x-p.x-p.w/2)*(.95f+.05f*Math.abs((y-p.y)/p.h*2-1));return new float[]{x,y,(float)Math.cos(a),(float)Math.sin(a)};}
  static void solid(Solid p,PoseStack ps,MultiBufferSource buffer,int light){var b=buffer.getBuffer(RenderType.entityCutoutNoCull(Product.id("textures/solid.png")));int col=Integer.parseInt(p.color.substring(1),16);float bevel=p.name.startsWith("face_")?0:Math.max(.03f,Math.min(p.d*.45f,Math.min(p.w,p.h)*.12f));if(p.name.equals("mount_plate"))bevel=Math.min(.12f,p.d*.45f);var pose=ps.last();
@@ -63,6 +75,10 @@ public final class Surface {
  static float bowl(float y){return 60-13*(float)Math.exp(-Math.pow((y-204)/65,4))-13*(float)Math.exp(-Math.pow((y-555)/55,4));}
  static float left(float y){float dy=y<172?y-172:y>580?y-580:0;return 176+30-(float)Math.sqrt(Math.max(0,900-dy*dy));}
  static void cradle(PoseStack p,MultiBufferSource out,int light){
+  if(wiredModel){
+   rim(p,out,light,new Solid("wiredCradle",160,136,114,480,68,1,5,"","",0),new Solid("wiredCradle",166,142,102,468,53,1,8,"","",0),0xe7e5d4);
+   solid(new Solid("wiredCradleFloor",166,142,102,468,52.7f,.3f,8,"#dedfce","base",0),p,out,light);return;
+  }
   var b=out.getBuffer(RenderType.entityCutoutNoCull(Product.id("textures/solid.png")));
   Solid outer=new Solid("cradle",170,136,116,480,68,1,0,"","",0),inner=new Solid("cradle",176,142,104,468,60,1,30,"","",0);
   for(int i=0;i<64;i++)for(int j=0;j<4;j++){
@@ -148,9 +164,9 @@ public final class Surface {
    solid(s,p,out,light);
   }
   shell(p,out,light);throat(p,out,light);cradle(p,out,light);vents(p,out,light);
-  rectangle(p,out,0,0,1042,720,71.8f,Product.id("textures/base_ink.png"),light);
+  rectangle(p,out,0,0,1042,720,71.8f,texture("textures/base_ink.png"),light);
   p.popPose();
   // Keep handset proportions and antenna cross-sections intact; translate the docked assembly rigidly.
-  if(docked){p.pushPose();p.translate(0,0,handsetShift());for(var s:solids)if(s.group.equals("docked"))solid(s,p,out,light);p.popPose();}
+  if(docked||wiredModel){p.pushPose();p.translate(wiredModel&&!docked?-65:0,wiredModel&&!docked?5:0,handsetShift()+(wiredModel&&!docked?15:0));for(var s:solids)if(s.group.equals("docked"))solid(s,p,out,light);p.popPose();}
  }
 }

@@ -1,0 +1,65 @@
+package com.qwerty.homenet.sht;
+import com.qwerty.homenet.blockentity.CallerBlockEntity;
+import com.qwerty.homenet.intercom.CallState;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.BlockState;
+/** Wired base handset. No portable item, battery, aerial or cable is attached to the handset. */
+public final class Station102 extends Station {
+ int heldTicks;
+ public Station102(BlockPos p,BlockState s){super(Product.TYPE102.get(),p,s);folded=false;}
+ @Override public boolean wired(){return true;}
+ @Override boolean paired(){return true;}
+ @Override public boolean owns(ItemStack stack){return false;}
+ @Override public boolean allowed(ServerPlayer p,boolean remote){return !remote&&super.allowed(p,false);}
+ @Override public void lift(ServerPlayer p){
+  if(!docked)return;docked=false;
+  if(callState==CallState.RINGING||phone==2){audio=false;talk();}
+  else if(callState==CallState.CONNECTED||callState==CallState.DIALING||phone>0){audio=true;hold=false;}
+  else if(monitor>0){startDoorTalk();}
+  else{audio=true;tell("국선 발신음 · 번호 입력");}
+  update();
+ }
+ @Override public void replace(ServerPlayer p){
+  if(docked){lift(p);return;}
+  docked=true;
+  if(phone==3&&hold){audio=false;tell("국선 보류 · 수화기 거치");}
+  else{finish();tell("수화기 거치 · 대기");}
+ }
+ void startDoorTalk(){var at=linkedCamera();if(at!=null&&level.getBlockEntity(at) instanceof CallerBlockEntity c){c.callFromReceiver(this);audio=true;answer();tell("현관 통화");}else tell("연결된 도어카메라가 없습니다");}
+ @Override public boolean startRinging(BlockPos at,String key){boolean accepted=super.startRinging(at,key);if(accepted)tell("착신 · 유선 수화기를 드세요");return accepted;}
+ @Override public void digit(String key,boolean remote){
+  if(remote)return;
+  if(memory&&editing.equals("slot")&&key.matches("[0-9*#]")){editing=key;digits="";update();return;}
+  super.digit(key,false);
+ }
+ @Override public void press(String key,ServerPlayer p,boolean remote){
+  if(remote||java.util.Set.of("speaker","talk","channel").contains(key))return;
+  if(key.equals("handset")){replace(p);return;}
+  if(key.equals("front")){
+   if(memory){editing="front";digits="";update();return;}
+   if(callState==CallState.CONNECTED&&(incomingKey.equals("front_door")||incomingKey.equals("lobby"))){openDoor();return;}
+   finish();monitor=600;
+   if(!docked)startDoorTalk();else tell("현관 영상 감시 · 수화기를 들면 통화");return;
+  }
+  if(key.equals("line")){
+   if(memory){editing=editing.equals("slot")?"number":"slot";digits="";tell("단축키 선택 · 국선을 다시 누르면 자택 전화번호");return;}
+   if(verify){verify=false;tell("자택 전화번호: "+number);return;}
+   if(phone==3&&hold){hold=false;heldTicks=0;audio=!docked;tell("국선 재통화 · 수화기를 드세요");return;}
+   if(phone>0||audio&&callState==CallState.IDLE&&monitor==0||status.startsWith("국선 선택")){finish();return;}
+   finish();audio=!docked;tell("국선 선택 · 번호 입력 · 응답 후 수화기를 드세요");return;
+  }
+  if(key.equals("guard")&&!memory&&!verify){audio=!docked;callGuard(p,"");return;}
+  if(key.equals("redial")&&!memory&&!verify){finish();audio=!docked;if(!last.isEmpty())dialNumber(last);else tell("재다이얼 번호가 없습니다");return;}
+  if(java.util.Set.of("fire_call","police_call","medical_call").contains(key)&&!memory&&!verify){finish();audio=!docked;dialNumber(stored.getOrDefault("B:"+key,""));return;}
+  if(key.equals("intercom")&&!memory&&!verify){tell("등록된 SHT-102C 휴대장치가 없습니다");return;}
+  super.press(key,p,false);
+ }
+ @Override public int lights(){int bits=super.lights()&~Indicators.CHARGE;return status.startsWith("국선 선택")?bits|Indicators.LINE:bits;}
+ @Override protected void tickExtra(){
+  if(hold&&phone==3){phoneTime=0;if(++heldTicks>=3600){finish();heldTicks=0;}}
+  else heldTicks=0;
+  super.tickExtra();
+ }
+}
