@@ -31,6 +31,11 @@ text(207,177,'■ 버튼을 잘못 누른 경우에는  #  취소 버튼을',6.2
 text(217,190,'누르고 처음부터 다시 하십시오.',6.4)
 for box in [(216,121,231,130), (207+font(6.2).getlength('■ 경비실과 통화하려면  ')/S-1,143,207+font(6.2).getlength('■ 경비실과 통화하려면  경비실')/S+1,152), (207+font(6.2).getlength('■ 버튼을 잘못 누른 경우에는  ')/S-1,178,207+font(6.2).getlength('■ 버튼을 잘못 누른 경우에는  #')/S+1,187)]:
  d.rectangle(tuple(round(v*S) for v in box),outline='#646751',width=S//2+1)
+keys=[]
+for row,chars in enumerate(['123','456','789','*0#']):
+ for col,ch in enumerate(chars):keys.append(dict(label=ch,x=273.5+31*col,y=319.5+31.5*row,w=26,h=28))
+keys += [dict(label='경비실',x=273,y=452,w=42,h=28),dict(label='호출',x=321.5,y=452,w=42,h=28)]
+
 # Draw the complete panel as one group, centered on the body rather than an approximate photo X.
 panel_bounds=dict(x=(W-324)/2,y=210,w=324,h=96)
 panel_layer=Image.new('RGBA',im.size);base_draw=d;d=ImageDraw.Draw(panel_layer)
@@ -38,19 +43,31 @@ panel_layer=Image.new('RGBA',im.size);base_draw=d;d=ImageDraw.Draw(panel_layer)
 rect((78,210,402,306),'#101512')
 for yy in range(213,304):
  t=(yy-213)/91;rect((81,yy,399,yy+1),tuple(round(a+(b-a)*t) for a,b in zip((72,79,71),(46,53,48)))+(255,))
-line([(82,213),(398,213)],'#959c8c',.6);line([(82,214),(115,300)],'#667065',.35)
+# Clean smoked cover: no diagonal scratch or painted highlight streak.
 rr((146,227,190,250),'#292234',1);rect((150,230,187,247),'#282137')
 d.ellipse((157*S,255*S,180*S,278*S),fill='#30392f',outline='#777c67',width=S)
 d.ellipse((162*S,260*S,175*S,273*S),fill='#172626',outline='#4d594c',width=S)
 d.ellipse((165*S,263*S,173*S,271*S),fill='#263638');d.ellipse((166*S,264*S,169*S,267*S),fill='#738075')
-text(287,229,'통화중',6.3,'#e0e2d2',True);text(336,229,'문열림',6.3,'#e0e2d2',True)
+for cx,label in [(300.5,'통화중'),(349.5,'문열림')]:
+ f=font(6.3,True);glyph=Image.new('RGBA',(128,64));gd=ImageDraw.Draw(glyph)
+ gd.text((4,4),label,font=f,fill='#e0e2d2')
+ # Center the visible ink rather than the font advance, which has unequal side bearings.
+ gy,gx=np.where(np.array(glyph)[:,:,3]>=136)
+ dx=round(cx*S-(gx.min()+gx.max())/2)
+ panel_layer.alpha_composite(glyph,(dx,round(229*S)-4))
 rect((298,244,303,249),'#462025');rect((347,244,352,249),'#422728')
+# Keep the complete four-digit display and its unit label together.
+segment_layer=Image.new('RGBA',im.size);panel_draw=d;d=ImageDraw.Draw(segment_layer)
 rect((278,260,357,287),'#451d2b')
 # Seven segments with a dark housing and individual bevel-like core strokes.
 for xx in [281,300,319,338]:
  for pts in [[(xx+4,263),(xx+15,263)],[(xx+3,274),(xx+14,274)],[(xx+2,284),(xx+13,284)],[(xx+3,264),(xx+2,272)],[(xx+16,264),(xx+15,272)],[(xx+2,276),(xx+1,282)],[(xx+15,276),(xx+14,282)]]:
   line(pts,'#8e2344',3.5);line(pts,'#d82e58',1.4)
 text(361,274,'호',7,'#d8dbcf')
+dial_keys=keys[:12];dial_center=(min(q['x'] for q in dial_keys)+max(q['x']+q['w'] for q in dial_keys))/2
+panel_shift=panel_bounds['x']-78
+segment_shift=dial_center-((278+357)/2+panel_shift)
+panel_layer.alpha_composite(segment_layer,(round(segment_shift*S),0));d=panel_draw
 im.alpha_composite(panel_layer,(round((panel_bounds['x']-78)*S),0));d=base_draw
 # Exactly 9 x 11 round perforations, cut into the 3D front panel too.
 for row in range(11):
@@ -58,10 +75,6 @@ for row in range(11):
   xx=112.1+col*10.2;yy=335.1+row*10.2;d.ellipse(((xx-2.6)*S,(yy-2.6)*S,(xx+2.6)*S,(yy+2.6)*S),fill='#101611')
 # Outer key boundaries measured after projective rectification of photo 1.
 # Coordinates describe the black socket, not an inner cap with extra borders added outside it.
-keys=[]
-for row,chars in enumerate(['123','456','789','*0#']):
- for col,ch in enumerate(chars):keys.append(dict(label=ch,x=273.5+31*col,y=319.5+31.5*row,w=26,h=28))
-keys += [dict(label='경비실',x=273,y=452,w=42,h=28),dict(label='호출',x=321.5,y=452,w=42,h=28)]
 style=dict(socketRadius=1.8,rimInset=1.1,rimRadius=1.1,faceInset=1.8,faceRadius=.8,labelInset=2.2,
            socketColor='#141c24',rimColor='#aab4bc',faceColor='#485e82')
 for q in keys:
