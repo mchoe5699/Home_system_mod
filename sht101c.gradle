@@ -1,5 +1,5 @@
 plugins { id 'net.minecraftforge.gradle' version '[6.0.16,6.2)' }
-version='1.0.37'
+version='1.0.38'
 group='com.qwerty.homenet'
 base { archivesName='sht101c' }
 tasks.named('jar') { archiveFileName='sht101c.jar' }
