@@ -61,9 +61,9 @@ final class Ht100sVisual {
  }
  static float upperZ(float x,float y){
   // Rounded-rectangle distance: the four edges rise continuously out of the body surface.
-  float qx=Math.abs(x-116)-76,qy=Math.abs(y-102)-75;
+  float qx=Math.abs(x-116)-76,qy=Math.abs(y-100)-73;
   float d=(float)Math.hypot(Math.max(qx,0),Math.max(qy,0))+Math.min(Math.max(qx,qy),0)-18;
-  float t=Math.max(0,Math.min(1,-d/32));
+  float t=Math.max(0,Math.min(1,-d/24));
   // Zero slope at the casing edge and at the raised plateau: neither join has a kink.
   return 68+15*t*t*(3-2*t);
  }
@@ -75,7 +75,7 @@ final class Ht100sVisual {
  }
  private static void upperFace(PoseStack p,MultiBufferSource o,int l){
   for(int row=0;row<60;row++)for(int col=0;col<48;col++){
-   float x0=22+col*188f/48,x1=22+(col+1)*188f/48,y0=9+row*186f/60,y1=9+(row+1)*186f/60;
+   float x0=22+col*188f/48,x1=22+(col+1)*188f/48,y0=9+row*182f/60,y1=9+(row+1)*182f/60;
    upperVertex(p,o,l,x0,y1);upperVertex(p,o,l,x1,y1);upperVertex(p,o,l,x1,y0);upperVertex(p,o,l,x0,y0);
   }
  }
@@ -100,7 +100,7 @@ final class Ht100sVisual {
  private static void curvedLogo(PoseStack p,MultiBufferSource o,int l){
   var b=o.getBuffer(RenderType.entityCutoutNoCull(LOGO));
   for(int row=0;row<6;row++)for(int col=0;col<24;col++)for(int corner=0;corner<4;corner++){
-   float u=(col+(corner==1||corner==2?1:0))/24f,v=(row+(corner<2?1:0))/6f,x=68+109*u,y=19+25*v;
+   float u=(col+(corner==1||corner==2?1:0))/24f,v=(row+(corner<2?1:0))/6f,x=68+109*u,y=15+25*v;
    Surface.vertex(b,p.last(),x,y,upperZ(x,y)+.22f,0,0,1,0xffffff,l,u,v);
   }
  }
@@ -113,9 +113,9 @@ final class Ht100sVisual {
   upperFace(p,o,l);
   // The casing shoulder remains visible left of the raised surface; no separate long rail crosses it.
   // HT-100S has a dark blank window, and no camera lens or video lamp.
-  solid(p,o,l,"window_gasket",64,47,106,105,83.15f,.8f,3,0x555d59);
-  solid(p,o,l,"window_glass",66,49,102,101,83.95f,1,2,0x303638);
-  patch(p,o,l,70,52,94,1.1f,84.98f,0x414746);
+  solid(p,o,l,"window_gasket",64,43,106,105,83.15f,.8f,3,0x555d59);
+  solid(p,o,l,"window_glass",66,45,102,101,83.95f,1,2,0x303638);
+  patch(p,o,l,70,48,94,1.1f,84.98f,0x414746);
   for(int i=0;i<2;i++)solid(p,o,l,"mic_"+i,212,38+i*8,9,3,69,1,.7f,0x232b2a);
   // The speaker is six narrow recessed slots within the lower skin, each with a gentle lower highlight.
   for(int i=0;i<6;i++){float y=205+i*13;patch(p,o,l,26,y-2,104,2,69.2f,0xc7ccbc);solid(p,o,l,"speaker_floor_"+i,29,y,99,3.6f,68.2f,.35f,1.7f,0x424b44);patch(p,o,l,30,y+3.6f,97,.65f,69.4f,0xabb3a4);}
@@ -127,7 +127,7 @@ final class Ht100sVisual {
   arch(p,o,l,108.5f,276,22,290.8f,68.42f,0xaeb4a6);
   curvedLogo(p,o,l);print(p,o,l,BRAND,146,278,64,12,68.4f);
  }
- static void draw(PoseStack p,MultiBufferSource o,int light){GeometryCache.draw("ht100s_tangent_edges",p,o,light,Ht100sVisual::mesh);}
+ static void draw(PoseStack p,MultiBufferSource o,int light){GeometryCache.draw("ht100s_raised_header",p,o,light,Ht100sVisual::mesh);}
  static void pose(Ht100s.Unit b,PoseStack p){var off=com.qwerty.homenet.move.DeviceOffsets.get(b.getLevel(),b.getBlockPos());p.translate(off.x,off.y,off.z);double bottom=.5-Ht100s.HEIGHT/2;switch(b.getBlockState().getValue(WallMountedBlock.FACING)){case NORTH->{p.translate(.5,bottom,1);p.mulPose(Axis.YP.rotationDegrees(180));}case SOUTH->p.translate(.5,bottom,0);case EAST->{p.translate(0,bottom,.5);p.mulPose(Axis.YP.rotationDegrees(90));}case WEST->{p.translate(1,bottom,.5);p.mulPose(Axis.YP.rotationDegrees(-90));}default->{}}p.scale(S,S,S);p.translate(-W/2,H-700,0);}
- static final class Renderer implements BlockEntityRenderer<Ht100s.Unit>{public void render(Ht100s.Unit b,float tick,PoseStack p,MultiBufferSource o,int light,int overlay){if(DeviceVisibility.hidden(b,GeometryCache.bounds("ht100s_tangent_edges"),q->pose(b,q)))return;p.pushPose();pose(b,p);draw(p,o,light);p.popPose();}}
+ static final class Renderer implements BlockEntityRenderer<Ht100s.Unit>{public void render(Ht100s.Unit b,float tick,PoseStack p,MultiBufferSource o,int light,int overlay){if(DeviceVisibility.hidden(b,GeometryCache.bounds("ht100s_raised_header"),q->pose(b,q)))return;p.pushPose();pose(b,p);draw(p,o,light);p.popPose();}}
 }

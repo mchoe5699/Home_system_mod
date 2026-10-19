@@ -28,8 +28,9 @@ final class Ht100sProbe {
   double arcInset=9*(1-Math.cos(Math.PI/4)),arcZ=59+9*Math.sin(Math.PI/4);
   check(c.vertices.stream().anyMatch(v->Math.abs(v.x()-arcInset)<.01&&Math.abs(v.z()-arcZ)<.01),"Casing front edge does not curve into the face");
   check(Math.abs(Ht100sVisual.upperZ(116,9)-68)<.001,"Upper moulding does not begin at the top edge");
-  check(Ht100sVisual.upperZ(116,10)-Ht100sVisual.upperZ(116,9)<.06,"Upper moulding begins with a sharp bend");
-  check(Ht100sVisual.upperZ(116,41)>82.9,"Upper moulding does not rise from the top edge");
+  check(Ht100sVisual.upperZ(116,10)-Ht100sVisual.upperZ(116,9)<.1,"Upper moulding begins with a sharp bend");
+  check(Ht100sVisual.upperZ(116,33)>82.9,"Upper moulding did not move toward the top edge");
+  check(Math.abs(Ht100sVisual.upperZ(116,191)-68)<.001,"Raised panel lower edge did not move up with the panel");
   check(MeshProbe.nearest(c.vertices,16,150).z()<70,"Raised strip still obstructs the upper moulding at left");
   for(double[] pair:new double[][]{{15,150,2,150},{215,150,228,150},{115,15,115,2},{115,285,115,298}})
    check(MeshProbe.nearest(c.vertices,pair[0],pair[1]).z()-MeshProbe.nearest(c.vertices,pair[2],pair[3]).z()>3,"Casing edge does not roll toward its mounting frame");
