@@ -27,15 +27,15 @@ final class Ht100Visual {
   // The upper lamp and concentric lens are separate from the dark glass.
   solid(p,o,l,"ht100_lamp",71,64,86,39,38.4f,.35f,1.3f,"#15334a",0);
   solid(p,o,l,"ht100_lens_outer",88,111,52,52,38.4f,.9f,26,"#161b25",0);
-  solid(p,o,l,"ht100_lens_ring",94,117,40,40,39.3f,.7f,20,"#505359",0);
-  solid(p,o,l,"ht100_lens_inner",99,122,30,30,40,1.2f,15,"#10141d",1.2f);
+  solid(p,o,l,"ht100_lens_ring",94,117,40,40,39.3f,.7f,20,"#342133",0);
+  solid(p,o,l,"ht100_lens_inner",99,122,30,30,40,1.2f,15,"#241320",1.2f);
   solid(p,o,l,"ht100_lens_pupil",107,130,14,14,41.2f,.35f,7,"#070b11",0);
   // Six long horizontal slits follow the photographed taper toward the right edge.
-  for(int i=0;i<6;i++){float y=213+i*12.1f,w=94-i*.55f;solid(p,o,l,"ht100_slot_"+i,24,y,w,3.7f,36.5f,.35f,1.7f,"#414e4b",0);line(p,o,l,27,y+.4f,w-8,.45f,37.1f,0x88928f);}
+  for(int i=0;i<6;i++){float y=213+i*12.1f,w=94-i*.55f;solid(p,o,l,"ht100_slot_"+i,24,y,w,3.7f,38.65f,.4f,1.7f,"#35433f",0);line(p,o,l,27,y+3.1f,w-8,.45f,39.15f,0xa1aaa5);}
   solid(p,o,l,"ht100_button_recess",132,207,73,72,36.8f,.5f,7,"#858f8e",0);
   solid(p,o,l,"ht100_button",135,210,67,66,37.3f,2.4f,6,"#bfc7c3",.6f);
   // Separate two-slot microphone, press-window, and bottom speaker-hole plug.
-  for(int i=0;i<2;i++)solid(p,o,l,"ht100_mic_"+i,209,36+i*12,6,3.2f,36.7f,.25f,1.2f,"#253034",0);
+  for(int i=0;i<2;i++)solid(p,o,l,"ht100_mic_"+i,209,36+i*12,6,3.2f,38.8f,.25f,1.2f,"#253034",0);
   solid(p,o,l,"ht100_button_window",166,215,12,4,39.7f,.2f,2,"#293a40",0);
   solid(p,o,l,"ht100_grille_plug",110,282,20,18,37.1f,1.2f,5,"#a9b2af",.4f);
   line(p,o,l,113,285,14,1,38.35f,0x414d4b);
