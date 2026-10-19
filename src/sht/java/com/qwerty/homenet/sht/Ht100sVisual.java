@@ -103,8 +103,8 @@ final class Ht100sVisual {
   return new float[]{cx+radius*(float)Math.cos(angle),cy+radius*(float)Math.sin(angle)};
  }
  private static void upperSeam(PoseStack p,MultiBufferSource o,int l){
-  // A narrow continuous mould line follows the top, sides and broad lower corners.
-  for(int i=0;i<48;i++){
+  // The two rounded shoulders rise to the top edge; the logo area has no crosswise seam.
+  for(int i=0;i<47;i++){
    float[][] points={upperOutline(i,0),upperOutline(i+1,0),upperOutline(i+1,1.15f),upperOutline(i,1.15f)};
    for(float[] xy:points)vertex(p,o,l,xy[0],xy[1],upperZ(xy[0],xy[1])+.18f,0,0,1,0x8e9589);
   }
