@@ -22,11 +22,11 @@ import net.minecraft.world.phys.BlockHitResult;
 
 /** HT-100 door camera with a separate, replaceable mounting surround. */
 public final class Ht100 extends WallMountedBlock {
- public static final double HEIGHT=.3,WIDTH=HEIGHT*228/300,DEPTH=HEIGHT*42/300;
+ public static final double HEIGHT=.3,WIDTH=HEIGHT*226/300,DEPTH=HEIGHT*53/300;
  public static final BooleanProperty FRAMED=BooleanProperty.create("framed");
  public static final BooleanProperty LIT=BooleanProperty.create("lit");
  public static final BooleanProperty POWERED=BooleanProperty.create("powered");
- public Ht100(){super(Properties.of().strength(1.5f).noOcclusion(),(WIDTH+.012)*8,(.5-HEIGHT/2-.007)*16,(.5+HEIGHT/2+.007)*16,DEPTH*16);registerDefaultState(stateDefinition.any().setValue(FACING,net.minecraft.core.Direction.NORTH).setValue(FRAMED,true).setValue(LIT,false).setValue(POWERED,false));}
+ public Ht100(){super(Properties.of().strength(1.5f).noOcclusion(),(WIDTH+.012)*8,(.5-HEIGHT/2-.005)*16,(.5+HEIGHT/2+.005)*16,DEPTH*16);registerDefaultState(stateDefinition.any().setValue(FACING,net.minecraft.core.Direction.NORTH).setValue(FRAMED,true).setValue(LIT,false).setValue(POWERED,false));}
  @Override protected void createBlockStateDefinition(StateDefinition.Builder<Block,BlockState> b){b.add(FACING,FRAMED,LIT,POWERED);}
  @Override public RenderShape getRenderShape(BlockState s){return RenderShape.ENTITYBLOCK_ANIMATED;}
  @Override public BlockEntity newBlockEntity(BlockPos p,BlockState s){return new Unit(p,s);}
@@ -55,8 +55,8 @@ public final class Ht100 extends WallMountedBlock {
  static boolean button(BlockState s,Level l,BlockPos at,BlockHitResult hit){
   var v=hit.getLocation().subtract(net.minecraft.world.phys.Vec3.atLowerCornerOf(at)).subtract(com.qwerty.homenet.move.DeviceOffsets.get(l,at));
   double across=switch(s.getValue(FACING)){case NORTH->.5-v.x;case SOUTH->v.x-.5;case EAST->.5-v.z;case WEST->v.z-.5;default->10;};
-  double scale=HEIGHT/300,x=114+across/scale,y=(.5+HEIGHT/2-v.y)/scale;
-  return x>=132&&x<=205&&y>=207&&y<=279;
+  double scale=HEIGHT/300,x=113+across/scale,y=(.5+HEIGHT/2-v.y)/scale;
+  return x>=139&&x<=209&&y>=204&&y<=280;
  }
  @Override public void tick(BlockState state,ServerLevel l,BlockPos pos,net.minecraft.util.RandomSource random){if(state.getValue(POWERED))l.setBlock(pos,state.setValue(POWERED,false),Block.UPDATE_ALL);}
  @Override public boolean isSignalSource(BlockState s){return true;}
