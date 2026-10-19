@@ -11,7 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 /** Photo-shaped HT-100S: a fitted tray, one continuous handset shell and recessed front details. */
 final class Ht100sVisual {
  static final float W=230,H=300,S=(float)(Ht100s.HEIGHT/H);
- static final float WINDOW_X=67,WINDOW_Y=46,WINDOW_W=102,WINDOW_H=102;
+ static final float WINDOW_X=64,WINDOW_Y=43,WINDOW_W=108,WINDOW_H=108;
  static final float UPPER_TOP_Z=80;
  static final float FRONT_OFFSET_X=-3;
  static final ResourceLocation LOGO=Product.id("ht100s/logo.png"),BRAND=Product.id("ht100s/brand.png"),WHITE=Product.id("textures/solid.png");

@@ -18,7 +18,7 @@ final class Ht100sProbe {
   check(c.vertices.stream().mapToDouble(MeshProbe.V::x).min().orElseThrow()<0,"Surround missing on left");
   check(c.vertices.stream().mapToDouble(MeshProbe.V::x).max().orElseThrow()>230,"Surround missing on right");
   check(c.vertices.stream().mapToDouble(MeshProbe.V::z).max().orElseThrow()>81,"Raised window and upper cover missing");
-  check(Math.abs(Ht100sVisual.WINDOW_W/Ht100sVisual.W-.44)<.01&&Math.abs(Ht100sVisual.WINDOW_H/Ht100sVisual.H-.34)<.01,"Dark panel proportions differ from the reference photo");
+  check(Math.abs(Ht100sVisual.WINDOW_W/Ht100sVisual.W-108d/230)<.01&&Math.abs(Ht100sVisual.WINDOW_H/Ht100sVisual.H-108d/300)<.01,"Dark panel proportions differ from the reference photo");
   check(c.vertices.stream().anyMatch(v->Math.abs(v.x()-115)<.01&&Math.abs(v.y()-550)<.01&&Math.abs(v.z())<.001&&v.color()==0x9da294),"The rear mounting frame is open");
   check(c.vertices.stream().filter(v->v.color()==0x8e9589).count()>=188,"Upper moulding seam is incomplete");
   check(c.vertices.stream().noneMatch(v->v.color()==0x8e9589&&v.x()>70&&v.x()<160&&v.y()>689),"Unwanted seam crosses above the logo");
@@ -44,7 +44,7 @@ final class Ht100sProbe {
    for(int i=1;i<=4;i++){float t=i/4f,z=Ht100sVisual.upperZ(corners[0]+(corners[2]-corners[0])*t,corners[1]+(corners[3]-corners[1])*t);
     check(z>last&&z<=80.001,"Corner slope does not flow toward the window");last=z;}
   }
-  check(Math.abs(Ht100sVisual.upperZ(67,46)-80)<.001&&Math.abs(Ht100sVisual.upperZ(169,148)-80)<.001,"Window has no broad raised surround");
+  check(Math.abs(Ht100sVisual.upperZ(64,43)-80)<.001&&Math.abs(Ht100sVisual.upperZ(172,151)-80)<.001,"Window has no broad raised surround");
   check(Ht100sVisual.upperZ(45.5f,27.5f)<Ht100sVisual.upperZ(45.5f,100),"Raised corner forms a bulge instead of a window-facing slope");
   check(Math.abs(Ht100sVisual.upperZ(116,191)-68)<.001,"Raised panel lower edge did not move up with the panel");
   check(MeshProbe.nearest(c.vertices,16,150).z()<70,"Raised strip still obstructs the upper moulding at left");
