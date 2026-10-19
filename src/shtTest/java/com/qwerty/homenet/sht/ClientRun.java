@@ -90,7 +90,10 @@ public class ClientRun {
    case 58->{if(ready!=33||!Ht100Probe.world(mc,DOOR))return;step=59;server(mc,s->{var p=s.getPlayerList().getPlayers().get(0);((Station102)s.overworld().getBlockEntity(BASE)).setUnit(p,"301-1001");p.setItemSlot(net.minecraft.world.entity.EquipmentSlot.MAINHAND,new ItemStack(ModItems.HOME_LINKER.get()));ready=34;});}
    case 59->{if(ready!=34||!mc.player.getMainHandItem().is(ModItems.HOME_LINKER.get()))return;block(mc,BASE);step=60;}
    case 60->{if(age%10!=0||!mc.player.getMainHandItem().hasTag())return;block(mc,DOOR);step=61;}
-   case 61->{if(age%20!=0)return;server(mc,s->{var u=(Ht100.Unit)s.overworld().getBlockEntity(DOOR);if("301-1001".equals(u.unit))ready=35;});if(ready==35){System.out.println("HT100_REAL_LINKER_CLIENT_PASS: Home Linker selected indoor receiver and paired HT-100 through actual block interaction");step=62;mc.stop();}}
+   case 61->{if(age%20!=0)return;server(mc,s->{var u=(Ht100.Unit)s.overworld().getBlockEntity(DOOR);if("301-1001".equals(u.unit))ready=35;});if(ready==35){System.out.println("HT100_REAL_LINKER_CLIENT_PASS: Home Linker selected Samsung indoor receiver and paired HT-100 through actual block interaction");step=62;server(mc,s->{var l=s.overworld();var p=s.getPlayerList().getPlayers().get(0);l.setBlockAndUpdate(BASE.west(),ModBlocks.VIDEO_PHONE.get().defaultBlockState());((ReceiverBlockEntity)l.getBlockEntity(BASE.west())).setUnit(p,"301-1002");p.getMainHandItem().setTag(null);ready=36;});}}
+   case 62->{if(ready!=36||mc.player.getMainHandItem().hasTag())return;block(mc,BASE.west());step=63;}
+   case 63->{if(age%10!=0||!mc.player.getMainHandItem().hasTag())return;block(mc,DOOR);step=64;}
+   case 64->{if(age%20!=0)return;server(mc,s->{var u=(Ht100.Unit)s.overworld().getBlockEntity(DOOR);if("301-1002".equals(u.unit)){u.call();check(((ReceiverBlockEntity)s.overworld().getBlockEntity(BASE.west())).getCallState()==com.qwerty.homenet.intercom.CallState.RINGING,"HT-100 linked but did not ring other-brand indoor receiver");ready=37;}});if(ready==37){System.out.println("HT100_OTHER_BRAND_LINKER_CLIENT_PASS: Home Linker selected baseline indoor video phone and paired HT-100");step=65;mc.stop();}}
 
   }
  }catch(Throwable t){t.printStackTrace();System.out.println("NEW_SHT_CLIENT_FAIL "+step);System.exit(1);}}
