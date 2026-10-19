@@ -21,7 +21,11 @@ final class Ht100sProbe {
   var bowl=MeshProbe.nearest(c.vertices,175,239);var buttonRim=MeshProbe.nearest(c.vertices,175,214);
   check(buttonRim.z()-bowl.z()>1.5&&buttonRim.z()<68,"Call key must be recessed below the casing face");
   check(MeshProbe.nearest(c.vertices,119,285).color()==0xaeb4a6,"Lower speaker opening is not covered by its matching arch plug");
-  check(MeshProbe.nearest(c.vertices,25,6).z()-MeshProbe.nearest(c.vertices,6,6).z()>8,"Body top-left corner is square");
+  check(c.vertices.stream().anyMatch(v->Math.abs(v.x()-9)<.01&&Math.abs(v.y()-678)<.01&&Math.abs(v.z()-68)<.01),"Body top-left corner has no rounded arc");
+  check(c.vertices.stream().noneMatch(v->Math.abs(v.x()-9)<.01&&Math.abs(v.y()-691)<.01&&Math.abs(v.z()-68)<.01),"Body top-left corner is square");
+  for(double z:new double[]{35,58})for(double x:new double[]{0,230})
+   check(c.vertices.stream().anyMatch(v->Math.abs(v.x()-x)<.01&&Math.abs(v.z()-z)<.01),"Casing side wall must stay flat before its rounded front edge");
+  check(c.vertices.stream().anyMatch(v->Math.abs(v.x()-3)<.01&&Math.abs(v.z()-64)<.01),"Casing front edge does not curve into the face");
   check(MeshProbe.nearest(c.vertices,16,150).z()<70,"Raised strip still obstructs the upper moulding at left");
   for(double[] pair:new double[][]{{15,150,2,150},{215,150,228,150},{115,15,115,2},{115,285,115,298}})
    check(MeshProbe.nearest(c.vertices,pair[0],pair[1]).z()-MeshProbe.nearest(c.vertices,pair[2],pair[3]).z()>3,"Casing edge does not roll toward its mounting frame");

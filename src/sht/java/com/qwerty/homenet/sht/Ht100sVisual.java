@@ -82,8 +82,8 @@ final class Ht100sVisual {
  static void mesh(PoseStack p,MultiBufferSource o){int l=0;
   // Frame depth is a single broad wall with one rolled front lip; the phone nests inside it.
   contour(p,o,l,true,new Ring(-6,-5,242,310,13,0,0x9da294),new Ring(-6,-5,242,310,13,35,0xa7ac9f),new Ring(-5,-4,240,308,12,41,0xc4c8b8));
-  // One continuously rounded casing replaces the former stack of four visible slabs.
-  contour(p,o,l,false,new Ring(0,0,230,300,13,35,0x8e9588),new Ring(.5f,.5f,229,299,13,45,0x9fa699),new Ring(2,2,226,296,13,55,0xb2b8aa),new Ring(5,5,220,290,13,63,0xbec4b5),new Ring(8,8,214,284,13,67,0xc5c9ba),new Ring(9,9,212,282,13,68,0xc5c9ba));
+  // The side wall stays straight through most of its depth. Only its front edge rolls into the face.
+  contour(p,o,l,false,new Ring(0,0,230,300,13,35,0x9fa699),new Ring(0,0,230,300,13,58,0x9fa699),new Ring(1,1,228,298,13,61,0xaab1a3),new Ring(3,3,224,294,13,64,0xb5bcad),new Ring(6,6,218,288,13,67,0xc0c6b7),new Ring(9,9,212,282,13,68,0xc5c9ba));
   bodyFace(p,o,l);
   // The broad upper region rises within the body itself; its top, bottom and both sides are rounded.
   upperFace(p,o,l);
@@ -103,7 +103,7 @@ final class Ht100sVisual {
   arch(p,o,l,108.5f,276,22,290.8f,68.42f,0xaeb4a6);
   curvedLogo(p,o,l);print(p,o,l,BRAND,146,278,64,12,68.4f);
  }
- static void draw(PoseStack p,MultiBufferSource o,int light){GeometryCache.draw("ht100s_side_profile",p,o,light,Ht100sVisual::mesh);}
+ static void draw(PoseStack p,MultiBufferSource o,int light){GeometryCache.draw("ht100s_flat_side",p,o,light,Ht100sVisual::mesh);}
  static void pose(Ht100s.Unit b,PoseStack p){var off=com.qwerty.homenet.move.DeviceOffsets.get(b.getLevel(),b.getBlockPos());p.translate(off.x,off.y,off.z);double bottom=.5-Ht100s.HEIGHT/2;switch(b.getBlockState().getValue(WallMountedBlock.FACING)){case NORTH->{p.translate(.5,bottom,1);p.mulPose(Axis.YP.rotationDegrees(180));}case SOUTH->p.translate(.5,bottom,0);case EAST->{p.translate(0,bottom,.5);p.mulPose(Axis.YP.rotationDegrees(90));}case WEST->{p.translate(1,bottom,.5);p.mulPose(Axis.YP.rotationDegrees(-90));}default->{}}p.scale(S,S,S);p.translate(-W/2,H-700,0);}
- static final class Renderer implements BlockEntityRenderer<Ht100s.Unit>{public void render(Ht100s.Unit b,float tick,PoseStack p,MultiBufferSource o,int light,int overlay){if(DeviceVisibility.hidden(b,GeometryCache.bounds("ht100s_side_profile"),q->pose(b,q)))return;p.pushPose();pose(b,p);draw(p,o,light);p.popPose();}}
+ static final class Renderer implements BlockEntityRenderer<Ht100s.Unit>{public void render(Ht100s.Unit b,float tick,PoseStack p,MultiBufferSource o,int light,int overlay){if(DeviceVisibility.hidden(b,GeometryCache.bounds("ht100s_flat_side"),q->pose(b,q)))return;p.pushPose();pose(b,p);draw(p,o,light);p.popPose();}}
 }
