@@ -1,1 +1,1 @@
-{"type": "minecraft:block", "pools": [{"rolls": 1, "entries": [{"type": "minecraft:item", "name": "homenet_sht101c:ht_100"}]}]}
+{"type": "minecraft:block", "pools": [{"rolls": 1, "entries": [{"type": "minecraft:item", "name": "homenet_sht101c:ht_100"}]}, {"rolls": 1, "entries": [{"type": "minecraft:item", "name": "homenet_sht101c:ht_100_frame"}], "conditions": [{"condition": "minecraft:block_state_property", "block": "homenet_sht101c:ht_100", "properties": {"framed": "true"}}]}]}
