@@ -94,6 +94,21 @@ final class Ht100sVisual {
    upperVertex(p,o,l,x0,y1);upperVertex(p,o,l,x1,y1);upperVertex(p,o,l,x1,y0);upperVertex(p,o,l,x0,y0);
   }
  }
+ private static float[] upperOutline(int i,float inset){
+  int corner=(i%48)/12;
+  float angle=(float)Math.toRadians(-90+corner*90+(i%12)*7.5);
+  float cx=corner==0?200:corner==1?192:corner==2?44:36;
+  float cy=corner==0||corner==3?21:171;
+  float radius=(corner==0||corner==3?12:20)-inset;
+  return new float[]{cx+radius*(float)Math.cos(angle),cy+radius*(float)Math.sin(angle)};
+ }
+ private static void upperSeam(PoseStack p,MultiBufferSource o,int l){
+  // A narrow continuous mould line follows the top, sides and broad lower corners.
+  for(int i=0;i<48;i++){
+   float[][] points={upperOutline(i,0),upperOutline(i+1,0),upperOutline(i+1,1.15f),upperOutline(i,1.15f)};
+   for(float[] xy:points)vertex(p,o,l,xy[0],xy[1],upperZ(xy[0],xy[1])+.18f,0,0,1,0x8e9589);
+  }
+ }
  private static void sector(PoseStack p,MultiBufferSource o,int l,float cx,float cy,float outer,float inner,float zOuter,float zInner,int color){
   for(int i=0;i<64;i++){float a=(float)(i*Math.PI/32),b=(float)((i+1)*Math.PI/32);float[] r={a,b,b,a},d={outer,outer,inner,inner};for(int j=0;j<4;j++){float x=cx+(float)Math.cos(r[j])*d[j],y=cy+(float)Math.sin(r[j])*d[j];float gradient=(zOuter-zInner)/(outer-inner+.001f);float nx=(float)Math.cos(r[j])*gradient,ny=(float)Math.sin(r[j])*gradient;float length=(float)Math.sqrt(1+nx*nx+ny*ny);vertex(p,o,l,x,y,j<2?zOuter:zInner,nx/length,ny/length,1/length,color);}}
  }
@@ -129,6 +144,7 @@ final class Ht100sVisual {
   p.pushPose();p.translate(FRONT_OFFSET_X,0,0);
   // The broad upper region rises within the body itself; its top, bottom and both sides are rounded.
   upperFace(p,o,l);
+  upperSeam(p,o,l);
   // The casing shoulder remains visible left of the raised surface; no separate long rail crosses it.
   // HT-100S has a dark blank window, and no camera lens or video lamp.
   solid(p,o,l,"window_gasket",WINDOW_X,WINDOW_Y,WINDOW_W,WINDOW_H,UPPER_TOP_Z+.15f,.8f,3,0x555d59);

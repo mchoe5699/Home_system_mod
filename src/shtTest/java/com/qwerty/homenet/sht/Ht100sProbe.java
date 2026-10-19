@@ -20,6 +20,9 @@ final class Ht100sProbe {
   check(c.vertices.stream().mapToDouble(MeshProbe.V::z).max().orElseThrow()>81,"Raised window and upper cover missing");
   check(Math.abs(Ht100sVisual.WINDOW_W/Ht100sVisual.W-.44)<.01&&Math.abs(Ht100sVisual.WINDOW_H/Ht100sVisual.H-.34)<.01,"Dark panel proportions differ from the reference photo");
   check(c.vertices.stream().anyMatch(v->Math.abs(v.x()-115)<.01&&Math.abs(v.y()-550)<.01&&Math.abs(v.z())<.001&&v.color()==0x9da294),"The rear mounting frame is open");
+  check(c.vertices.stream().filter(v->v.color()==0x8e9589).count()>=192,"Upper moulding seam is incomplete");
+  for(double[] xy:new double[][]{{197,691},{209,529},{41,509},{21,679}})
+   check(c.vertices.stream().anyMatch(v->v.color()==0x8e9589&&Math.abs(v.x()-xy[0])<.02&&Math.abs(v.y()-xy[1])<.02),"Upper moulding seam misses a rounded corner");
   check(Math.abs(Ht100sVisual.WINDOW_X+Ht100sVisual.WINDOW_W/2+Ht100sVisual.FRONT_OFFSET_X-Ht100sVisual.W/2)<.001,"Dark panel is off centre");
   check(Math.abs((26+210)/2f+Ht100sVisual.FRONT_OFFSET_X-Ht100sVisual.W/2)<.001,"Speaker and button group is off centre");
   var bowl=MeshProbe.nearest(c.vertices,175,239);var buttonRim=MeshProbe.nearest(c.vertices,175,214);
