@@ -94,29 +94,31 @@ final class Ht100sVisual {
    upperVertex(p,o,l,x0,y1);upperVertex(p,o,l,x1,y1);upperVertex(p,o,l,x1,y0);upperVertex(p,o,l,x0,y0);
   }
  }
- private static float[] upperOutline(int i,float inset){
-  int corner=(i%48)/12;
-  float angle=(float)Math.toRadians(-90+corner*90+(i%12)*7.5);
-  float cx=corner==0?200:corner==1?192:corner==2?44:36;
-  float cy=corner==0||corner==3?21:171;
-  float radius=(corner==0||corner==3?12:20)-inset;
+ private static float[] lowerOutline(int i,float inset){
+  int corner=(i-12)/12;
+  float angle=(float)Math.toRadians(corner*90+(i%12)*7.5);
+  float cx=corner==0?192:44,cy=171,radius=20-inset;
   return new float[]{cx+radius*(float)Math.cos(angle),cy+radius*(float)Math.sin(angle)};
  }
+ private static void upperSeamVertex(PoseStack p,MultiBufferSource o,int l,float x,float y){
+  float z=y<9?59+(float)Math.sqrt(81-(9-y)*(9-y)):upperZ(x,y);
+  vertex(p,o,l,x,y,z+.18f,0,0,1,0x8e9589);
+ }
  private static void upperSeam(PoseStack p,MultiBufferSource o,int l){
-  // The two rounded shoulders rise to the top edge; the logo area has no crosswise seam.
-  for(int i=0;i<47;i++){
-   float[][] points={upperOutline(i,0),upperOutline(i+1,0),upperOutline(i+1,1.15f),upperOutline(i,1.15f)};
-   for(float[] xy:points)vertex(p,o,l,xy[0],xy[1],upperZ(xy[0],xy[1])+.18f,0,0,1,0x8e9589);
+  // Side boundaries go straight to the top; only the two bottom corners curve.
+  float[][] right={{212,9},{212,171},{210.85f,171},{210.85f,9}};
+  for(float[] xy:right)upperSeamVertex(p,o,l,xy[0],xy[1]);
+  for(int i=12;i<36;i++){
+   float[][] points={lowerOutline(i,0),lowerOutline(i+1,0),lowerOutline(i+1,1.15f),lowerOutline(i,1.15f)};
+   for(float[] xy:points)upperSeamVertex(p,o,l,xy[0],xy[1]);
   }
-  // Finish the left shoulder without closing a line across the logo.
-  float[][] leftTip={upperOutline(47,0),{36,9},{36,10.15f},upperOutline(47,1.15f)};
-  for(float[] xy:leftTip)vertex(p,o,l,xy[0],xy[1],upperZ(xy[0],xy[1])+.18f,0,0,1,0x8e9589);
-  // Continue both seams over the casing's rolled top edge to its actual top silhouette.
-  for(float cx:new float[]{36,200})for(int step=0;step<12;step++){
+  float[][] left={{24,171},{24,9},{25.15f,9},{25.15f,171}};
+  for(float[] xy:left)upperSeamVertex(p,o,l,xy[0],xy[1]);
+  // The casing's rolled top edge changes depth, not the horizontal position of the seam.
+  for(float[] side:new float[][]{{24,25.15f},{212,210.85f}})for(int step=0;step<12;step++){
    float y0=step*9f/12,y1=(step+1)*9f/12;
-   float[][] points={{cx-.575f,y0},{cx+.575f,y0},{cx+.575f,y1},{cx-.575f,y1}};
-   for(float[] xy:points){float dy=9-xy[1];float z=59+(float)Math.sqrt(81-dy*dy)+.18f;
-    vertex(p,o,l,xy[0],xy[1],z,0,-dy/9f,(float)Math.sqrt(Math.max(0,81-dy*dy))/9f,0x8e9589);}
+   float[][] points={{side[0],y0},{side[0],y1},{side[1],y1},{side[1],y0}};
+   for(float[] xy:points)upperSeamVertex(p,o,l,xy[0],xy[1]);
   }
  }
  private static void sector(PoseStack p,MultiBufferSource o,int l,float cx,float cy,float outer,float inner,float zOuter,float zInner,int color){
