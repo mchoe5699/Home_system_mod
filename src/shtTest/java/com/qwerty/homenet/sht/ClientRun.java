@@ -86,7 +86,8 @@ public class ClientRun {
    case 54->{if(ready!=31||!(mc.level.getBlockEntity(BASE) instanceof Station102)||Math.abs(com.qwerty.homenet.move.DeviceOffsets.get(mc.level,BASE).y)>.000001)return;moveShapeY=mc.level.getBlockState(BASE).getShape(mc.level,BASE).bounds().minY;block(mc,BASE);step=55;}
    case 55->{if(!(mc.screen instanceof com.qwerty.homenet.client.move.DeviceMoveScreen))return;moveButton(mc,"위");step=56;}
    case 56->{if(Math.abs(com.qwerty.homenet.move.DeviceOffsets.get(mc.level,BASE).y-.1)>.000001)return;check(Math.abs(mc.level.getBlockState(BASE).getShape(mc.level,BASE).bounds().minY-moveShapeY-.1)<.00001,"Samsung moved click shape applied offset twice");System.out.println("SAMSUNG_SHARED_MOVEMENT_CLIENT_PASS: native movement tool and screen move SHT-101C, SHT-102C and dock, real request/reply and offset packets, dock mesh and click shape, single station hit offset; no screenshots");step=57;mc.setScreen(null);server(mc,s->{s.getPlayerList().getPlayers().get(0).setItemSlot(net.minecraft.world.entity.EquipmentSlot.MAINHAND,ItemStack.EMPTY);s.overworld().setBlockAndUpdate(DOOR,Product.HT512.get().defaultBlockState());ready=32;});}
-   case 57->{if(ready!=32||!mc.player.getMainHandItem().isEmpty()||!Ht512Probe.world(mc,DOOR))return;step=58;mc.stop();}
+   case 57->{if(ready!=32||!mc.player.getMainHandItem().isEmpty()||!Ht512Probe.world(mc,DOOR))return;step=58;server(mc,s->{s.overworld().setBlockAndUpdate(DOOR,Product.HT100S.get().defaultBlockState());ready=33;});}
+   case 58->{if(ready!=33||!Ht100sProbe.world(mc,DOOR))return;step=59;mc.stop();}
 
   }
  }catch(Throwable t){t.printStackTrace();System.out.println("NEW_SHT_CLIENT_FAIL "+step);System.exit(1);}}

@@ -21,6 +21,18 @@ public class OperationTests {
  static ServerPlayer user(GameTestHelper h,Station s){var p=FakePlayerFactory.get(h.getLevel(),new com.mojang.authlib.GameProfile(UUID.nameUUIDFromBytes(s.getBlockPos().toString().getBytes()),"ShtTester"));p.setPos(s.getBlockPos().getX()+.5,s.getBlockPos().getY(),s.getBlockPos().getZ()+.5);p.getInventory().clearContent();return p;}
  static void tick(Station s,int count){for(int i=0;i<count;i++)ReceiverBlockEntity.serverTick(s.getLevel(),s.getBlockPos(),s.getBlockState(),s);}
  static void program(Station s,ServerPlayer p,String slot,String n,boolean remote){s.press("memory",p,remote);if(slot.length()==1)s.digit(slot,remote);else s.press(slot,p,remote);for(char c:n.toCharArray())s.digit(""+c,remote);if(s.memory)s.press("memory",p,remote);}
+ @GameTest(template="empty") public static void ht100sHomeLinkAndCall(GameTestHelper h){
+  var indoor=home(h,3);var player=user(h,indoor);indoor.setUnit(player,"101-1001");
+  var at=h.absolutePos(new BlockPos(6,1,3));h.setBlock(new BlockPos(6,1,3),Product.HT100S.get());
+  var phone=(Ht100s.Unit)h.getLevel().getBlockEntity(at);phone.onLoad();
+  var linker=new ItemStack(ModItems.HOME_LINKER.get());var tag=linker.getOrCreateTag();tag.putLong("Wallpad",indoor.getBlockPos().asLong());tag.putString("Dim",h.getLevel().dimension().location().toString());
+  player.setPos(at.getX()+.5,at.getY(),at.getZ()+.5);
+  h.assertTrue(Ht100sLinker.connect(player,linker,at),"Home Linker rejected HT-100S");
+  h.assertTrue(phone.registeredUnit().equals("101-1001"),"Home Linker did not assign household");
+  phone.call();h.assertTrue(indoor.getCallState()==CallState.RINGING,"HT-100S did not ring the indoor unit");
+  indoor.press("talk",player,true);h.assertTrue(indoor.getCallState()==CallState.CONNECTED&&phone.isConnected(),"Indoor answer did not connect HT-100S");
+  phone.call();h.assertTrue(indoor.getCallState()==CallState.IDLE,"HT-100S hangup did not clear indoor call");h.succeed();
+ }
  static class SamsungGuard extends ReceiverBlockEntity implements GuardExchange {
   Station resident;boolean event;SamsungGuard(BlockPos at,BlockState state){super(at,state);}
   public DeviceRegistry.Kind kind(){return DeviceRegistry.Kind.GUARD_CONSOLE;}public GuardSystem guardSystem(){return GuardSystem.BUS;}public String manufacturer(){return "SAMSUNG";}public String modelId(){return "test BUS endpoint";}public boolean supports(AnalogBus b){return b==AnalogBus.COMMON_8_WIRE;}
