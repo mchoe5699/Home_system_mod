@@ -23,7 +23,7 @@ final class Ht100sVisual {
  }
  private static void bodyFace(PoseStack p,MultiBufferSource o,int l){
   // Leave the call-key socket open in the casing, so the key can sit below the surrounding face.
-  Ring outer=new Ring(4,3,222,294,18,68,0xc5c9ba),inner=new Ring(16,14,198,272,0,68,0xc5c9ba);
+  Ring outer=new Ring(9,9,212,282,13,68,0xc5c9ba),inner=new Ring(16,14,198,272,0,68,0xc5c9ba);
   for(int i=0;i<48;i++){float[] a=edge(outer,i),b=edge(outer,i+1),c=edge(inner,i+1),d=edge(inner,i);
    for(float[] q:new float[][]{a,b,c,d})vertex(p,o,l,q[0],q[1],68,0,0,1,0xc5c9ba);
   }
@@ -34,7 +34,7 @@ final class Ht100sVisual {
  }
  private static float upperZ(float x,float y){
   // Rounded-rectangle distance: the four edges rise continuously out of the body surface.
-  float qx=Math.abs(x-116)-76,qy=Math.abs(y-100)-77;
+  float qx=Math.abs(x-116)-76,qy=Math.abs(y-102)-75;
   float d=(float)Math.hypot(Math.max(qx,0),Math.max(qy,0))+Math.min(Math.max(qx,qy),0)-18;
   float t=Math.max(0,Math.min(1,-d/32));
   float eased=t*t*(3-2*t);
@@ -50,7 +50,7 @@ final class Ht100sVisual {
  }
  private static void upperFace(PoseStack p,MultiBufferSource o,int l){
   for(int row=0;row<30;row++)for(int col=0;col<30;col++){
-   float x0=22+col*188f/30,x1=22+(col+1)*188f/30,y0=5+row*190f/30,y1=5+(row+1)*190f/30;
+   float x0=22+col*188f/30,x1=22+(col+1)*188f/30,y0=9+row*186f/30,y1=9+(row+1)*186f/30;
    upperVertex(p,o,l,x0,y1);upperVertex(p,o,l,x1,y1);upperVertex(p,o,l,x1,y0);upperVertex(p,o,l,x0,y0);
   }
  }
@@ -83,12 +83,11 @@ final class Ht100sVisual {
   // Frame depth is a single broad wall with one rolled front lip; the phone nests inside it.
   contour(p,o,l,true,new Ring(-6,-5,242,310,13,0,0x9da294),new Ring(-6,-5,242,310,13,35,0xa7ac9f),new Ring(-5,-4,240,308,12,41,0xc4c8b8));
   // One continuously rounded casing replaces the former stack of four visible slabs.
-  contour(p,o,l,false,new Ring(0,0,230,300,20,35,0x8e9588),new Ring(0,0,230,300,20,48,0x9fa699),new Ring(1,1,228,298,20,59,0xb9beaf),new Ring(4,3,222,294,18,66,0xc5c9ba),new Ring(4,3,222,294,18,68,0xc5c9ba));
+  contour(p,o,l,false,new Ring(0,0,230,300,13,35,0x8e9588),new Ring(.5f,.5f,229,299,13,45,0x9fa699),new Ring(2,2,226,296,13,55,0xb2b8aa),new Ring(5,5,220,290,13,63,0xbec4b5),new Ring(8,8,214,284,13,67,0xc5c9ba),new Ring(9,9,212,282,13,68,0xc5c9ba));
   bodyFace(p,o,l);
   // The broad upper region rises within the body itself; its top, bottom and both sides are rounded.
   upperFace(p,o,l);
-  // One rounded side spine, rather than several parallel bright rails.
-  contour(p,o,l,true,new Ring(7,6,22,286,11,68,0xb0b7a8),new Ring(8,7,20,284,10,70.5f,0xc3c9b9),new Ring(10,9,16,280,8,73,0xd1d5c5));
+  // The casing shoulder remains visible left of the raised surface; no separate long rail crosses it.
   // HT-100S has a dark blank window, and no camera lens or video lamp.
   solid(p,o,l,"window_gasket",64,47,106,105,83.15f,.8f,3,0x555d59);
   solid(p,o,l,"window_glass",66,49,102,101,83.95f,1,2,0x303638);
@@ -100,11 +99,11 @@ final class Ht100sVisual {
   contour(p,o,l,false,new Ring(140,202,70,73,6,65.5f,0x899184),new Ring(140,202,70,73,6,67.2f,0xb9c0b0),new Ring(142,204,66,69,5,67.9f,0xd0d4c5));
   buttonFace(p,o,l);solid(p,o,l,"button_indicator",169,209,13,4.5f,67.95f,.3f,2,0x222b2c);
   // The plug follows the arched opening exactly and sits flush with the lower rounded shell.
-  arch(p,o,l,107,274.5f,25,293,68.25f,0x646b61);
-  arch(p,o,l,108.5f,276,22,292.8f,68.42f,0xaeb4a6);
-  curvedLogo(p,o,l);print(p,o,l,BRAND,146,278,64,14,68.4f);
+  arch(p,o,l,107,274.5f,25,291,68.25f,0x646b61);
+  arch(p,o,l,108.5f,276,22,290.8f,68.42f,0xaeb4a6);
+  curvedLogo(p,o,l);print(p,o,l,BRAND,146,278,64,12,68.4f);
  }
- static void draw(PoseStack p,MultiBufferSource o,int light){GeometryCache.draw("ht100s_recessed",p,o,light,Ht100sVisual::mesh);}
+ static void draw(PoseStack p,MultiBufferSource o,int light){GeometryCache.draw("ht100s_side_profile",p,o,light,Ht100sVisual::mesh);}
  static void pose(Ht100s.Unit b,PoseStack p){var off=com.qwerty.homenet.move.DeviceOffsets.get(b.getLevel(),b.getBlockPos());p.translate(off.x,off.y,off.z);double bottom=.5-Ht100s.HEIGHT/2;switch(b.getBlockState().getValue(WallMountedBlock.FACING)){case NORTH->{p.translate(.5,bottom,1);p.mulPose(Axis.YP.rotationDegrees(180));}case SOUTH->p.translate(.5,bottom,0);case EAST->{p.translate(0,bottom,.5);p.mulPose(Axis.YP.rotationDegrees(90));}case WEST->{p.translate(1,bottom,.5);p.mulPose(Axis.YP.rotationDegrees(-90));}default->{}}p.scale(S,S,S);p.translate(-W/2,H-700,0);}
- static final class Renderer implements BlockEntityRenderer<Ht100s.Unit>{public void render(Ht100s.Unit b,float tick,PoseStack p,MultiBufferSource o,int light,int overlay){if(DeviceVisibility.hidden(b,GeometryCache.bounds("ht100s_recessed"),q->pose(b,q)))return;p.pushPose();pose(b,p);draw(p,o,light);p.popPose();}}
+ static final class Renderer implements BlockEntityRenderer<Ht100s.Unit>{public void render(Ht100s.Unit b,float tick,PoseStack p,MultiBufferSource o,int light,int overlay){if(DeviceVisibility.hidden(b,GeometryCache.bounds("ht100s_side_profile"),q->pose(b,q)))return;p.pushPose();pose(b,p);draw(p,o,light);p.popPose();}}
 }
