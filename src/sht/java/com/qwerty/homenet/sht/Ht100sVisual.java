@@ -12,6 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 final class Ht100sVisual {
  static final float W=230,H=300,S=(float)(Ht100s.HEIGHT/H);
  static final float WINDOW_X=67,WINDOW_Y=46,WINDOW_W=102,WINDOW_H=102;
+ static final float UPPER_TOP_Z=80;
  static final float FRONT_OFFSET_X=-3;
  static final ResourceLocation LOGO=Product.id("ht100s/logo.png"),BRAND=Product.id("ht100s/brand.png"),WHITE=Product.id("textures/solid.png");
  private record Ring(float x,float y,float w,float h,float r,float z,int color){}
@@ -72,13 +73,14 @@ final class Ht100sVisual {
   patch(p,o,l,16,275,198,11,68,0xc5c9ba);
  }
  static float upperZ(float x,float y){
-  // Each outer corner flows diagonally toward its corresponding window corner.
-  // Multiplying the two axis ramps avoids a round bulge at the four corners.
-  float tx=Math.min((x-24)/(WINDOW_X-24),(212-x)/(212-WINDOW_X-WINDOW_W));
-  float ty=Math.min((y-9)/(WINDOW_Y-9),(191-y)/(191-WINDOW_Y-WINDOW_H));
-  float t=Math.max(0,Math.min(1,tx))*Math.max(0,Math.min(1,ty));
-  // Zero slope at the casing and window joins keeps both transitions smooth.
-  return 68+15*t*t*(3-2*t);
+  // A broad, nearly flat moulding surrounds the blank HT-100S panel like the HT-100 shell.
+  float tx=Math.min((x-24)/(WINDOW_X-10-24),(212-x)/(212-WINDOW_X-WINDOW_W-10));
+  float ty=Math.min((y-9)/(WINDOW_Y-11-9),(191-y)/(191-WINDOW_Y-WINDOW_H-11));
+  tx=Math.max(0,Math.min(1,tx));ty=Math.max(0,Math.min(1,ty));
+  // A smooth minimum keeps the four diagonal slopes without making corner hollows.
+  float blend=.35f,h=Math.max(0,blend-Math.abs(tx-ty))/blend;
+  float t=Math.max(0,Math.min(1,(Math.min(tx,ty)-h*h*blend*.25f)/(1-blend*.25f)));
+  return 68+(UPPER_TOP_Z-68)*t*t*(3-2*t);
  }
  private static void upperVertex(PoseStack p,MultiBufferSource o,int l,float x,float y){
   float z=upperZ(x,y),nx=upperZ(x-1,y)-upperZ(x+1,y),ny=upperZ(x,y-1)-upperZ(x,y+1),length=(float)Math.sqrt(nx*nx+ny*ny+4);
@@ -129,9 +131,9 @@ final class Ht100sVisual {
   upperFace(p,o,l);
   // The casing shoulder remains visible left of the raised surface; no separate long rail crosses it.
   // HT-100S has a dark blank window, and no camera lens or video lamp.
-  solid(p,o,l,"window_gasket",WINDOW_X,WINDOW_Y,WINDOW_W,WINDOW_H,83.15f,.8f,3,0x555d59);
-  solid(p,o,l,"window_glass",WINDOW_X+2,WINDOW_Y+2,WINDOW_W-4,WINDOW_H-4,83.95f,1,2,0x303638);
-  patch(p,o,l,WINDOW_X+6,WINDOW_Y+5,WINDOW_W-12,1.1f,84.98f,0x414746);
+  solid(p,o,l,"window_gasket",WINDOW_X,WINDOW_Y,WINDOW_W,WINDOW_H,UPPER_TOP_Z+.15f,.8f,3,0x555d59);
+  solid(p,o,l,"window_glass",WINDOW_X+2,WINDOW_Y+2,WINDOW_W-4,WINDOW_H-4,UPPER_TOP_Z+.95f,1,2,0x303638);
+  patch(p,o,l,WINDOW_X+6,WINDOW_Y+5,WINDOW_W-12,1.1f,UPPER_TOP_Z+1.98f,0x414746);
   // The speaker is six narrow recessed slots within the lower skin, each with a gentle lower highlight.
   for(int i=0;i<6;i++){float y=205+i*13;patch(p,o,l,26,y-2,104,2,69.2f,0xc7ccbc);solid(p,o,l,"speaker_floor_"+i,29,y,99,3.6f,68.2f,.35f,1.7f,0x424b44);patch(p,o,l,30,y+3.6f,97,.65f,69.4f,0xabb3a4);}
   // A single edged call key with an actual opening in its face and a sloping concave finger bowl.
@@ -144,7 +146,7 @@ final class Ht100sVisual {
   p.popPose();
   for(int i=0;i<2;i++)solid(p,o,l,"mic_"+i,212,38+i*8,9,3,69,1,.7f,0x232b2a);
  }
- static void draw(PoseStack p,MultiBufferSource o,int light){GeometryCache.draw("ht100s_window_corner_slope",p,o,light,Ht100sVisual::mesh);}
+ static void draw(PoseStack p,MultiBufferSource o,int light){GeometryCache.draw("ht100s_broad_moulding",p,o,light,Ht100sVisual::mesh);}
  static void pose(Ht100s.Unit b,PoseStack p){var off=com.qwerty.homenet.move.DeviceOffsets.get(b.getLevel(),b.getBlockPos());p.translate(off.x,off.y,off.z);double bottom=.5-Ht100s.HEIGHT/2;switch(b.getBlockState().getValue(WallMountedBlock.FACING)){case NORTH->{p.translate(.5,bottom,1);p.mulPose(Axis.YP.rotationDegrees(180));}case SOUTH->p.translate(.5,bottom,0);case EAST->{p.translate(0,bottom,.5);p.mulPose(Axis.YP.rotationDegrees(90));}case WEST->{p.translate(1,bottom,.5);p.mulPose(Axis.YP.rotationDegrees(-90));}default->{}}p.scale(S,S,S);p.translate(-W/2,H-700,0);}
- static final class Renderer implements BlockEntityRenderer<Ht100s.Unit>{public void render(Ht100s.Unit b,float tick,PoseStack p,MultiBufferSource o,int light,int overlay){if(DeviceVisibility.hidden(b,GeometryCache.bounds("ht100s_window_corner_slope"),q->pose(b,q)))return;p.pushPose();pose(b,p);draw(p,o,light);p.popPose();}}
+ static final class Renderer implements BlockEntityRenderer<Ht100s.Unit>{public void render(Ht100s.Unit b,float tick,PoseStack p,MultiBufferSource o,int light,int overlay){if(DeviceVisibility.hidden(b,GeometryCache.bounds("ht100s_broad_moulding"),q->pose(b,q)))return;p.pushPose();pose(b,p);draw(p,o,light);p.popPose();}}
 }
