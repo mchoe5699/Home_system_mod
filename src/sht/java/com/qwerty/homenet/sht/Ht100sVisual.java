@@ -72,11 +72,12 @@ final class Ht100sVisual {
   patch(p,o,l,16,275,198,11,68,0xc5c9ba);
  }
  static float upperZ(float x,float y){
-  // Rounded-rectangle distance: the four edges rise continuously out of the body surface.
-  float qx=Math.abs(x-118)-76,qy=Math.abs(y-100)-73;
-  float d=(float)Math.hypot(Math.max(qx,0),Math.max(qy,0))+Math.min(Math.max(qx,qy),0)-18;
-  float t=Math.max(0,Math.min(1,-d/24));
-  // Zero slope at the casing edge and at the raised plateau: neither join has a kink.
+  // Each outer corner flows diagonally toward its corresponding window corner.
+  // Multiplying the two axis ramps avoids a round bulge at the four corners.
+  float tx=Math.min((x-24)/(WINDOW_X-24),(212-x)/(212-WINDOW_X-WINDOW_W));
+  float ty=Math.min((y-9)/(WINDOW_Y-9),(191-y)/(191-WINDOW_Y-WINDOW_H));
+  float t=Math.max(0,Math.min(1,tx))*Math.max(0,Math.min(1,ty));
+  // Zero slope at the casing and window joins keeps both transitions smooth.
   return 68+15*t*t*(3-2*t);
  }
  private static void upperVertex(PoseStack p,MultiBufferSource o,int l,float x,float y){
@@ -143,7 +144,7 @@ final class Ht100sVisual {
   p.popPose();
   for(int i=0;i<2;i++)solid(p,o,l,"mic_"+i,212,38+i*8,9,3,69,1,.7f,0x232b2a);
  }
- static void draw(PoseStack p,MultiBufferSource o,int light){GeometryCache.draw("ht100s_centered_front",p,o,light,Ht100sVisual::mesh);}
+ static void draw(PoseStack p,MultiBufferSource o,int light){GeometryCache.draw("ht100s_window_corner_slope",p,o,light,Ht100sVisual::mesh);}
  static void pose(Ht100s.Unit b,PoseStack p){var off=com.qwerty.homenet.move.DeviceOffsets.get(b.getLevel(),b.getBlockPos());p.translate(off.x,off.y,off.z);double bottom=.5-Ht100s.HEIGHT/2;switch(b.getBlockState().getValue(WallMountedBlock.FACING)){case NORTH->{p.translate(.5,bottom,1);p.mulPose(Axis.YP.rotationDegrees(180));}case SOUTH->p.translate(.5,bottom,0);case EAST->{p.translate(0,bottom,.5);p.mulPose(Axis.YP.rotationDegrees(90));}case WEST->{p.translate(1,bottom,.5);p.mulPose(Axis.YP.rotationDegrees(-90));}default->{}}p.scale(S,S,S);p.translate(-W/2,H-700,0);}
- static final class Renderer implements BlockEntityRenderer<Ht100s.Unit>{public void render(Ht100s.Unit b,float tick,PoseStack p,MultiBufferSource o,int light,int overlay){if(DeviceVisibility.hidden(b,GeometryCache.bounds("ht100s_centered_front"),q->pose(b,q)))return;p.pushPose();pose(b,p);draw(p,o,light);p.popPose();}}
+ static final class Renderer implements BlockEntityRenderer<Ht100s.Unit>{public void render(Ht100s.Unit b,float tick,PoseStack p,MultiBufferSource o,int light,int overlay){if(DeviceVisibility.hidden(b,GeometryCache.bounds("ht100s_window_corner_slope"),q->pose(b,q)))return;p.pushPose();pose(b,p);draw(p,o,light);p.popPose();}}
 }

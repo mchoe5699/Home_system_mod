@@ -33,7 +33,14 @@ final class Ht100sProbe {
   check(c.vertices.stream().anyMatch(v->Math.abs(v.x()-arcInset)<.01&&Math.abs(v.z()-arcZ)<.01),"Casing front edge does not curve into the face");
   check(Math.abs(Ht100sVisual.upperZ(116,9)-68)<.001,"Upper moulding does not begin at the top edge");
   check(Ht100sVisual.upperZ(116,10)-Ht100sVisual.upperZ(116,9)<.1,"Upper moulding begins with a sharp bend");
-  check(Ht100sVisual.upperZ(116,33)>82.9,"Upper moulding did not move toward the top edge");
+  check(Ht100sVisual.upperZ(118,33)>78&&Ht100sVisual.upperZ(118,33)<80,"Upper moulding no longer rises smoothly from the top edge");
+  for(float[] corners:new float[][]{{24,9,67,46},{212,9,169,46},{24,191,67,148},{212,191,169,148}}){
+   float last=Ht100sVisual.upperZ(corners[0],corners[1]);
+   check(Math.abs(last-68)<.001,"Outer moulding corner is lifted off the casing");
+   for(int i=1;i<=4;i++){float t=i/4f,z=Ht100sVisual.upperZ(corners[0]+(corners[2]-corners[0])*t,corners[1]+(corners[3]-corners[1])*t);
+    check(z>last&&z<=83.001,"Corner slope does not flow toward the window");last=z;}
+  }
+  check(Ht100sVisual.upperZ(45.5f,27.5f)<Ht100sVisual.upperZ(45.5f,100),"Raised corner forms a bulge instead of a window-facing slope");
   check(Math.abs(Ht100sVisual.upperZ(116,191)-68)<.001,"Raised panel lower edge did not move up with the panel");
   check(MeshProbe.nearest(c.vertices,16,150).z()<70,"Raised strip still obstructs the upper moulding at left");
   for(double[] pair:new double[][]{{15,150,2,150},{215,150,228,150},{115,15,115,2},{115,285,115,298}})
