@@ -21,6 +21,33 @@ final class Ht100sVisual {
   for(int n=0;n<rings.length-1;n++){Ring a=rings[n],b=rings[n+1];for(int i=0;i<48;i++){float[] u=edge(a,i),v=edge(a,i+1),w=edge(b,i+1),x=edge(b,i);float nz=(b.z-a.z)==0?0:.18f;int col=b.color;vertex(p,o,l,u[0],u[1],a.z,u[2],u[3],nz,col);vertex(p,o,l,v[0],v[1],a.z,v[2],v[3],nz,col);vertex(p,o,l,w[0],w[1],b.z,w[2],w[3],nz,col);vertex(p,o,l,x[0],x[1],b.z,x[2],x[3],nz,col);}}
   if(cap){Ring q=rings[rings.length-1];float cx=q.x+q.w/2,cy=q.y+q.h/2;for(int i=0;i<48;i++){float[] a=edge(q,i),b=edge(q,i+1);vertex(p,o,l,a[0],a[1],q.z,0,0,1,q.color);vertex(p,o,l,b[0],b[1],q.z,0,0,1,q.color);vertex(p,o,l,cx,cy,q.z,0,0,1,q.color);vertex(p,o,l,cx,cy,q.z,0,0,1,q.color);}}
  }
+ private static void bodyShell(PoseStack p,MultiBufferSource o,int l){
+  // A straight side meets a circular front fillet tangentially at both ends.
+  final int steps=16;Ring[] rings=new Ring[steps+2];
+  rings[0]=new Ring(0,0,230,300,13,35,0xaeb5a7);
+  for(int j=0;j<=steps;j++){
+   double angle=j*Math.PI/(2*steps),inset=9*(1-Math.cos(angle));
+   float at=(float)inset,z=(float)(59+9*Math.sin(angle));
+   int red=(int)(0xae+(0xc5-0xae)*Math.sin(angle));
+   int green=(int)(0xb5+(0xc9-0xb5)*Math.sin(angle));
+   int blue=(int)(0xa7+(0xba-0xa7)*Math.sin(angle));
+   rings[j+1]=new Ring(at,at,230-2*at,300-2*at,13,z,(red<<16)|(green<<8)|blue);
+  }
+  for(int n=0;n<rings.length-1;n++){
+   Ring a=rings[n],b=rings[n+1];
+   float angleA=(float)(Math.max(0,n-1)*Math.PI/(2*steps));
+   float angleB=(float)(n*Math.PI/(2*steps));
+   for(int i=0;i<48;i++){
+    float[] u=edge(a,i),v=edge(a,i+1),w=edge(b,i+1),x=edge(b,i);
+    bodyVertex(p,o,l,u,a,angleA);bodyVertex(p,o,l,v,a,angleA);
+    bodyVertex(p,o,l,w,b,angleB);bodyVertex(p,o,l,x,b,angleB);
+   }
+  }
+ }
+ private static void bodyVertex(PoseStack p,MultiBufferSource o,int l,float[] at,Ring ring,float angle){
+  float radial=(float)Math.cos(angle);
+  vertex(p,o,l,at[0],at[1],ring.z,at[2]*radial,at[3]*radial,(float)Math.sin(angle),ring.color);
+ }
  private static void bodyFace(PoseStack p,MultiBufferSource o,int l){
   // Leave the call-key socket open in the casing, so the key can sit below the surrounding face.
   Ring outer=new Ring(9,9,212,282,13,68,0xc5c9ba),inner=new Ring(16,14,198,272,0,68,0xc5c9ba);
@@ -32,25 +59,23 @@ final class Ht100sVisual {
   patch(p,o,l,210,202,4,73,68,0xc5c9ba);
   patch(p,o,l,16,275,198,11,68,0xc5c9ba);
  }
- private static float upperZ(float x,float y){
+ static float upperZ(float x,float y){
   // Rounded-rectangle distance: the four edges rise continuously out of the body surface.
   float qx=Math.abs(x-116)-76,qy=Math.abs(y-102)-75;
   float d=(float)Math.hypot(Math.max(qx,0),Math.max(qy,0))+Math.min(Math.max(qx,qy),0)-18;
   float t=Math.max(0,Math.min(1,-d/32));
-  float eased=t*t*(3-2*t);
-  // A small initial slope leaves a visible, soft change of direction at the moulded boundary.
-  return 68.12f+14.88f*(.19f*t+.81f*eased);
+  // Zero slope at the casing edge and at the raised plateau: neither join has a kink.
+  return 68+15*t*t*(3-2*t);
  }
  private static void upperVertex(PoseStack p,MultiBufferSource o,int l,float x,float y){
   float z=upperZ(x,y),nx=upperZ(x-1,y)-upperZ(x+1,y),ny=upperZ(x,y-1)-upperZ(x,y+1),length=(float)Math.sqrt(nx*nx+ny*ny+4);
-  int shade=(int)(0xb9+(z-68)*.7f);
-  if(z<69.4f)shade-=8;
+  int shade=(int)(0xc5+(z-68)*.2f);
   int color=(shade<<16)|((shade+4)<<8)|(shade-11);
   vertex(p,o,l,x,y,z,nx/length,ny/length,2/length,color);
  }
  private static void upperFace(PoseStack p,MultiBufferSource o,int l){
-  for(int row=0;row<30;row++)for(int col=0;col<30;col++){
-   float x0=22+col*188f/30,x1=22+(col+1)*188f/30,y0=9+row*186f/30,y1=9+(row+1)*186f/30;
+  for(int row=0;row<60;row++)for(int col=0;col<48;col++){
+   float x0=22+col*188f/48,x1=22+(col+1)*188f/48,y0=9+row*186f/60,y1=9+(row+1)*186f/60;
    upperVertex(p,o,l,x0,y1);upperVertex(p,o,l,x1,y1);upperVertex(p,o,l,x1,y0);upperVertex(p,o,l,x0,y0);
   }
  }
@@ -82,8 +107,7 @@ final class Ht100sVisual {
  static void mesh(PoseStack p,MultiBufferSource o){int l=0;
   // Frame depth is a single broad wall with one rolled front lip; the phone nests inside it.
   contour(p,o,l,true,new Ring(-6,-5,242,310,13,0,0x9da294),new Ring(-6,-5,242,310,13,35,0xa7ac9f),new Ring(-5,-4,240,308,12,41,0xc4c8b8));
-  // The side wall stays straight through most of its depth. Only its front edge rolls into the face.
-  contour(p,o,l,false,new Ring(0,0,230,300,13,35,0x9fa699),new Ring(0,0,230,300,13,58,0x9fa699),new Ring(1,1,228,298,13,61,0xaab1a3),new Ring(3,3,224,294,13,64,0xb5bcad),new Ring(6,6,218,288,13,67,0xc0c6b7),new Ring(9,9,212,282,13,68,0xc5c9ba));
+  bodyShell(p,o,l);
   bodyFace(p,o,l);
   // The broad upper region rises within the body itself; its top, bottom and both sides are rounded.
   upperFace(p,o,l);
@@ -103,7 +127,7 @@ final class Ht100sVisual {
   arch(p,o,l,108.5f,276,22,290.8f,68.42f,0xaeb4a6);
   curvedLogo(p,o,l);print(p,o,l,BRAND,146,278,64,12,68.4f);
  }
- static void draw(PoseStack p,MultiBufferSource o,int light){GeometryCache.draw("ht100s_flat_side",p,o,light,Ht100sVisual::mesh);}
+ static void draw(PoseStack p,MultiBufferSource o,int light){GeometryCache.draw("ht100s_tangent_edges",p,o,light,Ht100sVisual::mesh);}
  static void pose(Ht100s.Unit b,PoseStack p){var off=com.qwerty.homenet.move.DeviceOffsets.get(b.getLevel(),b.getBlockPos());p.translate(off.x,off.y,off.z);double bottom=.5-Ht100s.HEIGHT/2;switch(b.getBlockState().getValue(WallMountedBlock.FACING)){case NORTH->{p.translate(.5,bottom,1);p.mulPose(Axis.YP.rotationDegrees(180));}case SOUTH->p.translate(.5,bottom,0);case EAST->{p.translate(0,bottom,.5);p.mulPose(Axis.YP.rotationDegrees(90));}case WEST->{p.translate(1,bottom,.5);p.mulPose(Axis.YP.rotationDegrees(-90));}default->{}}p.scale(S,S,S);p.translate(-W/2,H-700,0);}
- static final class Renderer implements BlockEntityRenderer<Ht100s.Unit>{public void render(Ht100s.Unit b,float tick,PoseStack p,MultiBufferSource o,int light,int overlay){if(DeviceVisibility.hidden(b,GeometryCache.bounds("ht100s_flat_side"),q->pose(b,q)))return;p.pushPose();pose(b,p);draw(p,o,light);p.popPose();}}
+ static final class Renderer implements BlockEntityRenderer<Ht100s.Unit>{public void render(Ht100s.Unit b,float tick,PoseStack p,MultiBufferSource o,int light,int overlay){if(DeviceVisibility.hidden(b,GeometryCache.bounds("ht100s_tangent_edges"),q->pose(b,q)))return;p.pushPose();pose(b,p);draw(p,o,light);p.popPose();}}
 }
