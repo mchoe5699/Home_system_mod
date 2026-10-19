@@ -31,6 +31,7 @@ public final class WorldVideo {
   if(at==null||!l.isLoaded(at)||!ZoneData.connected(l,b.getBlockPos(),at))return null;
   var source=l.getBlockEntity(at);
   if(source instanceof DoorStationBlockEntity door)return door.isDoorPhone()?null:at;
+  if(source instanceof Ht100.Unit)return at;
   if(source instanceof AnalogLobbyEndpoint lobby){
    var exchange=b.getAnalogStation();
    if(exchange!=null&&l.getBlockEntity(exchange) instanceof Kam305BlockEntity kam&&!kam.allowsLobbyVideo(b.getUnit(),lobby))return null;
