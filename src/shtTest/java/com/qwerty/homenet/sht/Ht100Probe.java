@@ -17,17 +17,17 @@ final class Ht100Probe {
   check(Math.abs(Ht100.WIDTH/Ht100.HEIGHT-226d/300)<1e-8&&Ht100.HEIGHT==.3,"HT-100 body ratio or 0.3 block height changed");
   double pmin=plain.vertices.stream().mapToDouble(MeshProbe.V::x).min().orElseThrow(),fmin=framed.vertices.stream().mapToDouble(MeshProbe.V::x).min().orElseThrow();
   check(fmin<pmin-5,"HT-100 surround is fused to the body");
-  for(int color:new int[]{0x273135,0x0b1c2a,0x3a2036,0x273b45,0xc8cfce,0xcad1d0})check(plain.vertices.stream().anyMatch(v->v.color()==color),"HT-100 clean-photo detail missing: "+color);
+  for(int color:new int[]{0x273135,0x0b1c2a,0x241a28,0x273b45,0xdce0dc,0xdfe0dc})check(plain.vertices.stream().anyMatch(v->v.color()==color),"HT-100 clean-photo detail missing: "+color);
   // The dark floors sit behind a physically interrupted lower face, not a painted grille.
-  for(int i=0;i<6;i++){double center=202+i*11.25+1.9;check(plain.vertices.stream().anyMatch(v->v.color()==0x303b3e&&Math.abs((700-v.y())-center)<2.1&&v.z()>30&&v.z()<31),"HT-100 recessed speaker aperture missing: "+i);}
-  check(plain.vertices.stream().anyMatch(v->v.color()==0x39474c&&v.z()>38),"HT-100 microphone missing");
+  for(int i=0;i<6;i++){double center=202+i*11.25+1.075;check(plain.vertices.stream().anyMatch(v->v.color()==0x536061&&Math.abs((700-v.y())-center)<2.1&&v.z()>30&&v.z()<32),"HT-100 recessed speaker aperture missing: "+i);}
+  check(plain.vertices.stream().anyMatch(v->v.color()==0x39474c&&v.z()>33),"HT-100 microphone missing");
   // The frontal photo has a square glass module with independent lamp and lens.
   var glass=plain.vertices.stream().filter(v->v.color()==0x273135).toList();
   double glassW=glass.stream().mapToDouble(MeshProbe.V::x).max().orElseThrow()-glass.stream().mapToDouble(MeshProbe.V::x).min().orElseThrow();
   double glassH=glass.stream().mapToDouble(MeshProbe.V::y).max().orElseThrow()-glass.stream().mapToDouble(MeshProbe.V::y).min().orElseThrow();
   check(glassH/glassW>.95&&glassH/glassW<1.08,"HT-100 camera glass must be near-square");
-  check(MeshProbe.nearest(plain.vertices,12,150).z()>MeshProbe.nearest(plain.vertices,35,150).z()+4,"HT-100 side roll is flat");
-  check(MeshProbe.nearest(plain.vertices,173,235).z()>MeshProbe.nearest(plain.vertices,132,235).z()+3,"HT-100 call button is flat");
+  check(MeshProbe.nearest(plain.vertices,12,150).z()>MeshProbe.nearest(plain.vertices,35,150).z()+.6,"HT-100 side roll is flat");
+  check(MeshProbe.nearest(plain.vertices,173,235).z()>MeshProbe.nearest(plain.vertices,132,235).z()+1,"HT-100 call button is flat");
   check(Math.abs(MeshProbe.nearest(framed.vertices,113,175).z()-MeshProbe.nearest(plain.vertices,113,175).z()-12)<.1,"HT-100 body did not move with surround");
   check(plain.vertices.size()<40000&&framed.vertices.size()<40000,"HT-100 mesh too large");
   int builds=GeometryCache.builds;for(int i=0;i<8;i++)Ht100Visual.draw(new PoseStack(),t->new MeshProbe.Capture(),15728880,true);check(GeometryCache.builds==builds,"HT-100 mesh rebuilds every frame");

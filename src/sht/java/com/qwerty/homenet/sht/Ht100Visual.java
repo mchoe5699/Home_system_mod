@@ -14,7 +14,7 @@ final class Ht100Visual {
  static final float W=226,H=300,SCALE=(float)(Ht100.HEIGHT/H);
  static final ResourceLocation PRINT=Product.id("ht100/label.png"),BRAND=Product.id("ht100/brand.png"),GLOW=Product.id("ht100/glow.png");
  private static final ResourceLocation SOLID=Product.id("textures/solid.png");
- private static final int SHELL=0xb8c0c2,UPPER=0xc4cbcb,LOWER=0xbfc7c7,RAIL=0xcad1d0;
+ private static final int SHELL=0xd3d5d2,UPPER=0xdadbd7,LOWER=0xd5d7d3,RAIL=0xdfe0dc;
  private record Point(float x,float y){}
  private record Outline(Point[] points,float z){}
  private static Point[] round(float x,float y,float w,float h,float r){
@@ -42,26 +42,28 @@ final class Ht100Visual {
  private static void rect(PoseStack p,MultiBufferSource o,int light,float x,float y,float w,float h,float z,int color){quad(p,o,light,new float[]{x,y+h,z},new float[]{x+w,y+h,z},new float[]{x+w,y,z},new float[]{x,y,z},color,0,0,1);}
  private static void ring(PoseStack p,MultiBufferSource o,int light,int color,Outline outer,Outline inner){for(int i=0;i<32;i++){int j=(i+1)%32;quad(p,o,light,at(outer.points[i],outer.z),at(outer.points[j],outer.z),at(inner.points[j],inner.z),at(inner.points[i],inner.z),color,0,0,1);}}
  private static void circle(PoseStack p,MultiBufferSource o,int light,float cx,float cy,float radius,float z0,float z1,int color){plate(p,o,light,color,outline(cx-radius,cy-radius,2*radius,2*radius,radius,z0),outline(cx-radius+.4f,cy-radius+.4f,2*radius-.8f,2*radius-.8f,radius-.4f,z1));}
- private static void rail(PoseStack p,MultiBufferSource o,int light,float x,float lift){
-  // Two continuous moulded rolls belong to the camera body, not its mounting surround.
-  Outline root=outline(x,3,23,294,10,lift+29.7f);
-  Outline shoulder=outline(x+1,5,21,290,10,lift+33.5f);
-  Outline crown=outline(x+5,8,13,284,6.4f,lift+38);
-  loft(p,o,light,0xa8b3b4,root,shoulder);
-  loft(p,o,light,RAIL,shoulder,crown);
-  fill(p,o,light,crown,RAIL);
+ private static void edge(PoseStack p,MultiBufferSource o,int light,float lift){
+  // Broad casing shoulders merge into the face, leaving only a hairline mould joint.
+  for(boolean right:new boolean[]{false,true}){
+   float x=right?203:0;
+   Outline root=outline(x,3,23,294,10,lift+27.8f);
+   Outline rise=outline(x+(right?2:1),5,20,290,9,lift+31.1f);
+   Outline face=outline(x+(right?5:4),8,14,284,6,lift+33.3f);
+   loft(p,o,light,0xc6cbc8,root,rise);
+   loft(p,o,light,RAIL,rise,face);fill(p,o,light,face,RAIL);
+  }
  }
  private static void slit(PoseStack p,MultiBufferSource o,int light,float y,float z){
   // The front skin stops at each opening; the dark floor is recessed behind it.
-  float x=28,w=96,h=3.8f;
-  fill(p,o,light,outline(x,y,w,h,1.9f,z-.85f),0x303b3e);
-  ring(p,o,light,0x788789,outline(x-.5f,y-.5f,w+1,h+1,2.3f,z+.025f),outline(x,y,w,h,1.9f,z-.35f));
+  float x=28,w=96,h=2.15f;
+  fill(p,o,light,outline(x,y,w,h,1.05f,z-.65f),0x536061);
+  ring(p,o,light,0x9da9a9,outline(x-.5f,y-.5f,w+1,h+1,1.35f,z+.025f),outline(x,y,w,h,1.05f,z-.25f));
   rect(p,o,light,x+2,y+h+.35f,w-4,.36f,z+.03f,0xe0e5e2);
  }
  private static void lowerFace(PoseStack p,MultiBufferSource o,int light,float z){
   float x=17,right=209,last=190;
   for(int i=0;i<6;i++){
-   float y=202+i*11.25f,end=y+3.8f;
+   float y=202+i*11.25f,end=y+2.15f;
    rect(p,o,light,x,last,right-x,y-last,z,LOWER);
    rect(p,o,light,x,y,28-x,end-y,z,LOWER);
    rect(p,o,light,124,y,right-124,end-y,z,LOWER);
@@ -76,7 +78,7 @@ final class Ht100Visual {
   }
   rect(p,o,light,x,last,right-x,294-last,z,LOWER);
  }
- private static float hThird(){return 3.8f/3;}
+ private static float hThird(){return 2.15f/3;}
  private static void bottomClip(PoseStack p,MultiBufferSource o,int light,float z){
   // Semicircular crown with straight legs reaches the lower casing edge.
   float cx=113,r=12,cy=282;
@@ -99,22 +101,22 @@ final class Ht100Visual {
    Outline rear=outline(-6,-5,238,310,12,0);
    Outline wall=outline(-6,-5,238,310,12,9);
    Outline lip=outline(-3,-3,232,306,10,13);
-   loft(p,o,light,0xb3bcbd,rear,wall,lip);fill(p,o,light,lip,0xc7ceca);
-   ring(p,o,light,0x829091,outline(-3,-3,232,306,10,13.02f),outline(1,1,224,298,11,13.06f));
+   loft(p,o,light,0xc8cecb,rear,wall,lip);fill(p,o,light,lip,0xd3d7d3);
+   ring(p,o,light,0xa6aeaa,outline(-3,-3,232,306,10,13.02f),outline(1,1,224,298,11,13.06f));
   }
   // The rear shell rolls forward around all four edges; the side rails stand farther out.
   Outline back=outline(0,0,W,H,12,lift);
   Outline side=outline(0,0,W,H,12,lift+22);
   Outline front=outline(4,2,218,296,11,lift+30);
-  loft(p,o,light,0xaeb9bb,back,side,front);fill(p,o,light,front,SHELL);
+  loft(p,o,light,0xc6ccca,back,side,front);fill(p,o,light,front,SHELL);
   // Upper cover is one broad, slightly swollen moulding with a recessed joint.
   Outline seam=outline(21,8,184,183,11,lift+30.2f);
   Outline panel=outline(23,10,180,179,9,lift+32.3f);
-  ring(p,o,light,0x738284,seam,outline(22,9,182,181,10,lift+30.24f));
+  ring(p,o,light,0xa4afae,seam,outline(22,9,182,181,10,lift+30.24f));
   plate(p,o,light,UPPER,outline(22,9,182,181,10,lift+30.3f),panel);
-  rect(p,o,light,22,189,182,1.0f,lift+31.1f,0x697a7c);
+  rect(p,o,light,22,189,182,1.0f,lift+31.1f,0x9ba5a4);
   lowerFace(p,o,light,lift+31.25f);
-  rail(p,o,light,1,lift);rail(p,o,light,202,lift);
+  edge(p,o,light,lift);
   // The clean reference has a near-square charcoal glass, not a tall window.
   Outline bezel=outline(57,46,112,113,4.2f,lift+32.4f);
   Outline rim=outline(59,48,108,109,3.4f,lift+33.3f);
@@ -125,19 +127,19 @@ final class Ht100Visual {
   rect(p,o,light,78,62,70,.9f,lift+33.87f,0x344a5b);
   // Distinct circular bezel, plum-coloured inner barrel and recessed black optic.
   circle(p,o,light,113,125,25,lift+33.6f,lift+34.2f,0x161b23);
-  circle(p,o,light,113,125,21,lift+34.2f,lift+35.1f,0x3a2036);
-  circle(p,o,light,113,125,17,lift+35.1f,lift+35.4f,0x15111b);
-  circle(p,o,light,113,125,11,lift+35.4f,lift+36.8f,0x070b12);
-  circle(p,o,light,109,121,3,lift+36.8f,lift+36.85f,0x344254);
+  circle(p,o,light,113,125,21,lift+34.2f,lift+35.1f,0x241a28);
+  circle(p,o,light,113,125,17,lift+35.1f,lift+33.0f,0x15111b);
+  circle(p,o,light,113,125,11,lift+33.0f,lift+36.8f,0x070b12);
+  circle(p,o,light,109,121,3,lift+36.8f,lift+36.85f,0x233244);
   // Two small microphone slots pass through the upper right rolled rail.
   for(int i=0;i<2;i++){
    float y=35+i*10;
-   plate(p,o,light,0x39474c,outline(210,y,8,3.2f,1.5f,lift+38),outline(210,y,8,3.2f,1.5f,lift+38.15f));
+   plate(p,o,light,0x39474c,outline(210,y,8,3.2f,1.5f,lift+33.35f),outline(210,y,8,3.2f,1.5f,lift+33.5f));
   }
   // Inset perimeter, then a softly raised call key with a dark status notch.
-  ring(p,o,light,0x718083,outline(137,196,73,79,7,lift+31.32f),outline(139,198,69,75,6.4f,lift+31.34f));
-  plate(p,o,light,0xc8cfce,outline(141,200,65,71,6.5f,lift+31.4f),outline(142,201,63,69,7,lift+35.2f));
-  plate(p,o,light,0x273b45,outline(165,206,15,4.3f,2,lift+35.22f),outline(165,206,15,4.3f,2,lift+35.4f));
+  ring(p,o,light,0x9aa5a4,outline(137,196,73,79,7,lift+31.32f),outline(139,198,69,75,6.4f,lift+31.34f));
+  plate(p,o,light,0xdce0dc,outline(141,200,65,71,6.5f,lift+31.4f),outline(142,201,63,69,7,lift+32.8f));
+  plate(p,o,light,0x273b45,outline(165,206,15,4.3f,2,lift+32.82f),outline(165,206,15,4.3f,2,lift+33.0f));
   bottomClip(p,o,light,lift+31.35f);
   Surface.rectangle(p,o,58,17,110,32,lift+32.7f,PRINT,light);
   Surface.rectangle(p,o,141,276,70,18,lift+31.55f,BRAND,light);

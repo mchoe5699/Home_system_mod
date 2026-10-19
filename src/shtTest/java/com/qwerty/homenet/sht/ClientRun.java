@@ -87,7 +87,10 @@ public class ClientRun {
    case 55->{if(!(mc.screen instanceof com.qwerty.homenet.client.move.DeviceMoveScreen))return;moveButton(mc,"위");step=56;}
    case 56->{if(Math.abs(com.qwerty.homenet.move.DeviceOffsets.get(mc.level,BASE).y-.1)>.000001)return;check(Math.abs(mc.level.getBlockState(BASE).getShape(mc.level,BASE).bounds().minY-moveShapeY-.1)<.00001,"Samsung moved click shape applied offset twice");System.out.println("SAMSUNG_SHARED_MOVEMENT_CLIENT_PASS: native movement tool and screen move SHT-101C, SHT-102C and dock, real request/reply and offset packets, dock mesh and click shape, single station hit offset; no screenshots");step=57;mc.setScreen(null);server(mc,s->{s.getPlayerList().getPlayers().get(0).setItemSlot(net.minecraft.world.entity.EquipmentSlot.MAINHAND,ItemStack.EMPTY);s.overworld().setBlockAndUpdate(DOOR,Product.HT512.get().defaultBlockState());ready=32;});}
    case 57->{if(ready!=32||!mc.player.getMainHandItem().isEmpty()||!Ht512Probe.world(mc,DOOR))return;step=58;server(mc,s->{s.overworld().setBlockAndUpdate(DOOR,Product.HT100.get().defaultBlockState());ready=33;});}
-   case 58->{if(ready!=33||!Ht100Probe.world(mc,DOOR))return;step=59;mc.stop();}
+   case 58->{if(ready!=33||!Ht100Probe.world(mc,DOOR))return;step=59;server(mc,s->{var p=s.getPlayerList().getPlayers().get(0);((Station102)s.overworld().getBlockEntity(BASE)).setUnit(p,"301-1001");p.setItemSlot(net.minecraft.world.entity.EquipmentSlot.MAINHAND,new ItemStack(ModItems.HOME_LINKER.get()));ready=34;});}
+   case 59->{if(ready!=34||!mc.player.getMainHandItem().is(ModItems.HOME_LINKER.get()))return;block(mc,BASE);step=60;}
+   case 60->{if(age%10!=0||!mc.player.getMainHandItem().hasTag())return;block(mc,DOOR);step=61;}
+   case 61->{if(age%20!=0)return;server(mc,s->{var u=(Ht100.Unit)s.overworld().getBlockEntity(DOOR);if("301-1001".equals(u.unit))ready=35;});if(ready==35){System.out.println("HT100_REAL_LINKER_CLIENT_PASS: Home Linker selected indoor receiver and paired HT-100 through actual block interaction");step=62;mc.stop();}}
 
   }
  }catch(Throwable t){t.printStackTrace();System.out.println("NEW_SHT_CLIENT_FAIL "+step);System.exit(1);}}

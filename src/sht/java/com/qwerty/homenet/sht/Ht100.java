@@ -35,10 +35,7 @@ public final class Ht100 extends WallMountedBlock {
   ItemStack held=p.getItemInHand(hand);
   if(held.getItem() instanceof com.qwerty.homenet.item.DoorLinkerItem)return InteractionResult.PASS;
   if(held.getItem() instanceof com.qwerty.homenet.item.HomeLinkerItem){
-   if(!l.isClientSide&&l.getBlockEntity(at) instanceof Unit u){
-    var tag=held.getTag();var receiver=tag!=null&&tag.contains("Wallpad")&&tag.getString("Dim").equals(l.dimension().location().toString())&&l.isLoaded(BlockPos.of(tag.getLong("Wallpad")))?l.getBlockEntity(BlockPos.of(tag.getLong("Wallpad"))):null;
-    if(receiver instanceof ReceiverBlockEntity r&&!r.getUnit().isEmpty()&&com.qwerty.homenet.data.ZoneData.connected(l,at,r.getBlockPos())){u.setUnit(DeviceRegistry.normalize(r.getUnit()).equals(DeviceRegistry.normalize(u.unit))?"":r.getUnit());p.displayClientMessage(Component.literal(u.unit.isEmpty()?"HT-100 세대 연결 해제":"HT-100 세대 "+u.unit+" 연결"),true);}else p.displayClientMessage(Component.literal("같은 단지의 세대 내부기기를 홈링커로 먼저 선택하세요"),true);
-   }
+   if(p instanceof ServerPlayer server)Ht100Linker.connect(server,held,at);
    return InteractionResult.sidedSuccess(l.isClientSide);
   }
   if(held.is(Product.HT100_FRAME.get())){
