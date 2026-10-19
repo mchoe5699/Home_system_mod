@@ -20,7 +20,8 @@ final class Ht100sProbe {
   check(c.vertices.stream().mapToDouble(MeshProbe.V::z).max().orElseThrow()>83,"Raised window and upper cover missing");
   var bowl=MeshProbe.nearest(c.vertices,175,239);var buttonRim=MeshProbe.nearest(c.vertices,175,214);
   check(buttonRim.z()-bowl.z()>4,"Call button bowl is hidden by a flat cap");
-  check(MeshProbe.nearest(c.vertices,45,50).z()>MeshProbe.nearest(c.vertices,45,180).z(),"Upper cover has no rounded rise");
+  for(double[] pair:new double[][]{{50,90,31,90},{180,90,201,90},{50,45,50,12},{50,155,50,188}})
+   check(MeshProbe.nearest(c.vertices,pair[0],pair[1]).z()-MeshProbe.nearest(c.vertices,pair[2],pair[3]).z()>5,"Upper surface must roll down on all four sides");
   for(int row=0;row<6;row++)check(MeshProbe.nearest(c.vertices,75,206+row*13).color()==0x424b44,"Speaker opening is covered");
   int builds=GeometryCache.builds;Ht100sVisual.draw(new PoseStack(),t->new MeshProbe.Capture(),15728880);check(GeometryCache.builds==builds,"HT-100S mesh rebuilds each frame");
   for(var facing:new Direction[]{Direction.NORTH,Direction.SOUTH,Direction.EAST,Direction.WEST}){var state=Product.HT100S.get().defaultBlockState().setValue(WallMountedBlock.FACING,facing);var unit=new Ht100s.Unit(at,state);unit.setLevel(mc.level);var p=new PoseStack();Ht100sVisual.pose(unit,p);var mesh=new MeshProbe.Capture();Ht100sVisual.draw(p,t->mesh,15728880);var shape=state.getShape(mc.level,at).bounds();double minY=mesh.vertices.stream().mapToDouble(MeshProbe.V::y).min().orElseThrow(),maxY=mesh.vertices.stream().mapToDouble(MeshProbe.V::y).max().orElseThrow();check(Math.abs(maxY-minY-Ht100s.FRAME_HEIGHT)<.00001,"HT-100S frame/shape height differs");check(Math.abs(shape.maxY-shape.minY-Ht100s.FRAME_HEIGHT)<.00001,"HT-100S click height wrong");}
