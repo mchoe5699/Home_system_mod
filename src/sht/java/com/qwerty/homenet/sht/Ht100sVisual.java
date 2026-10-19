@@ -108,6 +108,16 @@ final class Ht100sVisual {
    float[][] points={upperOutline(i,0),upperOutline(i+1,0),upperOutline(i+1,1.15f),upperOutline(i,1.15f)};
    for(float[] xy:points)vertex(p,o,l,xy[0],xy[1],upperZ(xy[0],xy[1])+.18f,0,0,1,0x8e9589);
   }
+  // Finish the left shoulder without closing a line across the logo.
+  float[][] leftTip={upperOutline(47,0),{36,9},{36,10.15f},upperOutline(47,1.15f)};
+  for(float[] xy:leftTip)vertex(p,o,l,xy[0],xy[1],upperZ(xy[0],xy[1])+.18f,0,0,1,0x8e9589);
+  // Continue both seams over the casing's rolled top edge to its actual top silhouette.
+  for(float cx:new float[]{36,200})for(int step=0;step<12;step++){
+   float y0=step*9f/12,y1=(step+1)*9f/12;
+   float[][] points={{cx-.575f,y0},{cx+.575f,y0},{cx+.575f,y1},{cx-.575f,y1}};
+   for(float[] xy:points){float dy=9-xy[1];float z=59+(float)Math.sqrt(81-dy*dy)+.18f;
+    vertex(p,o,l,xy[0],xy[1],z,0,-dy/9f,(float)Math.sqrt(Math.max(0,81-dy*dy))/9f,0x8e9589);}
+  }
  }
  private static void sector(PoseStack p,MultiBufferSource o,int l,float cx,float cy,float outer,float inner,float zOuter,float zInner,int color){
   for(int i=0;i<64;i++){float a=(float)(i*Math.PI/32),b=(float)((i+1)*Math.PI/32);float[] r={a,b,b,a},d={outer,outer,inner,inner};for(int j=0;j<4;j++){float x=cx+(float)Math.cos(r[j])*d[j],y=cy+(float)Math.sin(r[j])*d[j];float gradient=(zOuter-zInner)/(outer-inner+.001f);float nx=(float)Math.cos(r[j])*gradient,ny=(float)Math.sin(r[j])*gradient;float length=(float)Math.sqrt(1+nx*nx+ny*ny);vertex(p,o,l,x,y,j<2?zOuter:zInner,nx/length,ny/length,1/length,color);}}

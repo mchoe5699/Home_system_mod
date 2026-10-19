@@ -22,6 +22,8 @@ final class Ht100sProbe {
   check(c.vertices.stream().anyMatch(v->Math.abs(v.x()-115)<.01&&Math.abs(v.y()-550)<.01&&Math.abs(v.z())<.001&&v.color()==0x9da294),"The rear mounting frame is open");
   check(c.vertices.stream().filter(v->v.color()==0x8e9589).count()>=188,"Upper moulding seam is incomplete");
   check(c.vertices.stream().noneMatch(v->v.color()==0x8e9589&&v.x()>70&&v.x()<160&&v.y()>689),"Unwanted seam crosses above the logo");
+  for(double x:new double[]{33,197})
+   check(c.vertices.stream().anyMatch(v->v.color()==0x8e9589&&Math.abs(v.x()-x)<.6&&Math.abs(v.y()-700)<.01&&Math.abs(v.z()-59.18)<.02),"Upper seam stops before the casing top edge");
   for(double[] xy:new double[][]{{197,691},{209,529},{41,509},{21,679}})
    check(c.vertices.stream().anyMatch(v->v.color()==0x8e9589&&Math.abs(v.x()-xy[0])<.02&&Math.abs(v.y()-xy[1])<.02),"Upper moulding seam misses a rounded corner");
   check(Math.abs(Ht100sVisual.WINDOW_X+Ht100sVisual.WINDOW_W/2+Ht100sVisual.FRONT_OFFSET_X-Ht100sVisual.W/2)<.001,"Dark panel is off centre");
