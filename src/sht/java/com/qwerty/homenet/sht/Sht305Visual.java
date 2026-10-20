@@ -8,7 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 
 /** Exposed SHT-305V shell: a deep wall case, fixed receiver cradle and shallow raised keys. */
 final class Sht305Visual {
- static final float W=640,H=600,S=(float)(Station305.Mounted.HEIGHT/H);
+ static final float W=700,H=600,S=(float)(Station305.Mounted.HEIGHT/H);
  static final ResourceLocation INK=Product.id("sht305v/ink.png");
  static void part(PoseStack p,MultiBufferSource out,int light,String name,float x,float y,float w,float h,float z,float d,float r,int rgb,float curve){
   Surface.solid(new Surface.Solid(name,x,y,w,h,z,d,r,String.format("#%06x",rgb),"sht305v",curve),p,out,light);
@@ -19,52 +19,80 @@ final class Sht305Visual {
    Surface.vertex(b,p.last(),v[0],v[1],100,0,0,1,rgb,15728880,.5f,.5f);}
  }
  static void mesh(PoseStack p,MultiBufferSource out){int l=0;
-  // Complete surface-mounted case: the back stays behind the rounded front by 88 units.
-  part(p,out,l,"305_back",190,0,450,600,0,67,18,0xd1c9b0,0);
-  part(p,out,l,"305_body",196,0,444,600,31,57,18,0xe9e2cb,1.2f);
-  part(p,out,l,"305_side_joint",194,13,3,574,68,22,1,0xc5bba0,0);
-  part(p,out,l,"305_handset_bridge",154,36,50,526,19,63,12,0xd9d1b9,1);
-  part(p,out,l,"305_cradle",12,18,164,564,41,36,26,0xc9c0a6,2);
-  part(p,out,l,"305_cradle_floor",36,68,122,466,75,8,17,0xb3a993,0);
-  part(p,out,l,"305_hook_top",145,67,49,74,80,7,10,0xe7dfc5,0);
-  part(p,out,l,"305_hook_bottom",145,461,49,74,80,7,10,0xe7dfc5,0);
-  // The louvers belong to the exposed left wall, beside the receiver cradle.
-  part(p,out,l,"305_speaker_grille",161,217,37,211,79,5,8,0xd9d1b9,0);
-  for(int i=0;i<13;i++)part(p,out,l,"305_speaker_slot_"+i,164,226+i*15,31,2.5f,84,1,1.2f,0x666457,0);
-  // One inset black glass panel, with a 4:3 monochrome CRT and alarm windows to its right.
-  part(p,out,l,"305_screen_ledge",225,19,400,239,87,4,11,0xeee7d1,0);
-  part(p,out,l,"305_screen_bezel",231,24,389,233,90,4,8,0x17191c,0);
-  part(p,out,l,"305_crt_recess",246,45,268,198,94,1,4,0x292b31,0);
-  part(p,out,l,"305_crt_glass",254,57,249,173,95,1,2,0x656276,0);
-  part(p,out,l,"305_status_glass",529,30,85,219,94,1,2,0x171a20,0);
+  // The deep rear box remains visible in side view; the front face rolls over its edges.
+  part(p,out,l,"305_rear_case",192,2,508,596,0,62,22,0xd0c7ad,0);
+  part(p,out,l,"305_case_shoulder",194,2,504,594,43,43,25,0xded5bc,1);
+  part(p,out,l,"305_body",194,3,501,591,60,24,26,0xece5d0,4);
+  part(p,out,l,"305_left_seam",192,20,3,555,65,24,1,0xc6baa2,0);
+  // The handset sits on a recessed, exposed base. Hooks interrupt the cavity at either end.
+  part(p,out,l,"305_bridge",166,45,45,510,18,55,12,0xd4c9ae,1);
+  part(p,out,l,"305_cradle_outer",7,15,179,570,36,41,28,0xd3c8ad,2);
+  part(p,out,l,"305_cradle_well",24,65,138,475,76,4,18,0xb6aa90,0);
+  part(p,out,l,"305_upper_hook",158,84,37,71,76,10,11,0xece5d0,1);
+  part(p,out,l,"305_lower_hook",158,449,37,71,76,10,11,0xece5d0,1);
+  part(p,out,l,"305_side_speaker",175,208,24,221,79,4,5,0xddd4bb,0);
+  for(int i=0;i<16;i++)part(p,out,l,"305_side_louver_"+i,178,216+i*13,19,2.2f,83,.4f,1,0x776f5e,0);
+  part(p,out,l,"305_power_recess",178,489,17,31,83,.5f,2,0x7e7969,0);
+  part(p,out,l,"305_power_rocker",180,493,13,23,83.5f,1.8f,2,0xf0e8d3,1);
+  // Continuous black top fascia, wide CRT throat, and four indicator windows.
+  part(p,out,l,"305_fascia_lip",215,18,467,249,88,2,10,0xf4ecd8,0);
+  part(p,out,l,"305_fascia",220,23,457,239,90,3,8,0x17191e,0);
+  part(p,out,l,"305_crt_frame",234,40,307,208,93,1.5f,4,0x303239,0);
+  part(p,out,l,"305_crt_throat",242,49,291,191,94.5f,.6f,3,0x17191d,0);
+  part(p,out,l,"305_crt_glass",251,59,273,171,95.1f,.6f,2,0x646176,.6f);
+  part(p,out,l,"305_status_panel",551,28,116,229,93,.8f,3,0x15181d,0);
   for(int i=0;i<4;i++){
-   float y=89+i*39;part(p,out,l,"305_alarm_key_border_"+i,541,y,61,32,95,.6f,2,0x858b88,0);
-   part(p,out,l,"305_alarm_key_"+i,544,y+3,55,26,95.6f,.5f,1,0x20262a,0);
+   float y=90+i*38;
+   part(p,out,l,"305_indicator_trim_"+i,562,y,94,32,93.8f,.35f,2,0x777c7b,0);
+   part(p,out,l,"305_indicator_glass_"+i,565,y+3,88,26,94.15f,.35f,1,0x272d31,0);
   }
-  // The lower right strip rises gently from the otherwise flat ivory face.
-  part(p,out,l,"305_control_strip",518,259,119,333,87,3,9,0xe1dac2,1.5f);
+  // The right control band is a softly rolled section of the same ivory casing.
+  part(p,out,l,"305_control_band",574,267,116,321,89,3,11,0xe5dcc5,3);
+  part(p,out,l,"305_band_seam",574,269,1.3f,315,92,.25f,.5f,0xc6bda9,0);
   for(int i=0;i<3;i++){
-   float y=354+i*58;part(p,out,l,"305_round_rim_"+i,475,y,37,37,89,1.1f,18,0xb0aa99,0);
-   part(p,out,l,"305_round_key_"+i,479,y+4,29,29,90.1f,1.5f,14,0x777e91,1);
+   float y=311+i*54;
+   part(p,out,l,"305_small_socket_"+i,504,y,39,39,91,.35f,19,0x9c9789,0);
+   part(p,out,l,"305_small_bevel_"+i,507,y+3,33,33,91.35f,1.1f,16,0xd4d0c5,0);
+   part(p,out,l,"305_small_key_"+i,510,y+6,27,27,92.45f,1.5f,13,0x747d90,1.2f);
   }
   for(int i=0;i<5;i++){
-   float y=304+i*34;part(p,out,l,"305_control_slot_"+i,566,y+3,9,9,91,.1f,4,0x5b594e,0);
-   part(p,out,l,"305_pill_shadow_"+i,585,y,43,12,91,1,5,0xaaa38d,0);
-   part(p,out,l,"305_pill_key_"+i,587,y+1,39,9,92,1.3f,4,0xf1ebd9,.4f);
+   float y=314+i*37;
+   part(p,out,l,"305_lamp_well_"+i,603,y+2,10,10,93,.4f,5,0x565447,0);
+   part(p,out,l,"305_switch_socket_"+i,624,y,50,13,93,.3f,6,0xa9a08b,0);
+   part(p,out,l,"305_switch_bevel_"+i,627,y+2,44,9,93.3f,1.1f,4,0xf1ebd9,.5f);
+   part(p,out,l,"305_switch_cap_"+i,635,y+3,28,7,94.4f,.55f,3,0xe5dcc8,.3f);
   }
   for(int i=0;i<2;i++){
-   float x=i==0?477:575;
-   part(p,out,l,"305_large_rim_"+i,x,505,49,49,89,1.2f,24,0xa79f88,0);
-   part(p,out,l,"305_large_key_"+i,x+3,508,43,43,90.2f,2.2f,21,0xf4eedb,1.4f);
+   float x=i==0?500:618;
+   part(p,out,l,"305_large_socket_"+i,x,496,55,55,91,.5f,27,0xa9a18e,0);
+   part(p,out,l,"305_large_bevel_"+i,x+3,499,49,49,91.5f,1.2f,24,0xe2dbc9,0);
+   part(p,out,l,"305_large_key_"+i,x+7,503,41,41,92.7f,2,20,0xf0ead8,2);
   }
-  part(p,out,l,"305_power_switch",174,481,11,32,86,1,2,0x504f45,0);
+  for(int i=0;i<3;i++){
+   float y=342+i*34;
+   part(p,out,l,"305_side_adjustment_recess_"+i,693,y,5,20,51,1,1,0x8c8575,0);
+   part(p,out,l,"305_side_adjustment_tab_"+i,694,y+7,7,5,52,2,1,0xdcd3ba,0);
+  }
   Surface.rectangle(p,out,0,0,W,H,98,INK,l);
  }
+ static float receiverHalfWidth(float t){return 66+18*(float)Math.pow(Math.abs(2*t-1),1.7);}
+ static float receiverX(float t,float u){
+  float end=(float)Math.min(1,Math.min(t,1-t)*600/45);
+  return 93+u*receiverHalfWidth(t)*(.42f+.58f*(float)Math.sqrt(Math.max(0,end)));
+ }
+ static float receiverZ(float t,float u){return 100+18*(1-u*u)+3*(float)Math.cos(2*Math.PI*t);}
  static void handset(PoseStack p,MultiBufferSource out,int light){
-  part(p,out,light,"handset_back",7,8,151,584,52,47,46,0xe3dcc5,2);
-  part(p,out,light,"305_handset_face",12,10,141,578,89,16,44,0xf0ead5,6);
-  part(p,out,light,"305_handset_end_top",37,25,91,19,91,12,9,0xeae3cd,0);
-  part(p,out,light,"305_handset_end_bottom",37,553,91,19,91,12,9,0xeae3cd,0);
+  part(p,out,light,"handset_back",10,8,167,584,49,48,48,0xd9cfb5,1);
+  var b=out.getBuffer(RenderType.entityCutoutNoCull(Product.id("textures/solid.png")));
+  for(int row=0;row<48;row++)for(int col=0;col<16;col++){
+   for(int j=0;j<4;j++){
+    float t=(row+(j==1||j==2?1:0))/48f,u=-1+2*(col+(j>=2?1:0))/16f;
+    float x=receiverX(t,u),y=12+t*576,z=receiverZ(t,u);
+    float nx=u*.47f,ny=(receiverZ(Math.min(1,t+.001f),u)-receiverZ(Math.max(0,t-.001f),u))*.1f,nz=1;
+    float n=(float)Math.sqrt(nx*nx+ny*ny+nz*nz);
+    Surface.vertex(b,p.last(),x,y,z,nx/n,ny/n,nz/n,0xf0ead7,light,.5f,.5f);
+   }
+  }
  }
  static void draw(PoseStack p,MultiBufferSource out,int light,boolean docked){GeometryCache.draw("sht305v_surface_"+docked,p,out,light,(pose,buffers)->{mesh(pose,buffers);if(docked)handset(pose,buffers,0);});}
  static void pose(Station305 b,PoseStack p){var off=com.qwerty.homenet.move.DeviceOffsets.get(b.getLevel(),b.getBlockPos());p.translate(off.x,off.y,off.z);switch(b.getBlockState().getValue(com.qwerty.homenet.block.WallMountedBlock.FACING)){
@@ -77,15 +105,15 @@ final class Sht305Visual {
   public void render(Station305 b,float tick,PoseStack p,MultiBufferSource out,int light,int overlay){
    if(DeviceVisibility.hidden(b,GeometryCache.bounds("sht305v_surface_"+b.docked),q->pose(b,q)))return;
    p.pushPose();pose(b,p);draw(p,out,light,b.docked);
-   var camera=b.camera();if(camera!=null){p.pushPose();p.scale(16,16,16);video.drawWall(p,out,camera,263,700-223,231,156,99,b.brightness,b.contrast,com.qwerty.homenet.video.VideoFormat.MONOCHROME);p.popPose();}
-   int bits=b.lights();if((bits&Indicators.FIRE)!=0)dot(p,out,535,104,5,0xf07850);
-   if((bits&Indicators.GAS)!=0)dot(p,out,535,143,5,0xe1bf59);
-   if((bits&Indicators.SECURITY)!=0)dot(p,out,535,182,5,0x98dc81);
-   if((bits&Indicators.EMERGENCY)!=0)dot(p,out,535,221,5,0xf07850);
-   if((bits&Indicators.DOOR)!=0)dot(p,out,565,327,4,0x9bd294);
-   if((bits&Indicators.GUARD)!=0)dot(p,out,565,363,4,0x9bd294);
-   if((bits&Indicators.ARMED)!=0)dot(p,out,565,430,4,0x9bd294);
-   if((bits&Indicators.AWAY)!=0)dot(p,out,565,464,4,0x9bd294);
+   var camera=b.camera();if(camera!=null){p.pushPose();p.scale(16,16,16);video.drawWall(p,out,camera,259,700-225,258,159,99,b.brightness,b.contrast,com.qwerty.homenet.video.VideoFormat.MONOCHROME);p.popPose();}
+   int bits=b.lights();if((bits&Indicators.FIRE)!=0)dot(p,out,575,106,5,0xf07850);
+   if((bits&Indicators.GAS)!=0)dot(p,out,575,144,5,0xe1bf59);
+   if((bits&Indicators.SECURITY)!=0)dot(p,out,575,182,5,0x98dc81);
+   if((bits&Indicators.EMERGENCY)!=0)dot(p,out,575,220,5,0xf07850);
+   if((bits&Indicators.DOOR)!=0)dot(p,out,608,430,4,0x9bd294);
+   if((bits&Indicators.GUARD)!=0)dot(p,out,608,320,4,0x9bd294);
+   if((bits&Indicators.ARMED)!=0)dot(p,out,608,393,4,0x9bd294);
+   if((bits&Indicators.AWAY)!=0)dot(p,out,608,357,4,0x9bd294);
    p.popPose();
   }
  }
