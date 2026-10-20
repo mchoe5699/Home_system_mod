@@ -24,13 +24,13 @@ final class Ht100sProbe {
   check(c.vertices.stream().noneMatch(v->v.color()==0x8e9589&&v.x()>70&&v.x()<160&&v.y()>689),"Unwanted seam crosses above the logo");
   for(double x:new double[]{21,209})
    check(c.vertices.stream().anyMatch(v->v.color()==0x8e9589&&Math.abs(v.x()-x)<.6&&Math.abs(v.y()-700)<.01&&Math.abs(v.z()-59.18)<.02),"Upper seam stops before the casing top edge");
-  for(double[] xy:new double[][]{{209,691},{209,529},{41,509},{21,691}})
+  for(double[] xy:new double[][]{{209,693},{209,531},{41,511},{21,693}})
    check(c.vertices.stream().anyMatch(v->v.color()==0x8e9589&&Math.abs(v.x()-xy[0])<.02&&Math.abs(v.y()-xy[1])<.02),"Upper moulding seam misses a rounded corner");
-  for(double x:new double[]{21,209})for(double y:new double[]{529,691})
+  for(double x:new double[]{21,209})for(double y:new double[]{531,693})
    check(c.vertices.stream().anyMatch(v->v.color()==0x8e9589&&Math.abs(v.x()-x)<.02&&Math.abs(v.y()-y)<.02),"Upper seam bends instead of rising straight");
   check(Math.abs(Ht100sVisual.WINDOW_X+Ht100sVisual.WINDOW_W/2+Ht100sVisual.FRONT_OFFSET_X-Ht100sVisual.W/2)<.001,"Dark panel is off centre");
   check(Math.abs((26+210)/2f+Ht100sVisual.FRONT_OFFSET_X-Ht100sVisual.W/2)<.001,"Speaker and button group is off centre");
-  var bowl=MeshProbe.nearest(c.vertices,175,239);var buttonRim=MeshProbe.nearest(c.vertices,175,214);
+  var bowl=MeshProbe.nearest(c.vertices,175,237);var buttonRim=MeshProbe.nearest(c.vertices,175,212);
   check(buttonRim.z()-bowl.z()>1.5&&buttonRim.z()<68,"Call key must be recessed below the casing face");
   check(MeshProbe.nearest(c.vertices,119,285).color()==0xaeb4a6,"Lower speaker opening is not covered by its matching arch plug");
   check(c.vertices.stream().anyMatch(v->Math.abs(v.x()-9)<.01&&Math.abs(v.y()-678)<.01&&Math.abs(v.z()-68)<.01),"Body top-left corner has no rounded arc");
@@ -41,7 +41,7 @@ final class Ht100sProbe {
   check(c.vertices.stream().anyMatch(v->Math.abs(v.x()-arcInset)<.01&&Math.abs(v.z()-arcZ)<.01),"Casing front edge does not curve into the face");
   check(Math.abs(Ht100sVisual.upperZ(116,9)-68)<.001,"Upper moulding does not begin at the top edge");
   check(Ht100sVisual.upperZ(116,10)-Ht100sVisual.upperZ(116,9)<.1,"Upper moulding begins with a sharp bend");
-  check(Ht100sVisual.upperZ(118,33)>79&&Ht100sVisual.upperZ(118,33)<80.1,"Upper moulding no longer rises smoothly from the top edge");
+  check(Ht100sVisual.upperZ(118,33)>75&&Ht100sVisual.upperZ(118,33)<80,"Upper moulding no longer rises smoothly from the top edge");
   for(float[] corners:new float[][]{{24,9,57,35},{212,9,179,35},{24,191,57,159},{212,191,179,159}}){
    float last=Ht100sVisual.upperZ(corners[0],corners[1]);
    check(Math.abs(last-68)<.001,"Outer moulding corner is lifted off the casing");

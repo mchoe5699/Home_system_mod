@@ -13,7 +13,7 @@ final class Ht100sVisual {
  static final float W=230,H=300,S=(float)(Ht100s.HEIGHT/H);
  static final float WINDOW_X=64,WINDOW_Y=43,WINDOW_W=108,WINDOW_H=108;
  static final float UPPER_TOP_Z=80;
- static final float FRONT_OFFSET_X=-3;
+ static final float FRONT_OFFSET_X=-3,FRONT_SHIFT_Y=2;
  static final ResourceLocation LOGO=Product.id("ht100s/logo.png"),BRAND=Product.id("ht100s/brand.png"),WHITE=Product.id("textures/solid.png");
  private record Ring(float x,float y,float w,float h,float r,float z,int color){}
  static void solid(PoseStack p,MultiBufferSource o,int l,String name,float x,float y,float w,float h,float z,float d,float r,int c){Surface.solid(new Surface.Solid(name,x,y,w,h,z,d,r,String.format("#%06x",c),"ht100s",0),p,o,l);}
@@ -67,15 +67,15 @@ final class Ht100sVisual {
   for(int i=0;i<48;i++){float[] a=edge(outer,i),b=edge(outer,i+1),c=edge(inner,i+1),d=edge(inner,i);
    for(float[] q:new float[][]{a,b,c,d})vertex(p,o,l,q[0],q[1],68,0,0,1,0xc5c9ba);
   }
-  patch(p,o,l,16,14,198,188,68,0xc5c9ba);
-  patch(p,o,l,16,202,121,73,68,0xc5c9ba);
-  patch(p,o,l,207,202,7,73,68,0xc5c9ba);
-  patch(p,o,l,16,275,198,11,68,0xc5c9ba);
+  patch(p,o,l,16,14,198,186,68,0xc5c9ba);
+  patch(p,o,l,16,200,121,73,68,0xc5c9ba);
+  patch(p,o,l,207,200,7,73,68,0xc5c9ba);
+  patch(p,o,l,16,273,198,13,68,0xc5c9ba);
  }
  static float upperZ(float x,float y){
-  // A broad, nearly flat moulding surrounds the blank HT-100S panel like the HT-100 shell.
-  float tx=Math.min((x-24)/(WINDOW_X-10-24),(212-x)/(212-WINDOW_X-WINDOW_W-10));
-  float ty=Math.min((y-9)/(WINDOW_Y-11-9),(191-y)/(191-WINDOW_Y-WINDOW_H-11));
+  // The entire shoulder rolls continuously from its outer seam to the blank panel.
+  float tx=Math.min((x-24)/(WINDOW_X-24),(212-x)/(212-WINDOW_X-WINDOW_W));
+  float ty=Math.min((y-9)/(WINDOW_Y-9),(191-y)/(191-WINDOW_Y-WINDOW_H));
   tx=Math.max(0,Math.min(1,tx));ty=Math.max(0,Math.min(1,ty));
   // A smooth minimum keeps the four diagonal slopes without making corner hollows.
   float blend=.35f,h=Math.max(0,blend-Math.abs(tx-ty))/blend;
@@ -101,7 +101,8 @@ final class Ht100sVisual {
   return new float[]{cx+radius*(float)Math.cos(angle),cy+radius*(float)Math.sin(angle)};
  }
  private static void upperSeamVertex(PoseStack p,MultiBufferSource o,int l,float x,float y){
-  float z=y<9?59+(float)Math.sqrt(81-(9-y)*(9-y)):upperZ(x,y);
+  float worldY=y-FRONT_SHIFT_Y;
+  float z=y<9?59+(float)Math.sqrt(Math.max(0,81-(9-worldY)*(9-worldY))):upperZ(x,y);
   vertex(p,o,l,x,y,z+.18f,0,0,1,0x8e9589);
  }
  private static void upperSeam(PoseStack p,MultiBufferSource o,int l){
@@ -116,7 +117,7 @@ final class Ht100sVisual {
   for(float[] xy:left)upperSeamVertex(p,o,l,xy[0],xy[1]);
   // The casing's rolled top edge changes depth, not the horizontal position of the seam.
   for(float[] side:new float[][]{{24,25.15f},{212,210.85f}})for(int step=0;step<12;step++){
-   float y0=step*9f/12,y1=(step+1)*9f/12;
+   float y0=FRONT_SHIFT_Y+step*(9-FRONT_SHIFT_Y)/12,y1=FRONT_SHIFT_Y+(step+1)*(9-FRONT_SHIFT_Y)/12;
    float[][] points={{side[0],y0},{side[0],y1},{side[1],y1},{side[1],y0}};
    for(float[] xy:points)upperSeamVertex(p,o,l,xy[0],xy[1]);
   }
@@ -153,7 +154,7 @@ final class Ht100sVisual {
   contour(p,o,l,true,rear,new Ring(-6,-5,242,310,13,35,0xa7ac9f),new Ring(-5,-4,240,308,12,41,0xc4c8b8));
   bodyShell(p,o,l);
   bodyFace(p,o,l);
-  p.pushPose();p.translate(FRONT_OFFSET_X,0,0);
+  p.pushPose();p.translate(FRONT_OFFSET_X,FRONT_SHIFT_Y,0);
   // The broad upper region rises within the body itself; its top, bottom and both sides are rounded.
   upperFace(p,o,l);
   upperSeam(p,o,l);
@@ -174,7 +175,7 @@ final class Ht100sVisual {
   p.popPose();
   for(int i=0;i<2;i++)solid(p,o,l,"mic_"+i,212,38+i*8,9,3,69,1,.7f,0x232b2a);
  }
- static void draw(PoseStack p,MultiBufferSource o,int light){GeometryCache.draw("ht100s_broad_moulding",p,o,light,Ht100sVisual::mesh);}
+ static void draw(PoseStack p,MultiBufferSource o,int light){GeometryCache.draw("ht100s_continuous_roll_raised_group",p,o,light,Ht100sVisual::mesh);}
  static void pose(Ht100s.Unit b,PoseStack p){var off=com.qwerty.homenet.move.DeviceOffsets.get(b.getLevel(),b.getBlockPos());p.translate(off.x,off.y,off.z);double bottom=.5-Ht100s.HEIGHT/2;switch(b.getBlockState().getValue(WallMountedBlock.FACING)){case NORTH->{p.translate(.5,bottom,1);p.mulPose(Axis.YP.rotationDegrees(180));}case SOUTH->p.translate(.5,bottom,0);case EAST->{p.translate(0,bottom,.5);p.mulPose(Axis.YP.rotationDegrees(90));}case WEST->{p.translate(1,bottom,.5);p.mulPose(Axis.YP.rotationDegrees(-90));}default->{}}p.scale(S,S,S);p.translate(-W/2,H-700,0);}
- static final class Renderer implements BlockEntityRenderer<Ht100s.Unit>{public void render(Ht100s.Unit b,float tick,PoseStack p,MultiBufferSource o,int light,int overlay){if(DeviceVisibility.hidden(b,GeometryCache.bounds("ht100s_broad_moulding"),q->pose(b,q)))return;p.pushPose();pose(b,p);draw(p,o,light);p.popPose();}}
+ static final class Renderer implements BlockEntityRenderer<Ht100s.Unit>{public void render(Ht100s.Unit b,float tick,PoseStack p,MultiBufferSource o,int light,int overlay){if(DeviceVisibility.hidden(b,GeometryCache.bounds("ht100s_continuous_roll_raised_group"),q->pose(b,q)))return;p.pushPose();pose(b,p);draw(p,o,light);p.popPose();}}
 }
