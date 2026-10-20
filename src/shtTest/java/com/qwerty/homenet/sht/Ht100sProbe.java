@@ -19,20 +19,20 @@ final class Ht100sProbe {
   check(c.vertices.stream().mapToDouble(MeshProbe.V::x).max().orElseThrow()>230,"Surround missing on right");
   check(c.vertices.stream().mapToDouble(MeshProbe.V::z).max().orElseThrow()>81,"Raised window and upper cover missing");
   check(Math.abs(Ht100sVisual.WINDOW_W/Ht100sVisual.W-108d/230)<.01&&Math.abs(Ht100sVisual.WINDOW_H/Ht100sVisual.H-108d/300)<.01,"Dark panel proportions differ from the reference photo");
-  check(c.vertices.stream().anyMatch(v->Math.abs(v.x()-115)<.01&&Math.abs(v.y()-550)<.01&&Math.abs(v.z())<.001&&v.color()==0x9da294),"The rear mounting frame is open");
-  check(c.vertices.stream().filter(v->v.color()==0x8e9589).count()>=188,"Upper moulding seam is incomplete");
-  check(c.vertices.stream().noneMatch(v->v.color()==0x8e9589&&v.x()>70&&v.x()<160&&v.y()>689),"Unwanted seam crosses above the logo");
+  check(c.vertices.stream().anyMatch(v->Math.abs(v.x()-115)<.01&&Math.abs(v.y()-550)<.01&&Math.abs(v.z())<.001&&v.color()==0x99999f),"The rear mounting frame is open");
+  check(c.vertices.stream().filter(v->v.color()==0x8d8d93).count()>=188,"Upper moulding seam is incomplete");
+  check(c.vertices.stream().noneMatch(v->v.color()==0x8d8d93&&v.x()>70&&v.x()<160&&v.y()>689),"Unwanted seam crosses above the logo");
   for(double x:new double[]{21,209})
-   check(c.vertices.stream().anyMatch(v->v.color()==0x8e9589&&Math.abs(v.x()-x)<.6&&Math.abs(v.y()-700)<.01&&Math.abs(v.z()-59.18)<.02),"Upper seam stops before the casing top edge");
+   check(c.vertices.stream().anyMatch(v->v.color()==0x8d8d93&&Math.abs(v.x()-x)<.6&&Math.abs(v.y()-700)<.01&&Math.abs(v.z()-59.18)<.02),"Upper seam stops before the casing top edge");
   for(double[] xy:new double[][]{{209,693},{209,531},{41,511},{21,693}})
-   check(c.vertices.stream().anyMatch(v->v.color()==0x8e9589&&Math.abs(v.x()-xy[0])<.02&&Math.abs(v.y()-xy[1])<.02),"Upper moulding seam misses a rounded corner");
+   check(c.vertices.stream().anyMatch(v->v.color()==0x8d8d93&&Math.abs(v.x()-xy[0])<.02&&Math.abs(v.y()-xy[1])<.02),"Upper moulding seam misses a rounded corner");
   for(double x:new double[]{21,209})for(double y:new double[]{531,693})
-   check(c.vertices.stream().anyMatch(v->v.color()==0x8e9589&&Math.abs(v.x()-x)<.02&&Math.abs(v.y()-y)<.02),"Upper seam bends instead of rising straight");
+   check(c.vertices.stream().anyMatch(v->v.color()==0x8d8d93&&Math.abs(v.x()-x)<.02&&Math.abs(v.y()-y)<.02),"Upper seam bends instead of rising straight");
   check(Math.abs(Ht100sVisual.WINDOW_X+Ht100sVisual.WINDOW_W/2+Ht100sVisual.FRONT_OFFSET_X-Ht100sVisual.W/2)<.001,"Dark panel is off centre");
   check(Math.abs((26+210)/2f+Ht100sVisual.FRONT_OFFSET_X-Ht100sVisual.W/2)<.001,"Speaker and button group is off centre");
   var bowl=MeshProbe.nearest(c.vertices,175,237);var buttonRim=MeshProbe.nearest(c.vertices,175,212);
   check(buttonRim.z()-bowl.z()>1.5&&buttonRim.z()<68,"Call key must be recessed below the casing face");
-  check(MeshProbe.nearest(c.vertices,119,285).color()==0xaeb4a6,"Lower speaker opening is not covered by its matching arch plug");
+  check(MeshProbe.nearest(c.vertices,119,285).color()==0xaaaab0,"Lower speaker opening is not covered by its matching arch plug");
   check(c.vertices.stream().anyMatch(v->Math.abs(v.x()-9)<.01&&Math.abs(v.y()-678)<.01&&Math.abs(v.z()-68)<.01),"Body top-left corner has no rounded arc");
   check(c.vertices.stream().noneMatch(v->Math.abs(v.x()-9)<.01&&Math.abs(v.y()-691)<.01&&Math.abs(v.z()-68)<.01),"Body top-left corner is square");
   for(double z:new double[]{35,59})for(double x:new double[]{0,230})
@@ -56,7 +56,7 @@ final class Ht100sProbe {
    check(MeshProbe.nearest(c.vertices,pair[0],pair[1]).z()-MeshProbe.nearest(c.vertices,pair[2],pair[3]).z()>3,"Casing edge does not roll toward its mounting frame");
   for(double[] pair:new double[][]{{50,90,31,90},{180,90,201,90},{50,45,50,12},{50,155,50,188}})
    check(MeshProbe.nearest(c.vertices,pair[0],pair[1]).z()-MeshProbe.nearest(c.vertices,pair[2],pair[3]).z()>5,"Upper surface must roll down on all four sides");
-  for(int row=0;row<6;row++)check(MeshProbe.nearest(c.vertices,75,206+row*13).color()==0x424b44,"Speaker opening is covered");
+  for(int row=0;row<6;row++)check(MeshProbe.nearest(c.vertices,75,206+row*13).color()==0x444449,"Speaker opening is covered");
   int builds=GeometryCache.builds;Ht100sVisual.draw(new PoseStack(),t->new MeshProbe.Capture(),15728880);check(GeometryCache.builds==builds,"HT-100S mesh rebuilds each frame");
   for(var facing:new Direction[]{Direction.NORTH,Direction.SOUTH,Direction.EAST,Direction.WEST}){var state=Product.HT100S.get().defaultBlockState().setValue(WallMountedBlock.FACING,facing);var unit=new Ht100s.Unit(at,state);unit.setLevel(mc.level);var p=new PoseStack();Ht100sVisual.pose(unit,p);var mesh=new MeshProbe.Capture();Ht100sVisual.draw(p,t->mesh,15728880);var shape=state.getShape(mc.level,at).bounds();double minY=mesh.vertices.stream().mapToDouble(MeshProbe.V::y).min().orElseThrow(),maxY=mesh.vertices.stream().mapToDouble(MeshProbe.V::y).max().orElseThrow();check(Math.abs(maxY-minY-Ht100s.FRAME_HEIGHT)<.00001,"HT-100S frame/shape height differs");check(Math.abs(shape.maxY-shape.minY-Ht100s.FRAME_HEIGHT)<.00001,"HT-100S click height wrong");}
   check(mc.getBlockEntityRenderDispatcher().getRenderer((Ht100s.Unit)mc.level.getBlockEntity(at)) instanceof Ht100sVisual.Renderer,"HT-100S renderer missing");

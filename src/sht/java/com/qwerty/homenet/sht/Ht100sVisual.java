@@ -37,13 +37,13 @@ final class Ht100sVisual {
  private static void bodyShell(PoseStack p,MultiBufferSource o,int l){
   // A straight side meets a circular front fillet tangentially at both ends.
   final int steps=16;Ring[] rings=new Ring[steps+2];
-  rings[0]=new Ring(0,0,230,300,13,35,0xaeb5a7);
+  rings[0]=new Ring(0,0,230,300,13,35,0xa9a9af);
   for(int j=0;j<=steps;j++){
    double angle=j*Math.PI/(2*steps),inset=9*(1-Math.cos(angle));
    float at=(float)inset,z=(float)(59+9*Math.sin(angle));
-   int red=(int)(0xae+(0xc5-0xae)*Math.sin(angle));
-   int green=(int)(0xb5+(0xc9-0xb5)*Math.sin(angle));
-   int blue=(int)(0xa7+(0xba-0xa7)*Math.sin(angle));
+   int red=(int)(0xa9+(0xbc-0xa9)*Math.sin(angle));
+   int green=(int)(0xa9+(0xbc-0xa9)*Math.sin(angle));
+   int blue=(int)(0xaf+(0xc2-0xaf)*Math.sin(angle));
    rings[j+1]=new Ring(at,at,230-2*at,300-2*at,13,z,(red<<16)|(green<<8)|blue);
   }
   for(int n=0;n<rings.length-1;n++){
@@ -63,14 +63,14 @@ final class Ht100sVisual {
  }
  private static void bodyFace(PoseStack p,MultiBufferSource o,int l){
   // Leave the call-key socket open in the casing, so the key can sit below the surrounding face.
-  Ring outer=new Ring(9,9,212,282,13,68,0xc5c9ba),inner=new Ring(16,14,198,272,0,68,0xc5c9ba);
+  Ring outer=new Ring(9,9,212,282,13,68,0xbcbcc2),inner=new Ring(16,14,198,272,0,68,0xbcbcc2);
   for(int i=0;i<48;i++){float[] a=edge(outer,i),b=edge(outer,i+1),c=edge(inner,i+1),d=edge(inner,i);
-   for(float[] q:new float[][]{a,b,c,d})vertex(p,o,l,q[0],q[1],68,0,0,1,0xc5c9ba);
+   for(float[] q:new float[][]{a,b,c,d})vertex(p,o,l,q[0],q[1],68,0,0,1,0xbcbcc2);
   }
-  patch(p,o,l,16,14,198,186,68,0xc5c9ba);
-  patch(p,o,l,16,200,121,73,68,0xc5c9ba);
-  patch(p,o,l,207,200,7,73,68,0xc5c9ba);
-  patch(p,o,l,16,273,198,13,68,0xc5c9ba);
+  patch(p,o,l,16,14,198,186,68,0xbcbcc2);
+  patch(p,o,l,16,200,121,73,68,0xbcbcc2);
+  patch(p,o,l,207,200,7,73,68,0xbcbcc2);
+  patch(p,o,l,16,273,198,13,68,0xbcbcc2);
  }
  static float upperZ(float x,float y){
   // The entire shoulder rolls continuously from its outer seam to the blank panel.
@@ -84,8 +84,8 @@ final class Ht100sVisual {
  }
  private static void upperVertex(PoseStack p,MultiBufferSource o,int l,float x,float y){
   float z=upperZ(x,y),nx=upperZ(x-1,y)-upperZ(x+1,y),ny=upperZ(x,y-1)-upperZ(x,y+1),length=(float)Math.sqrt(nx*nx+ny*ny+4);
-  int shade=(int)(0xc5+(z-68)*.2f);
-  int color=(shade<<16)|((shade+4)<<8)|(shade-11);
+  int shade=(int)(0xbc+(z-68)*.2f);
+  int color=(shade<<16)|(shade<<8)|(shade+6);
   vertex(p,o,l,x,y,z,nx/length,ny/length,2/length,color);
  }
  private static void upperFace(PoseStack p,MultiBufferSource o,int l){
@@ -103,7 +103,7 @@ final class Ht100sVisual {
  private static void upperSeamVertex(PoseStack p,MultiBufferSource o,int l,float x,float y){
   float worldY=y-FRONT_SHIFT_Y;
   float z=y<9?59+(float)Math.sqrt(Math.max(0,81-(9-worldY)*(9-worldY))):upperZ(x,y);
-  vertex(p,o,l,x,y,z+.18f,0,0,1,0x8e9589);
+  vertex(p,o,l,x,y,z+.18f,0,0,1,0x8d8d93);
  }
  private static void upperSeam(PoseStack p,MultiBufferSource o,int l){
   // Side boundaries go straight to the top; only the two bottom corners curve.
@@ -127,8 +127,8 @@ final class Ht100sVisual {
  }
  private static void buttonFace(PoseStack p,MultiBufferSource o,int l){
   // The centre is deliberately open: a solid button cap used to hide the concave bowl.
-  float cx=175,cy=239,r=25;for(int i=0;i<64;i++){float a=(float)(i*Math.PI/32),b=(float)((i+1)*Math.PI/32);float[] angles={a,b,b,a};for(int j=0;j<4;j++){float t=angles[j],dx=(float)Math.cos(t),dy=(float)Math.sin(t),edge=Math.min(32.5f/Math.max(.0001f,Math.abs(dx)),33.5f/Math.max(.0001f,Math.abs(dy)));float radius=j<2?edge:r;vertex(p,o,l,cx+dx*radius,cy+dy*radius,67.9f,0,0,1,j<2?0xc8cbbd:0xb6bbac);}}
-  sector(p,o,l,cx,cy,25,19,67.9f,67.2f,0xaeb5a7);sector(p,o,l,cx,cy,19,11,67.2f,66.15f,0xb9bfb1);sector(p,o,l,cx,cy,11,0,66.15f,65.8f,0xc3c9ba);
+  float cx=175,cy=239,r=25;for(int i=0;i<64;i++){float a=(float)(i*Math.PI/32),b=(float)((i+1)*Math.PI/32);float[] angles={a,b,b,a};for(int j=0;j<4;j++){float t=angles[j],dx=(float)Math.cos(t),dy=(float)Math.sin(t),edge=Math.min(32.5f/Math.max(.0001f,Math.abs(dx)),33.5f/Math.max(.0001f,Math.abs(dy)));float radius=j<2?edge:r;vertex(p,o,l,cx+dx*radius,cy+dy*radius,67.9f,0,0,1,j<2?0xc0c0c6:0xaeaeb4);}}
+  sector(p,o,l,cx,cy,25,19,67.9f,67.2f,0xa9a9af);sector(p,o,l,cx,cy,19,11,67.2f,66.15f,0xb5b5bb);sector(p,o,l,cx,cy,11,0,66.15f,65.8f,0xc0c0c6);
  }
  private static void arch(PoseStack p,MultiBufferSource o,int l,float x,float top,float w,float bottom,float z,int color){
   float r=w/2,cy=top+r,cx=x+r;
@@ -149,9 +149,9 @@ final class Ht100sVisual {
  }
  static void mesh(PoseStack p,MultiBufferSource o){int l=0;
   // Frame depth is a single broad wall with one rolled front lip; the phone nests inside it.
-  Ring rear=new Ring(-6,-5,242,310,13,0,0x9da294);
+  Ring rear=new Ring(-6,-5,242,310,13,0,0x99999f);
   rearCap(p,o,l,rear);
-  contour(p,o,l,true,rear,new Ring(-6,-5,242,310,13,35,0xa7ac9f),new Ring(-5,-4,240,308,12,41,0xc4c8b8));
+  contour(p,o,l,true,rear,new Ring(-6,-5,242,310,13,35,0xa9a9af),new Ring(-5,-4,240,308,12,41,0xbcbcc2));
   bodyShell(p,o,l);
   bodyFace(p,o,l);
   p.pushPose();p.translate(FRONT_OFFSET_X,FRONT_SHIFT_Y,0);
@@ -160,22 +160,22 @@ final class Ht100sVisual {
   upperSeam(p,o,l);
   // The casing shoulder remains visible left of the raised surface; no separate long rail crosses it.
   // HT-100S has a dark blank window, and no camera lens or video lamp.
-  solid(p,o,l,"window_gasket",WINDOW_X,WINDOW_Y,WINDOW_W,WINDOW_H,UPPER_TOP_Z+.15f,.8f,3,0x555d59);
-  solid(p,o,l,"window_glass",WINDOW_X+2,WINDOW_Y+2,WINDOW_W-4,WINDOW_H-4,UPPER_TOP_Z+.95f,1,2,0x303638);
-  patch(p,o,l,WINDOW_X+6,WINDOW_Y+5,WINDOW_W-12,1.1f,UPPER_TOP_Z+1.98f,0x414746);
+  solid(p,o,l,"window_gasket",WINDOW_X,WINDOW_Y,WINDOW_W,WINDOW_H,UPPER_TOP_Z+.15f,.8f,3,0x55555b);
+  solid(p,o,l,"window_glass",WINDOW_X+2,WINDOW_Y+2,WINDOW_W-4,WINDOW_H-4,UPPER_TOP_Z+.95f,1,2,0x303037);
+  patch(p,o,l,WINDOW_X+6,WINDOW_Y+5,WINDOW_W-12,1.1f,UPPER_TOP_Z+1.98f,0x414147);
   // The speaker is six narrow recessed slots within the lower skin, each with a gentle lower highlight.
-  for(int i=0;i<6;i++){float y=205+i*13;patch(p,o,l,26,y-2,104,2,69.2f,0xc7ccbc);solid(p,o,l,"speaker_floor_"+i,29,y,99,3.6f,68.2f,.35f,1.7f,0x424b44);patch(p,o,l,30,y+3.6f,97,.65f,69.4f,0xabb3a4);}
+  for(int i=0;i<6;i++){float y=205+i*13;patch(p,o,l,26,y-2,104,2,69.2f,0xc3c3c9);solid(p,o,l,"speaker_floor_"+i,29,y,99,3.6f,68.2f,.35f,1.7f,0x444449);patch(p,o,l,30,y+3.6f,97,.65f,69.4f,0xa8a8af);}
   // A single edged call key with an actual opening in its face and a sloping concave finger bowl.
-  contour(p,o,l,false,new Ring(140,202,70,73,6,65.5f,0x899184),new Ring(140,202,70,73,6,67.2f,0xb9c0b0),new Ring(142,204,66,69,5,67.9f,0xd0d4c5));
-  buttonFace(p,o,l);solid(p,o,l,"button_indicator",169,209,13,4.5f,67.95f,.3f,2,0x222b2c);
+  contour(p,o,l,false,new Ring(140,202,70,73,6,65.5f,0x88888f),new Ring(140,202,70,73,6,67.2f,0xb3b3b9),new Ring(142,204,66,69,5,67.9f,0xc8c8ce));
+  buttonFace(p,o,l);solid(p,o,l,"button_indicator",169,209,13,4.5f,67.95f,.3f,2,0x25252a);
   // The plug follows the arched opening exactly and sits flush with the lower rounded shell.
-  arch(p,o,l,107,274.5f,25,291,68.25f,0x646b61);
-  arch(p,o,l,108.5f,276,22,290.8f,68.42f,0xaeb4a6);
+  arch(p,o,l,107,274.5f,25,291,68.25f,0x68686d);
+  arch(p,o,l,108.5f,276,22,290.8f,68.42f,0xaaaab0);
   curvedLogo(p,o,l);print(p,o,l,BRAND,146,278,64,12,68.4f);
   p.popPose();
-  for(int i=0;i<2;i++)solid(p,o,l,"mic_"+i,212,38+i*8,9,3,69,1,.7f,0x232b2a);
+  for(int i=0;i<2;i++)solid(p,o,l,"mic_"+i,212,38+i*8,9,3,69,1,.7f,0x242429);
  }
- static void draw(PoseStack p,MultiBufferSource o,int light){GeometryCache.draw("ht100s_continuous_roll_raised_group",p,o,light,Ht100sVisual::mesh);}
+ static void draw(PoseStack p,MultiBufferSource o,int light){GeometryCache.draw("ht100s_cool_gray_shell",p,o,light,Ht100sVisual::mesh);}
  static void pose(Ht100s.Unit b,PoseStack p){var off=com.qwerty.homenet.move.DeviceOffsets.get(b.getLevel(),b.getBlockPos());p.translate(off.x,off.y,off.z);double bottom=.5-Ht100s.HEIGHT/2;switch(b.getBlockState().getValue(WallMountedBlock.FACING)){case NORTH->{p.translate(.5,bottom,1);p.mulPose(Axis.YP.rotationDegrees(180));}case SOUTH->p.translate(.5,bottom,0);case EAST->{p.translate(0,bottom,.5);p.mulPose(Axis.YP.rotationDegrees(90));}case WEST->{p.translate(1,bottom,.5);p.mulPose(Axis.YP.rotationDegrees(-90));}default->{}}p.scale(S,S,S);p.translate(-W/2,H-700,0);}
- static final class Renderer implements BlockEntityRenderer<Ht100s.Unit>{public void render(Ht100s.Unit b,float tick,PoseStack p,MultiBufferSource o,int light,int overlay){if(DeviceVisibility.hidden(b,GeometryCache.bounds("ht100s_continuous_roll_raised_group"),q->pose(b,q)))return;p.pushPose();pose(b,p);draw(p,o,light);p.popPose();}}
+ static final class Renderer implements BlockEntityRenderer<Ht100s.Unit>{public void render(Ht100s.Unit b,float tick,PoseStack p,MultiBufferSource o,int light,int overlay){if(DeviceVisibility.hidden(b,GeometryCache.bounds("ht100s_cool_gray_shell"),q->pose(b,q)))return;p.pushPose();pose(b,p);draw(p,o,light);p.popPose();}}
 }
