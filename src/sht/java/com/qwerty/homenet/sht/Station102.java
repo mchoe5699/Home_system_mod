@@ -6,9 +6,10 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 /** Wired base handset and separately registered portable accessory. The wired handset has no cable geometry. */
-public final class Station102 extends Station {
+public class Station102 extends Station {
  int heldTicks;
- public Station102(BlockPos p,BlockState s){super(Product.TYPE102.get(),p,s);folded=false;}
+ public Station102(BlockPos p,BlockState s){this(Product.TYPE102.get(),p,s);}
+ protected Station102(net.minecraft.world.level.block.entity.BlockEntityType<?> type,BlockPos p,BlockState s){super(type,p,s);folded=false;}
  @Override public boolean wired(){return true;}
  @Override boolean paired(){return true;}
  @Override public boolean owns(ItemStack stack){return ownsPortable(stack);}
