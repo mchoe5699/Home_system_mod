@@ -62,7 +62,12 @@ public final class Product {
  });
  public static final RegistryObject<BlockEntityType<Station>> TYPE=ENTITIES.register("station",()->BlockEntityType.Builder.of(Station::new,STATION.get()).build(null));
  public static final RegistryObject<BlockEntityType<Station102>> TYPE102=ENTITIES.register("station102",()->BlockEntityType.Builder.of(Station102::new,STATION102.get()).build(null));
- public Product(){IEventBus bus=FMLJavaModLoadingContext.get().getModEventBus();BLOCKS.register(bus);ITEMS.register(bus);ENTITIES.register(bus);TABS.register("samsung",()->CreativeModeTab.builder().title(Component.literal("SAMSUNG 홈오토메이션")).icon(()->new ItemStack(BASE_ITEM.get())).displayItems((a,o)->{o.accept(HT512_ITEM.get());o.accept(HT100S_ITEM.get());o.accept(BASE_ITEM.get());o.accept(BASE102_ITEM.get());o.accept(PORTABLE102.get());o.accept(CHARGER_ITEM.get());}).build());TABS.register(bus);Wire.init();MovementSupport.init();}
+ public static final RegistryObject<Station305.Mounted> STATION305=BLOCKS.register("sht_305v",Station305.Mounted::new);
+ public static final RegistryObject<Item> BASE305_ITEM=ITEMS.register("sht_305v",()->new BlockItem(STATION305.get(),new Item.Properties()){
+  public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientItemExtensions> c){c.accept(Client.itemExtension());}
+ });
+ public static final RegistryObject<BlockEntityType<Station305>> TYPE305=ENTITIES.register("station305v",()->BlockEntityType.Builder.of(Station305::new,STATION305.get()).build(null));
+ public Product(){IEventBus bus=FMLJavaModLoadingContext.get().getModEventBus();BLOCKS.register(bus);ITEMS.register(bus);ENTITIES.register(bus);TABS.register("samsung",()->CreativeModeTab.builder().title(Component.literal("SAMSUNG 홈오토메이션")).icon(()->new ItemStack(BASE_ITEM.get())).displayItems((a,o)->{o.accept(HT512_ITEM.get());o.accept(HT100S_ITEM.get());o.accept(BASE_ITEM.get());o.accept(BASE102_ITEM.get());o.accept(BASE305_ITEM.get());o.accept(PORTABLE102.get());o.accept(CHARGER_ITEM.get());}).build());TABS.register(bus);Wire.init();MovementSupport.init();}
  public static class StationBlock extends WallMountedBlock {
   final boolean wired;
   public StationBlock(){this(false);}
