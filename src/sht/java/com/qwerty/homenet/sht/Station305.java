@@ -33,7 +33,7 @@ public final class Station305 extends Station102 {
  }
  @Override protected java.util.Map<String,String> settingsForClient(){var values=super.settingsForClient();values.put("sht305v","1");values.put("mode","BUS");return values;}
  public static final class Mounted extends WallMountedBlock {
-  public static final double HEIGHT=.5,WIDTH=HEIGHT*700/600,DEPTH=HEIGHT*125/600;
+  public static final double HEIGHT=.5,WIDTH=HEIGHT*660/600,DEPTH=HEIGHT*125/600;
   public Mounted(){super(Properties.of().strength(1.5f).noOcclusion(),WIDTH*8,(.5-HEIGHT/2)*16,(.5+HEIGHT/2)*16,DEPTH*16);registerDefaultState(stateDefinition.any().setValue(FACING,Direction.NORTH).setValue(com.qwerty.homenet.block.WallpadBlock.RINGING,false));}
   @Override protected void createBlockStateDefinition(StateDefinition.Builder<Block,BlockState> b){b.add(FACING,com.qwerty.homenet.block.WallpadBlock.RINGING);}
   @Override public RenderShape getRenderShape(BlockState s){return RenderShape.ENTITYBLOCK_ANIMATED;}
@@ -48,8 +48,8 @@ public final class Station305 extends Station102 {
   static boolean handset(BlockState s,Level l,BlockPos at,BlockHitResult hit){
    Vec3 v=hit.getLocation().subtract(Vec3.atLowerCornerOf(at)).subtract(com.qwerty.homenet.move.DeviceOffsets.get(l,at));
    double across=switch(s.getValue(FACING)){case NORTH->.5-v.x;case SOUTH->v.x-.5;case EAST->.5-v.z;case WEST->v.z-.5;default->10;};
-   double x=350+across/(HEIGHT/600),y=(.5+HEIGHT/2-v.y)/(HEIGHT/600);
-   return x>=0&&x<=185&&y>=8&&y<=590;
+   double x=330+across/(HEIGHT/600),y=(.5+HEIGHT/2-v.y)/(HEIGHT/600);
+   return x>=0&&x<=189&&y>=8&&y<=590;
   }
   @Override public void onRemove(BlockState s,Level l,BlockPos p,BlockState n,boolean moving){if(!s.is(n.getBlock())&&l.getBlockEntity(p) instanceof Station305 b)b.onBroken();super.onRemove(s,l,p,n,moving);}
  }

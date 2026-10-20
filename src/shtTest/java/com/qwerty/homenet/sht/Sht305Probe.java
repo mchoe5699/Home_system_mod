@@ -13,14 +13,14 @@ final class Sht305Probe {
   ClientRun.check(mc.level.getBlockEntity(at) instanceof Station305,"SHT-305V block entity missing");
   var base=(Station305)mc.level.getBlockEntity(at);
   ClientRun.check(Math.abs(Station305.Mounted.HEIGHT-.5)<1e-9,"SHT-305V is not half a block high");
-  ClientRun.check(Math.abs(Station305.Mounted.WIDTH/Station305.Mounted.HEIGHT-700d/600)<1e-8,"SHT-305V width ratio wrong");
+  ClientRun.check(Math.abs(Station305.Mounted.WIDTH/Station305.Mounted.HEIGHT-660d/600)<1e-8,"SHT-305V width ratio wrong");
   ClientRun.check(base.guardSystem()==GuardSystem.BUS&&!base.supportsWirelessPortable(),"SHT-305V BUS or wired handset wrong");
   var docked=new MeshProbe.Capture();Sht305Visual.draw(new PoseStack(),t->docked,15728880,true);
   var empty=new MeshProbe.Capture();Sht305Visual.draw(new PoseStack(),t->empty,15728880,false);
   ClientRun.check(docked.vertices.size()>1000&&docked.vertices.size()>empty.vertices.size(),"SHT-305V receiver is not removable");
   ClientRun.check(docked.vertices.stream().anyMatch(v->v.x()<50&&v.z()>100),"Curved receiver face is missing");
-  ClientRun.check(docked.vertices.stream().anyMatch(v->v.x()>670&&v.z()>85),"Exposed right side or control strip is missing");
-  ClientRun.check(docked.vertices.stream().anyMatch(v->v.color()==0xece5d0),"Ivory case color is missing");
+  ClientRun.check(docked.vertices.stream().anyMatch(v->v.x()>630&&v.z()>85),"Exposed right side or control strip is missing");
+  ClientRun.check(docked.vertices.stream().anyMatch(v->v.color()==0xf0ead7),"Ivory case color is missing");
   ClientRun.check(docked.vertices.stream().anyMatch(v->v.color()==0x747d90),"Small round control keys are missing");
   ClientRun.check(docked.vertices.stream().anyMatch(v->v.color()==0xf0ead8),"Shallow large keys are missing");
   for(Direction facing:new Direction[]{Direction.NORTH,Direction.SOUTH,Direction.EAST,Direction.WEST}){

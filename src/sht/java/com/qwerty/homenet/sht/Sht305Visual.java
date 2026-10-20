@@ -1,55 +1,70 @@
 package com.qwerty.homenet.sht;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.resources.ResourceLocation;
 
-/** SHT-305V, rebuilt from the exposed front/side housing instead of stacked plates. */
+/** One continuously moulded exposed case with a removable handset. */
 final class Sht305Visual {
- static final float W=700,H=600,S=(float)(Station305.Mounted.HEIGHT/H);
+ static final float W=660,H=600,S=(float)(Station305.Mounted.HEIGHT/H);
  static final ResourceLocation INK=Product.id("sht305v/ink.png");
  static void part(PoseStack p,MultiBufferSource out,int light,String name,float x,float y,float w,float h,float z,float d,float r,int rgb,float curve){
   Surface.solid(new Surface.Solid(name,x,y,w,h,z,d,r,String.format("#%06x",rgb),"sht305v",curve),p,out,light);
  }
  static float smooth(float t){t=Math.max(0,Math.min(1,t));return t*t*(3-2*t);}
  static float shellEdge(float y,boolean right){
-  float r=23,delta=y<r?r-y:y>H-r?y-(H-r):0;
+  float r=23,delta=0;
+  if(y<r)delta=r-y;else if(y>H-r)delta=y-(H-r);
   float inset=r-(float)Math.sqrt(Math.max(0,r*r-delta*delta));
-  return right?W-inset:215+inset;
+  return right?W-inset:inset;
  }
  static float shellZ(float x,float y){
   float edge=Math.max(0,Math.min(x-shellEdge(y,false),shellEdge(y,true)-x));
   float end=Math.max(0,Math.min(y,H-y));
-  float band=3*smooth((x-563)/20);
-  float seam=1.2f*(1-smooth(Math.abs(x-563)/3));
-  return 89-6*(1-smooth(edge/22))-4*(1-smooth(end/18))+band-seam;
+  float body=70+20*smooth((x-175)/45);
+  float cavity=6*smooth((x-12)/20)*(1-smooth((x-155)/28))*smooth((y-40)/35)*(1-smooth((y-530)/30));
+  float hook=10*(float)Math.exp(-Math.pow((x-176)/19,2))*(float)(Math.exp(-Math.pow((y-110)/33,2))+Math.exp(-Math.pow((y-487)/33,2)));
+  float controls=3*smooth((x-530)/25);
+  return body-cavity+hook+controls-5*(1-smooth(edge/20))-4*(1-smooth(end/18));
  }
  static void shell(PoseStack p,MultiBufferSource out,int light){
-  part(p,out,light,"305_closed_rear_housing",215,0,485,600,0,77,23,0xd2c9b4,0);
+  // One rear moulding supports the entire front, including the recessed handset cradle.
+  part(p,out,light,"305_single_rear_case",0,0,660,600,0,58,23,0xd8cfb9,0);
   var b=out.getBuffer(RenderType.entityCutoutNoCull(Product.id("textures/solid.png")));
-  for(int row=0;row<100;row++)for(int col=0;col<80;col++)for(int j=0;j<4;j++){
+  for(int row=0;row<100;row++)for(int col=0;col<110;col++)for(int j=0;j<4;j++){
    float y=6*(row+(j==1||j==2?1:0));
-   float u=(col+(j>=2?1:0))/80f;
+   float u=(col+(j>=2?1:0))/110f;
    float left=shellEdge(y,false),right=shellEdge(y,true),x=left+(right-left)*u;
    float z=shellZ(x,y),nx=-(shellZ(x+.3f,y)-shellZ(x-.3f,y))/ .6f;
    float ny=-(shellZ(x,y+.3f)-shellZ(x,y-.3f))/ .6f;
    float n=(float)Math.sqrt(1+nx*nx+ny*ny);
-   int color=x>582?0xe6dec9:0xece5d0;
+   int color=x>555?0xe7dec9:x<185?0xe8dfc9:0xf0ead7;
    Surface.vertex(b,p.last(),x,y,z,nx/n,ny/n,1/n,color,light,.5f,.5f);
+  }
+  // Close the thin perimeter between the rear wall box and the continuous front skin.
+  for(int side=0;side<2;side++)for(int row=0;row<100;row++)for(int j=0;j<4;j++){
+   float y=6*(row+(j==1||j==2?1:0));
+   float x=shellEdge(y,side==1),z=j<2?58:shellZ(x,y);
+   Surface.vertex(b,p.last(),x,y,z,side==0?-1:1,0,0,0xe4dbc5,light,.5f,.5f);
+  }
+  for(int end=0;end<2;end++)for(int col=0;col<110;col++)for(int j=0;j<4;j++){
+   float y=end==0?0:H,u=(col+(j==1||j==2?1:0))/110f;
+   float x=shellEdge(y,false)+(shellEdge(y,true)-shellEdge(y,false))*u;
+   float z=j<2?58:shellZ(x,y);
+   Surface.vertex(b,p.last(),x,y,z,0,end==0?-1:1,0,0xe4dbc5,light,.5f,.5f);
   }
  }
  static float receiverHalf(float t){
   float ends=(float)Math.pow(Math.abs(2*t-1),1.6);
   float corner=smooth(Math.min(t,1-t)*600/45);
-  return (63+16*ends)*(.52f+.48f*corner);
+  return (72+18*ends)*(.52f+.48f*corner);
  }
  static float receiverX(float t,float u){return 96+u*receiverHalf(t);}
  static float receiverZ(float t,float u){return 97+20*(1-u*u)+3*(float)Math.pow(Math.abs(2*t-1),2);}
  static void receiver(PoseStack p,MultiBufferSource out,int light){
-  part(p,out,light,"handset_back",17,7,160,586,38,56,40,0xdcd2bb,1);
+  part(p,out,light,"handset_back",7,7,178,586,37,57,43,0xdcd2bb,1);
   var b=out.getBuffer(RenderType.entityCutoutNoCull(Product.id("textures/solid.png")));
   for(int row=0;row<96;row++)for(int col=0;col<24;col++)for(int j=0;j<4;j++){
    float t=(row+(j==1||j==2?1:0))/96f,u=-1+2*(col+(j>=2?1:0))/24f;
@@ -73,55 +88,47 @@ final class Sht305Visual {
  }
  static void mesh(PoseStack p,MultiBufferSource out){int l=0;
   shell(p,out,l);
-  // The bridge and cradle are exposed between the wide receiver and the separate wall case.
-  part(p,out,l,"305_cradle_housing",4,17,196,570,13,65,28,0xd5cbb4,1);
-  part(p,out,l,"305_cradle_recess",31,59,141,479,78,3,20,0xbcb19b,0);
-  part(p,out,l,"305_bridge",172,57,48,488,42,38,11,0xdad0b9,1);
-  part(p,out,l,"305_hook_top",163,88,39,59,79,11,11,0xece5d0,1);
-  part(p,out,l,"305_hook_bottom",163,453,39,59,79,11,11,0xece5d0,1);
-  // Horizontal vents and a low rocker sit on the left side, behind the receiver.
-  part(p,out,l,"305_speaker_recess",179,202,35,229,75,7,4,0xc5bba3,0);
-  for(int i=0;i<17;i++)part(p,out,l,"305_speaker_slot_"+i,182,211+i*12.5f,29,2.4f,82,.35f,1,0x68685d,0);
-  part(p,out,l,"305_power_plate",181,478,22,40,76,3,2,0xc7bfac,0);
-  part(p,out,l,"305_power_switch",184,483,16,29,79,3,2,0xeae2cb,1);
+  // Vents, switch and display are details on that case, not separate shell segments.
+  for(int i=0;i<17;i++)part(p,out,l,"305_speaker_slot_"+i,185,211+i*12.5f,27,2.2f,83,.3f,1,0x69695e,0);
+  part(p,out,l,"305_power_switch",188,483,15,29,82,2,2,0xeae2cb,1);
 
-  // Shallow glass fascia, square CRT throat and a separate narrow warning window.
-  part(p,out,l,"305_fascia_edge",235,16,449,251,88,2,12,0xf5edda,0);
-  part(p,out,l,"305_fascia",240,21,439,242,90,7,8,0x15171b,0);
-  part(p,out,l,"305_crt_reveal",252,37,298,211,97,.5f,3,0x414147,0);
-  part(p,out,l,"305_crt_throat",258,44,286,198,97.5f,.5f,2,0x202127,0);
-  part(p,out,l,"305_crt_glass",265,54,271,178,98,.7f,2,0x676478,.4f);
-  part(p,out,l,"305_status_glass",556,28,117,226,97,.7f,2,0x17191e,0);
+  // Inset upper glass: a single dark field with a CRT and four warning windows.
+  part(p,out,l,"305_fascia_edge",216,17,427,248,89,2,11,0xf3ebd8,0);
+  part(p,out,l,"305_fascia",221,22,417,238,91,6,7,0x15171b,0);
+  part(p,out,l,"305_crt_reveal",233,38,282,208,97,.5f,3,0x414147,0);
+  part(p,out,l,"305_crt_throat",239,46,270,194,97.5f,.5f,2,0x202127,0);
+  part(p,out,l,"305_crt_glass",246,55,256,177,98,.7f,2,0x676478,.4f);
+  part(p,out,l,"305_status_glass",522,29,111,224,97,.7f,2,0x17191e,0);
   for(int i=0;i<4;i++){
    float y=87+i*38;
-   part(p,out,l,"305_warning_outline_"+i,564,y,99,33,97.7f,.3f,2,0x747a78,0);
-   part(p,out,l,"305_warning_window_"+i,567,y+3,93,27,98,.4f,1,0x282d31,0);
+   part(p,out,l,"305_warning_outline_"+i,530,y,92,33,97.7f,.3f,2,0x747a78,0);
+   part(p,out,l,"305_warning_window_"+i,533,y+3,86,27,98,.4f,1,0x282d31,0);
   }
 
-  // Controls are small, shallow mouldings. The lower-right body itself curves forward.
+  // Controls follow the curved face; only the keys, lenses and fine rims stand proud.
   for(int i=0;i<3;i++){
    float y=313+i*54;
-   part(p,out,l,"305_round_shadow_"+i,499,y,42,42,90,.5f,21,0x9a9588,0);
-   part(p,out,l,"305_round_bevel_"+i,503,y+4,34,34,90.5f,1.5f,17,0xcac8c0,0);
-   part(p,out,l,"305_round_key_"+i,506,y+7,28,28,92,1.7f,14,0x747d90,1.3f);
+   part(p,out,l,"305_round_shadow_"+i,465,y,42,42,90,.5f,21,0x9a9588,0);
+   part(p,out,l,"305_round_bevel_"+i,469,y+4,34,34,90.5f,1.5f,17,0xcac8c0,0);
+   part(p,out,l,"305_round_key_"+i,472,y+7,28,28,92,1.7f,14,0x747d90,1.3f);
   }
   for(int i=0;i<5;i++){
    float y=314+i*37;
-   part(p,out,l,"305_lamp_lens_"+i,601,y+2,10,10,92,.4f,5,0x41443f,0);
-   part(p,out,l,"305_switch_recess_"+i,622,y,52,13,92,.5f,6,0xaea590,0);
-   part(p,out,l,"305_switch_rim_"+i,625,y+2,46,9,92.5f,1.1f,4,0xf0ead8,.4f);
-   part(p,out,l,"305_switch_key_"+i,632,y+3,32,7,93.6f,.6f,3,0xe4dcc8,.2f);
+   part(p,out,l,"305_lamp_lens_"+i,567,y+2,10,10,94,.4f,5,0x41443f,0);
+   part(p,out,l,"305_switch_recess_"+i,588,y,48,13,94,.5f,6,0xaea590,0);
+   part(p,out,l,"305_switch_rim_"+i,591,y+2,42,9,94.5f,1.1f,4,0xf0ead8,.4f);
+   part(p,out,l,"305_switch_key_"+i,597,y+3,30,7,95.6f,.6f,3,0xe4dcc8,.2f);
   }
   for(int i=0;i<2;i++){
-   float x=i==0?495:617;
-   part(p,out,l,"305_large_ring_"+i,x,494,56,56,90,.6f,28,0xa9a18e,0);
-   part(p,out,l,"305_large_bevel_"+i,x+3,497,50,50,90.6f,1.6f,25,0xe0d9c7,0);
-   part(p,out,l,"305_large_button_"+i,x+7,501,42,42,92.2f,2.1f,21,0xf0ead8,1.5f);
+   float x=i==0?461:580;
+   part(p,out,l,"305_large_ring_"+i,x,494,56,56,i==0?90:94,.6f,28,0xa9a18e,0);
+   part(p,out,l,"305_large_bevel_"+i,x+3,497,50,50,i==0?90.6f:94.6f,1.6f,25,0xe0d9c7,0);
+   part(p,out,l,"305_large_button_"+i,x+7,501,42,42,i==0?92.2f:96.2f,2.1f,21,0xf0ead8,1.5f);
   }
   for(int i=0;i<3;i++){
    float y=341+i*34;
-   part(p,out,l,"305_side_slider_well_"+i,695,y,4,21,51,1,1,0x837c6b,0);
-   part(p,out,l,"305_side_slider_"+i,696,y+7,5,7,52,2,1,0xdad1bb,0);
+   part(p,out,l,"305_side_slider_well_"+i,655,y,4,21,51,1,1,0x837c6b,0);
+   part(p,out,l,"305_side_slider_"+i,656,y+7,5,7,52,2,1,0xdad1bb,0);
   }
   Surface.rectangle(p,out,0,0,W,H,100,INK,l);
  }
@@ -149,18 +156,18 @@ final class Sht305Visual {
    p.pushPose();pose(b,p);draw(p,out,light,b.docked);
    var camera=b.camera();if(camera!=null){
     p.pushPose();p.scale(16,16,16);
-    video.drawWall(p,out,camera,273,700-227,255,165,101,b.brightness,b.contrast,com.qwerty.homenet.video.VideoFormat.MONOCHROME);
+    video.drawWall(p,out,camera,253,700-227,242,164,101,b.brightness,b.contrast,com.qwerty.homenet.video.VideoFormat.MONOCHROME);
     p.popPose();
    }
    int bits=b.lights();
-   if((bits&Indicators.FIRE)!=0)dot(p,out,575,103,5,0xf07850);
-   if((bits&Indicators.GAS)!=0)dot(p,out,575,141,5,0xe1bf59);
-   if((bits&Indicators.SECURITY)!=0)dot(p,out,575,179,5,0x98dc81);
-   if((bits&Indicators.EMERGENCY)!=0)dot(p,out,575,217,5,0xf07850);
-   if((bits&Indicators.GUARD)!=0)dot(p,out,606,321,4,0x9bd294);
-   if((bits&Indicators.AWAY)!=0)dot(p,out,606,358,4,0x9bd294);
-   if((bits&Indicators.ARMED)!=0)dot(p,out,606,395,4,0x9bd294);
-   if((bits&Indicators.DOOR)!=0)dot(p,out,606,432,4,0x9bd294);
+   if((bits&Indicators.FIRE)!=0)dot(p,out,541,103,5,0xf07850);
+   if((bits&Indicators.GAS)!=0)dot(p,out,541,141,5,0xe1bf59);
+   if((bits&Indicators.SECURITY)!=0)dot(p,out,541,179,5,0x98dc81);
+   if((bits&Indicators.EMERGENCY)!=0)dot(p,out,541,217,5,0xf07850);
+   if((bits&Indicators.GUARD)!=0)dot(p,out,572,321,4,0x9bd294);
+   if((bits&Indicators.AWAY)!=0)dot(p,out,572,358,4,0x9bd294);
+   if((bits&Indicators.ARMED)!=0)dot(p,out,572,395,4,0x9bd294);
+   if((bits&Indicators.DOOR)!=0)dot(p,out,572,432,4,0x9bd294);
    p.popPose();
   }
  }

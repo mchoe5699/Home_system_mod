@@ -3,11 +3,16 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 SCALE = 2
-W, H = 700, 600
+W, H = 660, 600
 FONT = "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"
 FONT_BOLD = "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc"
 image = Image.new("RGBA", (W * SCALE, H * SCALE))
 draw = ImageDraw.Draw(image)
+
+
+def sx(x):
+    """Keep the markings registered to the new receiver/body width ratio."""
+    return x * 205 / 215 if x < 215 else 205 + (x - 215) * 455 / 485
 
 
 def font(size, bold=False):
@@ -15,15 +20,15 @@ def font(size, bold=False):
 
 
 def text(x, y, value, size=10, color="#384047", bold=False, anchor="lt"):
-    draw.text((x * SCALE, y * SCALE), value, font=font(size, bold), fill=color, anchor=anchor)
+    draw.text((sx(x) * SCALE, y * SCALE), value, font=font(size, bold), fill=color, anchor=anchor)
 
 
 def line(points, color, width=1):
-    draw.line([(x * SCALE, y * SCALE) for x, y in points], fill=color, width=width * SCALE, joint="curve")
+    draw.line([(sx(x) * SCALE, y * SCALE) for x, y in points], fill=color, width=width * SCALE, joint="curve")
 
 
 def ellipse(box, color, outline=None, width=1):
-    draw.ellipse(tuple(v * SCALE for v in box), fill=color, outline=outline, width=width * SCALE)
+    draw.ellipse((sx(box[0]) * SCALE, box[1] * SCALE, sx(box[2]) * SCALE, box[3] * SCALE), fill=color, outline=outline, width=width * SCALE)
 
 
 # CRT perimeter catches a faint sliver of room light; the glass stays translucent.
