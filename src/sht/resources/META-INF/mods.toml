@@ -3,7 +3,7 @@ loaderVersion="[47,)"
 license="All Rights Reserved"
 [[mods]]
 modId="homenet_sht101c"
-version="1.0.66"
+version="1.0.67"
 displayName="Samsung SHT-101C / SHT-102C / HT-512"
 description='''Samsung home automation models including SHT-101C, SHT-102C and HT-512.'''
 [[dependencies.homenet_sht101c]]

@@ -8,8 +8,8 @@ caption_overrides={f'assets/qwertys_homenet/textures/block/kvm931t/{name}.png' f
 with zipfile.ZipFile(base) as b,zipfile.ZipFile(extra) as a,zipfile.ZipFile(target,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as out:
  for path in b.namelist():
   raw=a.read(path) if path in caption_overrides else b.read(path)
-  if path=='META-INF/mods.toml':raw=raw.replace(b'version="1.0.8"',b'version="1.0.66"')+b'\n[[mods]]'+a.read(path).split(b'[[mods]]',1)[1]
-  if path=='META-INF/MANIFEST.MF':raw=raw.replace(b'Implementation-Version: 1.0.8',b'Implementation-Version: 1.0.66')
+  if path=='META-INF/mods.toml':raw=raw.replace(b'version="1.0.8"',b'version="1.0.67"')+b'\n[[mods]]'+a.read(path).split(b'[[mods]]',1)[1]
+  if path=='META-INF/MANIFEST.MF':raw=raw.replace(b'Implementation-Version: 1.0.8',b'Implementation-Version: 1.0.67')
   out.writestr(path,raw)
  out.writestr("META-INF/coremods.json",a.read("META-INF/coremods.json"))
  for path in a.namelist():

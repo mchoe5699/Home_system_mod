@@ -6,5 +6,6 @@
   "block.homenet_sht101c.sht_102c_charger": "삼성 휴대장치 충전기",
   "block.homenet_sht101c.ht_512": "Samsung HT-512 Digital Lobby Phone (BUS)",
   "block.homenet_sht101c.ht_100s": "Samsung HT-100S Door Phone",
-  "block.homenet_sht101c.sht_305v": "Samsung SHT-305V BUS Video Home Automation Phone"
+  "block.homenet_sht101c.sht_305v": "Samsung SHT-305V BUS Video Home Automation Phone",
+  "block.homenet_sht101c.sht_305v_canvas": "Samsung SHT-305V Video Phone (Canvas Variant)"
 }

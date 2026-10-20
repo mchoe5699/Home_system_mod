@@ -6,5 +6,6 @@
   "block.homenet_sht101c.sht_102c_charger": "삼성 휴대장치 충전기",
   "block.homenet_sht101c.ht_512": "삼성 HT-512 디지털 로비폰 (BUS)",
   "block.homenet_sht101c.ht_100s": "삼성 HT-100S 도어폰",
-  "block.homenet_sht101c.sht_305v": "삼성 SHT-305V 디지털 홈오토메이션 비디오폰 (BUS)"
+  "block.homenet_sht101c.sht_305v": "삼성 SHT-305V 디지털 홈오토메이션 비디오폰 (BUS)",
+  "block.homenet_sht101c.sht_305v_canvas": "삼성 SHT-305V 비디오폰 (캔버스형)"
 }
