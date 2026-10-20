@@ -66,7 +66,7 @@ public final class Product {
  public static final RegistryObject<Item> BASE305_ITEM=ITEMS.register("sht_305v",()->new BlockItem(STATION305.get(),new Item.Properties()){
   public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientItemExtensions> c){c.accept(Client.itemExtension());}
  });
- public static final RegistryObject<Station305.Mounted> STATION305_CANVAS=BLOCKS.register("sht_305v_canvas",Station305.Mounted::new);
+ public static final RegistryObject<Station305.CanvasMounted> STATION305_CANVAS=BLOCKS.register("sht_305v_canvas",Station305.CanvasMounted::new);
  public static final RegistryObject<Item> BASE305_CANVAS_ITEM=ITEMS.register("sht_305v_canvas",()->new BlockItem(STATION305_CANVAS.get(),new Item.Properties()){
   public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientItemExtensions> c){c.accept(Client.itemExtension());}
  });

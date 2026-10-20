@@ -27,9 +27,10 @@ public final class Station305 extends Station102 {
   super.press(key,player,false);
  }
  @Override protected java.util.Map<String,String> settingsForClient(){var map=super.settingsForClient();map.put("sht305v","1");map.put("mode","BUS");return map;}
- public static final class Mounted extends WallMountedBlock {
+ public static class Mounted extends WallMountedBlock {
   public static final double HEIGHT=.5,WIDTH=.52,DEPTH=.108;
-  public Mounted(){super(Properties.of().strength(1.5f).noOcclusion(),WIDTH*8,4,12,DEPTH*16);registerDefaultState(stateDefinition.any().setValue(FACING,Direction.NORTH).setValue(com.qwerty.homenet.block.WallpadBlock.RINGING,false));}
+  public Mounted(){this(WIDTH,DEPTH);}
+  protected Mounted(double width,double depth){super(Properties.of().strength(1.5f).noOcclusion(),width*8,4,12,depth*16);registerDefaultState(stateDefinition.any().setValue(FACING,Direction.NORTH).setValue(com.qwerty.homenet.block.WallpadBlock.RINGING,false));}
   @Override protected void createBlockStateDefinition(StateDefinition.Builder<Block,BlockState> b){b.add(FACING,com.qwerty.homenet.block.WallpadBlock.RINGING);}
   @Override public RenderShape getRenderShape(BlockState s){return RenderShape.ENTITYBLOCK_ANIMATED;}
   @Override public BlockEntity newBlockEntity(BlockPos p,BlockState s){return new Station305(p,s);}
@@ -40,5 +41,9 @@ public final class Station305 extends Station102 {
    return InteractionResult.sidedSuccess(l.isClientSide);
   }
   @Override public void onRemove(BlockState s,Level l,BlockPos p,BlockState n,boolean moving){if(!s.is(n.getBlock())&&l.getBlockEntity(p) instanceof Station305 b)b.onBroken();super.onRemove(s,l,p,n,moving);}
+ }
+ public static final class CanvasMounted extends Mounted {
+  public static final double WIDTH=HEIGHT*668/600;
+  public CanvasMounted(){super(WIDTH,DEPTH);}
  }
 }

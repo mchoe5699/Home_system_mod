@@ -10,6 +10,20 @@ text(225,558,'SAMSUNG',11,strong=True)
 text(527,45,'전원',7,(174,180,180,220));text(565,45,'사용중',7,(174,180,180,220))
 for y,s,c in [(117,'가스',(221,195,97,240)),(163,'방범',(106,177,176,240)),(209,'비상',(204,115,87,240))]:
  d.rectangle(((513-208)*2,(y-28)*2,(528-208)*2,(y+14-28)*2),outline=c,width=2);text(547,y-1,s,10,(187,192,189,238))
+def point(x,y):return ((x-208)*2,(y-28)*2)
+# Three tiny printed pictograms visible in the black warning strip.
+yellow=(221,195,97,240);cyan=(106,177,176,240);red=(204,115,87,240)
+d.line((point(517,123),point(524,123)),fill=yellow,width=4)
+d.rectangle((*point(519,119),*point(523,122)),fill=yellow)
+d.ellipse((*point(516,123),*point(524,130)),outline=yellow,width=3)
+d.ellipse((*point(518,165),*point(522,169)),fill=cyan)
+d.line((point(520,170),point(520,177),point(516,179)),fill=cyan,width=3)
+d.line((point(520,174),point(525,172)),fill=cyan,width=3)
+d.line((point(520,177),point(524,180)),fill=cyan,width=3)
+import math
+cx,cy=520,216
+burst=[point(cx+((7 if i%2==0 else 3)*math.cos(i*math.pi/8)),cy+((7 if i%2==0 else 3)*math.sin(i*math.pi/8))) for i in range(16)]
+d.polygon(burst,fill=red)
 for y,s in zip((314,368,422),('경비실','외출','현관')):text(447,y-18,s,7)
 text(438,473,'문열림',8)
 for y,s in zip((296,332,368,404,440),('비상','시험','가스','방범설정','복귀')):text(550,y-18,s,7)
