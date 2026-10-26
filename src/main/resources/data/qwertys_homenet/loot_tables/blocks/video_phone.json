@@ -7,7 +7,20 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "qwertys_homenet:video_phone"
+          "name": "qwertys_homenet:video_phone",
+          "functions": [
+            {
+              "function": "minecraft:copy_nbt",
+              "source": "block_entity",
+              "ops": [
+                {
+                  "source": "ProductLogo",
+                  "target": "BlockEntityTag.ProductLogo",
+                  "op": "replace"
+                }
+              ]
+            }
+          ]
         }
       ],
       "conditions": [

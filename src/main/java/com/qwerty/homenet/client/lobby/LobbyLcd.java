@@ -2,30 +2,19 @@ package com.qwerty.homenet.client.lobby;
 
 import com.qwerty.homenet.HomeNet;
 import com.qwerty.homenet.blockentity.LobbyPhoneBlockEntity;
-import com.qwerty.homenet.blockentity.LobbyPhoneBlockEntity.Screen;
+import java.time.LocalDateTime;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 
-import java.time.LocalDateTime;
-
-/**
- * 로비폰 LCD 정보 박스 내용 + LCD 글꼴.
- * GUI 와 블록 정면 렌더러가 같이 쓴다.
- */
-public record LobbyLcd(Component topLeft, Component topRight, Component big, float bigScale,
-                       Component subLeft, Component subRight) {
-
-    /** 화면 글꼴 (사용자 제공 TTF) */
+public record LobbyLcd(Component topLeft, Component topRight, Component big, float bigScale, Component subLeft, Component subRight) {
     public static final ResourceLocation FONT = HomeNet.id("lcd");
-    /** 키패드 숫자 (흰색 비트맵, 높이 8단위 중 0.5~7.5) */
     public static final ResourceLocation KEY_FONT = HomeNet.id("lcd_key");
-    /** 정보 박스 큰 숫자 (양각 비트맵) */
     public static final ResourceLocation BIG_FONT = HomeNet.id("lcd_big");
-    /** 아이콘:  네트워크,  문열림 */
     public static final ResourceLocation ICON_FONT = HomeNet.id("lcd_icons");
-    public static final String ICON_NETWORK = "";
-    public static final String ICON_DOOR = "";
+    public static final String ICON_NETWORK = "\ue000";
+    public static final String ICON_DOOR = "\ue001";
+    private static final Component EMPTY = Component.empty();
 
     public static MutableComponent lcd(Component c) {
         return c.copy().withStyle(s -> s.withFont(FONT));
@@ -36,11 +25,11 @@ public record LobbyLcd(Component topLeft, Component topRight, Component big, flo
     }
 
     public static MutableComponent tr(String key, Object... args) {
-        return lcd(Component.translatable("lobby." + HomeNet.MODID + "." + key, args));
+        return lcd(Component.translatable("lobby.qwertys_homenet." + key, args));
     }
 
     public static MutableComponent msg(String key, String arg) {
-        return lcd(Component.translatable("lobby_msg." + HomeNet.MODID + "." + key, arg));
+        return lcd(Component.translatable("lobby_msg.qwertys_homenet." + key, arg));
     }
 
     public static MutableComponent keyDigit(String s) {
@@ -51,20 +40,17 @@ public record LobbyLcd(Component topLeft, Component topRight, Component big, flo
         return Component.literal(s).withStyle(st -> st.withFont(ICON_FONT));
     }
 
-    /** 숫자/콜론/별표만이면 양각 비트맵 글꼴, 아니면 LCD 글꼴 */
     public static MutableComponent big(String s) {
-        if (s.matches("[0-9:*\\-]+")) return Component.literal(s).withStyle(st -> st.withFont(BIG_FONT));
-        return lcd(s);
+        return s.matches("[0-9:*\\-]+") ? Component.literal(s).withStyle(st -> st.withFont(BIG_FONT)) : lcd(s);
     }
 
     public static boolean isBitmapBig(Component c) {
         return c.getString().matches("[0-9:*\\-]+");
     }
 
-    private static final Component EMPTY = Component.empty();
-
     public static LobbyLcd of(LobbyPhoneBlockEntity be, long gameTime) {
-        Screen s = be.getScreen();
+        LobbyPhoneBlockEntity.Screen s = be.getScreen();
+
         return switch (s) {
             case IDLE -> idle();
             case INPUT -> {
@@ -76,23 +62,24 @@ public record LobbyLcd(Component topLeft, Component topRight, Component big, flo
                 } else {
                     sub = tr("ho", be.getInput());
                 }
-                yield new LobbyLcd(EMPTY, EMPTY, big(be.getInput()), 3.4f, sub, EMPTY);
+
+                yield new LobbyLcd(EMPTY, EMPTY, big(be.getInput()), 3.4F, sub, EMPTY);
             }
             case PASSWORD, COMMON_PASSWORD -> {
                 int n = be.getSecretLength();
                 Component b = n == 0 ? tr("password") : big("*".repeat(n));
-                yield new LobbyLcd(EMPTY, EMPTY, b, n == 0 ? 2.6f : 3.4f, tr("enter_password"), EMPTY);
+                yield new LobbyLcd(EMPTY, EMPTY, b, n == 0 ? 2.6F : 3.4F, tr("enter_password"), EMPTY);
             }
             case CALLING, TALKING -> {
-                long secs = Math.max(0, (gameTime - be.getStateSince()) / 20);
-                Component timer = lcd(String.format("%02d:%02d", secs / 60, secs % 60));
+                long secs = Math.max(0L, (gameTime - be.getStateSince()) / 20L);
+                Component timer = lcd(String.format("%02d:%02d", secs / 60L, secs % 60L));
                 String what = be.isGuardCall() ? "guard" : "unit";
-                Component sub = tr((s == Screen.CALLING ? "calling_" : "talking_") + what);
-                yield new LobbyLcd(EMPTY, EMPTY, big(be.getBigLabel()), 3.4f, sub, timer);
+                Component sub = tr((s == LobbyPhoneBlockEntity.Screen.CALLING ? "calling_" : "talking_") + what);
+                yield new LobbyLcd(EMPTY, EMPTY, big(be.getBigLabel()), 3.4F, sub, timer);
             }
-            case MESSAGE -> new LobbyLcd(EMPTY, EMPTY, msg(be.getMsgKey(), be.getMsgArg()), 1.0f, EMPTY, EMPTY);
-            case HELP -> new LobbyLcd(EMPTY, EMPTY, tr("help_title"), 1.8f, EMPTY, EMPTY);
-            default -> new LobbyLcd(EMPTY, EMPTY, tr("admin_title"), 1.6f, EMPTY, EMPTY);
+            case MESSAGE -> new LobbyLcd(EMPTY, EMPTY, msg(be.getMsgKey(), be.getMsgArg()), 1.0F, EMPTY, EMPTY);
+            case HELP -> new LobbyLcd(EMPTY, EMPTY, tr("help_title"), 1.8F, EMPTY, EMPTY);
+            default -> new LobbyLcd(EMPTY, EMPTY, tr("admin_title"), 1.6F, EMPTY, EMPTY);
         };
     }
 
@@ -103,6 +90,6 @@ public record LobbyLcd(Component topLeft, Component topRight, Component big, flo
         Component ampm = tr(h < 12 ? "am" : "pm");
         Component date = tr("date", now.getMonthValue(), now.getDayOfMonth(), tr("dow." + now.getDayOfWeek().getValue()));
         Component time = big(h12 + ":" + String.format("%02d", now.getMinute()));
-        return new LobbyLcd(ampm, date, time, 3.1f, EMPTY, EMPTY);
+        return new LobbyLcd(ampm, date, time, 3.1F, EMPTY, EMPTY);
     }
 }

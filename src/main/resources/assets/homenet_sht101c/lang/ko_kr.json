@@ -1,0 +1,23 @@
+{
+  "block.homenet_sht101c.sht_101c": "삼성 SHT-101C 홈오토메이션",
+  "item.homenet_sht101c.wireless_handset": "SHT-101C 무선수화기",
+  "block.homenet_sht101c.sht_102c": "삼성 SHT-102C 홈오토메이션",
+  "item.homenet_sht101c.sht_102c_portable": "삼성 휴대장치",
+  "block.homenet_sht101c.sht_102c_charger": "삼성 휴대장치 충전기",
+  "block.homenet_sht101c.ht_512": "삼성 HT-512 디지털 로비폰 (BUS)",
+  "block.homenet_sht101c.ht_100s": "삼성 HT-100S 도어폰",
+  "block.homenet_sht101c.ht_100": "삼성 HT-100 도어 카메라",
+  "block.homenet_sht101c.sht_308": "삼성 SHT-308 비디오 도어폰 (BUS)",
+  "block.homenet_sht101c.hi_101": "삼성 HI-101 음성 인터폰",
+  "block.homenet_sht101c.sht_305v": "삼성 SHT-305V 비디오 도어폰",
+  "block.homenet_sht101c.sht_305": "삼성 SHT-305 비디오 도어폰 (BUS)",
+  "block.homenet_sht101c.sht_307": "삼성 SHT-307 비디오 도어폰 (STAR)",
+  "block.homenet_sht101c.sht_101n": "삼성 SHT-101N 홈오토메이션",
+  "block.homenet_sht101c.sht_104m": "삼성 SHT-104M 홈오토메이션 (BUS)",
+  "item.homenet_sht101c.sht_104m_portable": "삼성 SHT-104M 무선전화",
+  "block.homenet_sht101c.sht_104c": "삼성 SHT-104C 홈오토메이션 (BUS)",
+  "block.homenet_sht101c.ht_513": "삼성 HT-513 로비폰 (BUS)",
+  "block.homenet_sht101c.sht_104cs": "삼성 SHT-104CS 에스원 홈오토메이션 (BUS)",
+  "item.homenet_sht101c.s1_security_card": "에스원 보안회사 등록 카드",
+  "block.homenet_sht101c.sht_705": "삼성 SHT-705 컬러 비디오폰 (BUS)"
+}

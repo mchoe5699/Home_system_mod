@@ -1,0 +1,52 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "qwertys_homenet:dp_202h",
+          "functions": [
+            {
+              "function": "minecraft:copy_nbt",
+              "source": "block_entity",
+              "ops": [
+                {
+                  "source": "ProductLogo",
+                  "target": "BlockEntityTag.ProductLogo",
+                  "op": "replace"
+                },
+                {
+                  "source": "Unit",
+                  "target": "BlockEntityTag.Unit",
+                  "op": "replace"
+                },
+                {
+                  "source": "AnalogStation",
+                  "target": "BlockEntityTag.AnalogStation",
+                  "op": "replace"
+                },
+                {
+                  "source": "ApVolume",
+                  "target": "BlockEntityTag.ApVolume",
+                  "op": "replace"
+                },
+                {
+                  "source": "ReceiverDoors",
+                  "target": "BlockEntityTag.ReceiverDoors",
+                  "op": "replace"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+{"type": "minecraft:block", "pools": [{"rolls": 1, "entries": [{"type": "minecraft:item", "name": "qwertys_homenet:klp_202r2_late"}], "conditions": [{"condition": "minecraft:survives_explosion"}]}]}

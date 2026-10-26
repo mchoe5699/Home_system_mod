@@ -2,15 +2,19 @@ package com.qwerty.homenet.blockentity;
 
 import com.qwerty.homenet.block.DoorPhoneBlock;
 import com.qwerty.homenet.data.DeviceRegistry;
+import com.qwerty.homenet.data.ZoneData;
 import com.qwerty.homenet.intercom.DoorStatus;
 import com.qwerty.homenet.intercom.Intercom;
 import com.qwerty.homenet.intercom.IntercomLine;
 import com.qwerty.homenet.network.DoorStationDataPacket;
 import com.qwerty.homenet.network.ModNetwork;
 import com.qwerty.homenet.registry.ModBlockEntities;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -18,16 +22,8 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
-import java.util.ArrayList;
-
-/**
- * 세대 현관 바깥 호출기.
- * - 도어카메라 (door_station 블록): 화면이 있어서 호출 상태와 메시지를 볼 수 있음
- * - 도어폰 (door_phone 블록): 버튼만 있는 현관 초인종, 누르면 바로 호출
- * 세대 번호는 홈 링커로 수신기(월패드 등)를 고른 뒤 이 기기를 우클릭해서 지정한다.
- */
 public class DoorStationBlockEntity extends CallerBlockEntity {
-    private String unit = "";
+    private final List<BlockPos> receivers = new ArrayList<>();
     private DoorStatus status = DoorStatus.IDLE;
     private String statusArg = "";
 
@@ -36,12 +32,12 @@ public class DoorStationBlockEntity extends CallerBlockEntity {
     }
 
     public boolean isDoorPhone() {
-        return getBlockState().getBlock() instanceof DoorPhoneBlock;
+        return this.getBlockState().getBlock() instanceof DoorPhoneBlock;
     }
 
     @Override
     public DeviceRegistry.Kind kind() {
-        return isDoorPhone() ? DeviceRegistry.Kind.DOOR_PHONE : DeviceRegistry.Kind.DOOR_CAMERA;
+        return this.isDoorPhone() ? DeviceRegistry.Kind.DOOR_PHONE : DeviceRegistry.Kind.DOOR_CAMERA;
     }
 
     @Override
@@ -51,117 +47,191 @@ public class DoorStationBlockEntity extends CallerBlockEntity {
 
     @Override
     public String registeredUnit() {
-        return unit;
+        return "";
     }
 
     public String getUnit() {
-        return unit;
+        return "";
     }
 
-    public void setUnit(String u) {
-        unit = u == null ? "" : u;
-        setChanged();
-        registerDevice();
-        syncScreens();
+    public boolean hasReceiver(BlockPos pos) {
+        return this.receivers.contains(pos) && ZoneData.connected(this.level, this.worldPosition, pos);
     }
 
-    // ------------------------------------------------------------------ 화면
+    public List<BlockPos> linkedReceivers() {
+        return List.copyOf(this.receivers);
+    }
+
+    public boolean toggleReceiver(BlockPos pos) {
+        if (this.receivers.remove(pos)) {
+            if (this.inCall) {
+                this.hangUpFromCaller();
+            }
+
+            this.setChanged();
+            this.syncScreens();
+            return false;
+        } else if (!ZoneData.connected(this.level, this.worldPosition, pos)) {
+            return false;
+        } else if (this.level != null && this.level.getBlockEntity(pos) instanceof ReceiverBlockEntity r && !r.supportsDoorCommunication()) {
+            return false;
+        } else if (this.receivers.size() >= 32) {
+            throw new IllegalStateException("too many linked receivers");
+        } else {
+            this.receivers.add(pos.immutable());
+            this.setChanged();
+            this.syncScreens();
+            return true;
+        }
+    }
+
+    @Override
+    public CallerBlockEntity.CallResult startCall(String ignoredUnit) {
+        if (this.inCall) {
+            return CallerBlockEntity.CallResult.BUSY;
+        } else if (this.receivers.isEmpty()) {
+            return CallerBlockEntity.CallResult.NO_UNIT;
+        } else {
+            List<ReceiverBlockEntity> loaded = new ArrayList<>();
+
+            for (BlockPos pos : this.receivers) {
+                ReceiverBlockEntity receiver = this.receiverAt(pos);
+                if (receiver != null) {
+                    loaded.add(receiver);
+                }
+            }
+
+            return loaded.isEmpty() ? CallerBlockEntity.CallResult.NO_SIGNAL : this.startReceivers(loaded);
+        }
+    }
+
+    @Override
+    public List<ReceiverBlockEntity> receiversOf(String ignoredUnit) {
+        List<ReceiverBlockEntity> loaded = new ArrayList<>();
+
+        for (BlockPos pos : this.receivers) {
+            ReceiverBlockEntity receiver = this.receiverAt(pos);
+            if (receiver != null) {
+                loaded.add(receiver);
+            }
+        }
+
+        return loaded;
+    }
+
+    @Override
+    public void openDoors() {
+    }
 
     public void openFor(ServerPlayer player) {
-        ModNetwork.sendTo(player, buildPacket(true));
+        ModNetwork.sendTo(player, this.buildPacket(true));
     }
 
     @Override
     public void syncScreens() {
-        if (!(level instanceof ServerLevel sl)) return;
-        DoorStationDataPacket pkt = buildPacket(false);
-        for (ServerPlayer p : Intercom.playersNear(sl, worldPosition, Intercom.NEAR_RANGE)) ModNetwork.sendTo(p, pkt);
+        if (this.level instanceof ServerLevel sl) {
+            DoorStationDataPacket var5 = this.buildPacket(false);
+
+            for (ServerPlayer p : Intercom.playersNear(sl, this.worldPosition, 8.0)) {
+                ModNetwork.sendTo(p, var5);
+            }
+        }
     }
 
     private DoorStationDataPacket buildPacket(boolean open) {
-        return new DoorStationDataPacket(worldPosition, open, false, unit, status.ordinal(), statusArg,
-                inCall, isConnected(), new ArrayList<>(log));
+        return new DoorStationDataPacket(
+            this.worldPosition,
+            open,
+            false,
+            "링크 " + this.receivers.size() + "개",
+            this.status.ordinal(),
+            this.statusArg,
+            this.inCall,
+            this.isConnected(),
+            new ArrayList<>(this.log)
+        );
     }
 
-    // ------------------------------------------------------------------ 조작
-
-    public enum Action {
-        CALL, HANG_UP, SEND_MESSAGE;
-
-        public static Action byId(int id) {
-            Action[] v = values();
-            return id >= 0 && id < v.length ? v[id] : HANG_UP;
-        }
-    }
-
-    public void handleAction(ServerPlayer player, Action action, String text) {
+    public void handleAction(ServerPlayer player, DoorStationBlockEntity.Action action, String text) {
         switch (action) {
-            case CALL -> call();
-            case HANG_UP -> {
-                if (inCall) {
-                    hangUpFromCaller();
-                    setStatus(DoorStatus.ENDED);
+            case CALL:
+                this.call();
+                break;
+            case HANG_UP:
+                if (this.inCall) {
+                    this.hangUpFromCaller();
+                    this.setStatus(DoorStatus.ENDED);
                 }
-            }
-            case SEND_MESSAGE -> {
-                if (isConnected()) say(player, callerKey(), text);
-            }
+                break;
+            case SEND_MESSAGE:
+                if (this.isConnected()) {
+                    this.say(player, this.callerKey(), text);
+                }
         }
-        syncScreens();
+
+        this.syncScreens();
     }
 
-    /** 호출 버튼 (도어폰은 블록 우클릭) */
     public void call() {
-        if (!(level instanceof ServerLevel)) return;
-        if (inCall) {
-            setStatus(DoorStatus.BUSY);
-            return;
-        }
-        if (DeviceRegistry.normalize(unit).isEmpty()) {
-            setStatus(DoorStatus.NO_UNIT);
-            notifyNearby();
-            return;
-        }
-        switch (startCall(unit)) {
-            case OK -> {
-                setStatus(DoorStatus.CALLING);
-                level.playSound(null, worldPosition, SoundEvents.NOTE_BLOCK_PLING.value(), SoundSource.BLOCKS, 0.6f, 1.4f);
+        if (this.level instanceof ServerLevel) {
+            if (this.inCall) {
+                this.setStatus(DoorStatus.BUSY);
+            } else if (this.receivers.isEmpty()) {
+                this.setStatus(DoorStatus.NO_UNIT);
+                this.notifyNearby();
+            } else {
+                switch (this.startCall("")) {
+                    case OK:
+                        this.setStatus(DoorStatus.CALLING);
+                        this.level.playSound(null, this.worldPosition, SoundEvents.NOTE_BLOCK_PLING.value(), SoundSource.BLOCKS, 0.6F, 1.4F);
+                        break;
+                    case NO_UNIT:
+                        this.setStatus(DoorStatus.NO_UNIT);
+                        break;
+                    case NO_SIGNAL:
+                        this.setStatus(DoorStatus.NO_SIGNAL);
+                        break;
+                    case BUSY:
+                        this.setStatus(DoorStatus.BUSY);
+                }
+
+                this.notifyNearby();
+                this.syncScreens();
             }
-            case NO_UNIT -> setStatus(DoorStatus.NO_UNIT);
-            case NO_SIGNAL -> setStatus(DoorStatus.NO_SIGNAL);
-            case BUSY -> setStatus(DoorStatus.BUSY);
         }
-        notifyNearby();
-        syncScreens();
     }
 
     private void setStatus(DoorStatus s) {
-        status = s;
-        statusArg = unit;
+        this.status = s;
+        this.statusArg = "연결 기기 " + this.receivers.size() + "개";
     }
 
     @Override
     protected void onConnected() {
-        setStatus(DoorStatus.CONNECTED);
-        notifyNearby();
+        this.setStatus(DoorStatus.CONNECTED);
+        this.notifyNearby();
     }
 
     @Override
     protected void onEnded(DoorStatus reason) {
-        setStatus(reason);
-        notifyNearby();
+        this.setStatus(reason);
+        this.notifyNearby();
     }
 
     @Override
     protected void onDoorOpenedByReceiver() {
-        setStatus(DoorStatus.OPENED);
-        notifyNearby();
+        this.setStatus(DoorStatus.OPENED);
+        this.notifyNearby();
     }
 
     private void notifyNearby() {
-        if (!(level instanceof ServerLevel sl)) return;
-        var msg = status.display(statusArg).copy().withStyle(ChatFormatting.GREEN);
-        for (ServerPlayer p : Intercom.playersNear(sl, worldPosition, Intercom.NEAR_RANGE)) p.displayClientMessage(msg, true);
+        if (this.level instanceof ServerLevel sl) {
+            MutableComponent var5 = this.status.display(this.statusArg).copy().withStyle(ChatFormatting.GREEN);
+
+            for (ServerPlayer p : Intercom.playersNear(sl, this.worldPosition, 8.0)) {
+                p.displayClientMessage(var5, true);
+            }
+        }
     }
 
     @Override
@@ -176,12 +246,29 @@ public class DoorStationBlockEntity extends CallerBlockEntity {
     @Override
     public void load(CompoundTag tag) {
         super.load(tag);
-        unit = tag.getString("UnitNo");
+        this.receivers.clear();
+
+        for (long pos : tag.getLongArray("Receivers")) {
+            if (this.receivers.size() < 32) {
+                this.receivers.add(BlockPos.of(pos));
+            }
+        }
     }
 
     @Override
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
-        tag.putString("UnitNo", unit);
+        tag.putLongArray("Receivers", this.receivers.stream().mapToLong(BlockPos::asLong).toArray());
+    }
+
+    public static enum Action {
+        CALL,
+        HANG_UP,
+        SEND_MESSAGE;
+
+        public static DoorStationBlockEntity.Action byId(int id) {
+            DoorStationBlockEntity.Action[] v = values();
+            return id >= 0 && id < v.length ? v[id] : HANG_UP;
+        }
     }
 }

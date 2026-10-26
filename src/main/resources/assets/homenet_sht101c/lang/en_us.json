@@ -1,0 +1,23 @@
+{
+  "block.homenet_sht101c.sht_101c": "삼성 SHT-101C 홈오토메이션",
+  "item.homenet_sht101c.wireless_handset": "SHT-101C 무선수화기",
+  "block.homenet_sht101c.sht_102c": "삼성 SHT-102C 홈오토메이션",
+  "item.homenet_sht101c.sht_102c_portable": "삼성 휴대장치",
+  "block.homenet_sht101c.sht_102c_charger": "삼성 휴대장치 충전기",
+  "block.homenet_sht101c.ht_512": "Samsung HT-512 Digital Lobby Phone (BUS)",
+  "block.homenet_sht101c.ht_100s": "Samsung HT-100S Door Phone",
+  "block.homenet_sht101c.ht_100": "Samsung HT-100 Door Camera",
+  "block.homenet_sht101c.sht_308": "Samsung SHT-308 Video Door Phone (BUS)",
+  "block.homenet_sht101c.hi_101": "Samsung HI-101 Voice Intercom",
+  "block.homenet_sht101c.sht_305v": "Samsung SHT-305V video door phone",
+  "block.homenet_sht101c.sht_305": "Samsung SHT-305 Video Door Phone (BUS)",
+  "block.homenet_sht101c.sht_307": "Samsung SHT-307 Video Door Phone (STAR)",
+  "block.homenet_sht101c.sht_101n": "Samsung SHT-101N Home Automation",
+  "block.homenet_sht101c.sht_104m": "Samsung SHT-104M Home Automation (BUS)",
+  "item.homenet_sht101c.sht_104m_portable": "Samsung SHT-104M cordless handset",
+  "block.homenet_sht101c.sht_104c": "Samsung SHT-104C Home Automation (BUS)",
+  "block.homenet_sht101c.ht_513": "Samsung HT-513 Lobby Phone (BUS)",
+  "block.homenet_sht101c.sht_104cs": "Samsung SHT-104CS S-One color home automation (BUS)",
+  "item.homenet_sht101c.s1_security_card": "S-One security registration card",
+  "block.homenet_sht101c.sht_705": "Samsung SHT-705 Color Video Phone (BUS)"
+}

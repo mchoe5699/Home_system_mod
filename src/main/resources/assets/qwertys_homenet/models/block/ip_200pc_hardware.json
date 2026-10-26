@@ -1,0 +1,84 @@
+{
+  "parent": "block/block",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "face": "qwertys_homenet:block/ip200pc/face",
+    "face_item": "qwertys_homenet:block/ip200pc/face_item",
+    "shell": "qwertys_homenet:block/ip200pc/shell",
+    "edge": "qwertys_homenet:block/ip200pc/edge",
+    "seam": "qwertys_homenet:block/ip200pc/seam",
+    "dark": "qwertys_homenet:block/ip200pc/dark",
+    "handset": "qwertys_homenet:block/ip200pc/handset",
+    "button": "qwertys_homenet:block/ip200pc/button",
+    "backplate": "qwertys_homenet:block/ip200pc/backplate",
+    "particle": "qwertys_homenet:block/ip200pc/shell"
+  },
+  "elements": [],
+  "display": {
+    "gui": {
+      "rotation": [
+        0,
+        180,
+        0
+      ],
+      "scale": [
+        1.5,
+        1.5,
+        1.5
+      ]
+    },
+    "fixed": {
+      "rotation": [
+        0,
+        180,
+        0
+      ],
+      "scale": [
+        1.5,
+        1.5,
+        1.5
+      ]
+    },
+    "ground": {
+      "translation": [
+        0,
+        3,
+        0
+      ],
+      "scale": [
+        0.6,
+        0.6,
+        0.6
+      ]
+    },
+    "thirdperson_righthand": {
+      "rotation": [
+        75,
+        225,
+        0
+      ],
+      "translation": [
+        0,
+        2.5,
+        0
+      ],
+      "scale": [
+        0.6,
+        0.6,
+        0.6
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        0,
+        225,
+        0
+      ],
+      "scale": [
+        0.8,
+        0.8,
+        0.8
+      ]
+    }
+  }
+}

@@ -3,16 +3,11 @@ package com.qwerty.homenet.intercom;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 
-/**
- * 부재중 호출 기록.
- * @param caller  "lobby", "front_door", "unit:101-1203", "guard:경비실", "emergency:101-1203"
- * @param dayTime 호출 당시 월드 시간 (level.getDayTime())
- */
 public record MissedCall(String caller, long dayTime) {
     public CompoundTag save() {
         CompoundTag tag = new CompoundTag();
-        tag.putString("Caller", caller);
-        tag.putLong("Time", dayTime);
+        tag.putString("Caller", this.caller);
+        tag.putLong("Time", this.dayTime);
         return tag;
     }
 
@@ -21,8 +16,8 @@ public record MissedCall(String caller, long dayTime) {
     }
 
     public void write(FriendlyByteBuf buf) {
-        buf.writeUtf(caller, 64);
-        buf.writeLong(dayTime);
+        buf.writeUtf(this.caller, 64);
+        buf.writeLong(this.dayTime);
     }
 
     public static MissedCall read(FriendlyByteBuf buf) {

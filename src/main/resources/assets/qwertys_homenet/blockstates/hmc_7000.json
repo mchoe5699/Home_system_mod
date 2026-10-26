@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "qwertys_homenet:block/hmc_7000"
+    }
+  }
+}

@@ -1,20 +1,18 @@
 package com.qwerty.homenet.network;
 
+import com.qwerty.homenet.client.ClientPacketHandler;
 import com.qwerty.homenet.intercom.IntercomLine;
+import java.util.List;
+import java.util.function.Supplier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.NetworkEvent.Context;
 
-import java.util.List;
-import java.util.function.Supplier;
-
-/** 서버 → 클라이언트: 인터폰 화면 데이터 */
-public record DoorStationDataPacket(BlockPos pos, boolean open, boolean lobby, String linkedUnit,
-                                    int status, String statusArg, boolean inCall, boolean connected,
-                                    List<IntercomLine> log) {
-
+public record DoorStationDataPacket(
+    BlockPos pos, boolean open, boolean lobby, String linkedUnit, int status, String statusArg, boolean inCall, boolean connected, List<IntercomLine> log
+) {
     public static void encode(DoorStationDataPacket p, FriendlyByteBuf buf) {
         buf.writeBlockPos(p.pos);
         buf.writeBoolean(p.open);
@@ -28,12 +26,20 @@ public record DoorStationDataPacket(BlockPos pos, boolean open, boolean lobby, S
     }
 
     public static DoorStationDataPacket decode(FriendlyByteBuf buf) {
-        return new DoorStationDataPacket(buf.readBlockPos(), buf.readBoolean(), buf.readBoolean(), buf.readUtf(64),
-                buf.readVarInt(), buf.readUtf(64), buf.readBoolean(), buf.readBoolean(),
-                buf.readList(IntercomLine::read));
+        return new DoorStationDataPacket(
+            buf.readBlockPos(),
+            buf.readBoolean(),
+            buf.readBoolean(),
+            buf.readUtf(64),
+            buf.readVarInt(),
+            buf.readUtf(64),
+            buf.readBoolean(),
+            buf.readBoolean(),
+            buf.readList(IntercomLine::read)
+        );
     }
 
-    public static void handle(DoorStationDataPacket p, Supplier<NetworkEvent.Context> ctx) {
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> com.qwerty.homenet.client.ClientPacketHandler.handleDoorStation(p));
+    public static void handle(DoorStationDataPacket p, Supplier<Context> ctx) {
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientPacketHandler.handleDoorStation(p));
     }
 }

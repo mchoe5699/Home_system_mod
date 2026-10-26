@@ -11,10 +11,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
-/**
- * QWERTY's HomeNet — 한국 아파트식 홈네트워크(월패드 · 인터폰 · 제어 블록) 모드.
- */
-@Mod(HomeNet.MODID)
+@Mod("qwertys_homenet")
 public class HomeNet {
     public static final String MODID = "qwertys_homenet";
 
@@ -32,6 +29,6 @@ public class HomeNet {
     }
 
     public static ResourceLocation id(String path) {
-        return new ResourceLocation(MODID, path);
+        return new ResourceLocation("qwertys_homenet", path);
     }
 }

@@ -1,24 +1,36 @@
 modLoader="javafml"
-loaderVersion="${loader_version_range}"
-license="${mod_license}"
+loaderVersion="[47,)"
+license="All Rights Reserved"
 
 [[mods]]
-modId="${mod_id}"
-version="${mod_version}"
-displayName="${mod_name}"
-authors="${mod_authors}"
-description='''${mod_description}'''
+modId="qwertys_homenet"
+version="1.0.173"
+displayName="QWERTY's HomeNet"
+authors="QWERTY"
+description='''Korean apartment-style home network for Minecraft: wallpads, lobby/door intercoms and linked control blocks.'''
 
-[[dependencies.${mod_id}]]
+[[dependencies.qwertys_homenet]]
     modId="forge"
     mandatory=true
-    versionRange="${forge_version_range}"
+    versionRange="[47,)"
     ordering="NONE"
     side="BOTH"
 
-[[dependencies.${mod_id}]]
+[[dependencies.qwertys_homenet]]
     modId="minecraft"
     mandatory=true
-    versionRange="${minecraft_version_range}"
+    versionRange="[1.20.1,1.21)"
     ordering="NONE"
     side="BOTH"
+
+[[mods]]
+modId="homenet_sht101c"
+version="1.0.173"
+displayName="Samsung SHT-101C / SHT-102C / SHT-308 / HT-512"
+description='''Samsung home automation models including SHT-101C, SHT-102C, SHT-308 and HT-512.'''
+[[dependencies.homenet_sht101c]]
+modId="qwertys_homenet"
+mandatory=true
+versionRange="[1.0.8,)"
+ordering="AFTER"
+side="BOTH"

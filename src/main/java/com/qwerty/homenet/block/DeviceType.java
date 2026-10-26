@@ -1,9 +1,7 @@
 package com.qwerty.homenet.block;
 
-import com.qwerty.homenet.HomeNet;
 import net.minecraft.network.chat.Component;
 
-/** 월패드에 표시되는 기기 종류 */
 public enum DeviceType {
     LIGHT("light", false),
     OUTLET("outlet", false),
@@ -16,26 +14,25 @@ public enum DeviceType {
     AIRCON("aircon", false);
 
     private final String key;
-    /** true면 상태를 켜짐/꺼짐 대신 열림/닫힘으로 표시 */
     private final boolean openClose;
 
-    DeviceType(String key, boolean openClose) {
+    private DeviceType(String key, boolean openClose) {
         this.key = key;
         this.openClose = openClose;
     }
 
     public Component displayName() {
-        return Component.translatable("device_type." + HomeNet.MODID + "." + key);
+        return Component.translatable("device_type.qwertys_homenet." + this.key);
     }
 
     public Component stateName(boolean on) {
-        String s = openClose ? (on ? "open" : "closed") : (on ? "on" : "off");
-        return Component.translatable("device_state." + HomeNet.MODID + "." + s);
+        String s = this.openClose ? (on ? "open" : "closed") : (on ? "on" : "off");
+        return Component.translatable("device_state.qwertys_homenet." + s);
     }
 
     public DeviceType next() {
         DeviceType[] v = values();
-        return v[(ordinal() + 1) % v.length];
+        return v[(this.ordinal() + 1) % v.length];
     }
 
     public static DeviceType byId(int id) {

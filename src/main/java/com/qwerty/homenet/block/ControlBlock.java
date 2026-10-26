@@ -2,6 +2,7 @@ package com.qwerty.homenet.block;
 
 import com.qwerty.homenet.blockentity.DeviceBlockEntity;
 import com.qwerty.homenet.item.HomeLinkerItem;
+import com.qwerty.homenet.move.DeviceOffsets;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
@@ -15,31 +16,34 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
+import net.minecraft.world.level.block.state.StateDefinition.Builder;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * 제어 블록. 월패드에 링크해서 켜고 끌 수 있는 기기.
- * 켜지면 사방으로 레드스톤 신호 15를 낸다 (조명, 피스톤, 문 등 연결).
- * 맨손 우클릭 → 이름 / 기기 종류 설정.
- */
 public class ControlBlock extends BaseEntityBlock {
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
-
     private final boolean redstoneOutput;
 
     public ControlBlock(Properties props, boolean redstoneOutput) {
-        super(props);
+        super(props.noOcclusion().dynamicShape());
         this.redstoneOutput = redstoneOutput;
-        registerDefaultState(stateDefinition.any().setValue(POWERED, false));
+        this.registerDefaultState(this.stateDefinition.any().setValue(POWERED, false));
     }
 
     @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
         builder.add(POWERED);
+    }
+
+    @Override
+    public VoxelShape getShape(BlockState state, BlockGetter l, BlockPos p, CollisionContext c) {
+        return DeviceOffsets.shape(Shapes.block(), l, p);
     }
 
     @Nullable
@@ -54,30 +58,31 @@ public class ControlBlock extends BaseEntityBlock {
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        if (player.getItemInHand(hand).getItem() instanceof HomeLinkerItem) return InteractionResult.PASS;
-        if (level.isClientSide) return InteractionResult.SUCCESS;
-        if (level.getBlockEntity(pos) instanceof DeviceBlockEntity be && player instanceof ServerPlayer sp) {
-            be.openConfig(sp);
+        if (player.getItemInHand(hand).getItem() instanceof HomeLinkerItem) {
+            return InteractionResult.PASS;
+        } else if (level.isClientSide) {
+            return InteractionResult.SUCCESS;
+        } else {
+            if (level.getBlockEntity(pos) instanceof DeviceBlockEntity be && player instanceof ServerPlayer sp) {
+                be.openConfig(sp);
+            }
+
+            return InteractionResult.CONSUME;
         }
-        return InteractionResult.CONSUME;
     }
 
-    /** 기본 기기 종류 (스마트 조명은 LIGHT) */
     public DeviceType defaultType() {
         return DeviceType.OTHER;
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public boolean isSignalSource(BlockState state) {
-        return redstoneOutput;
+        return this.redstoneOutput;
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public int getSignal(BlockState state, BlockGetter level, BlockPos pos, Direction direction) {
-        return redstoneOutput && state.getValue(POWERED) ? 15 : 0;
+        return this.redstoneOutput && state.getValue(POWERED) ? 15 : 0;
     }
 }

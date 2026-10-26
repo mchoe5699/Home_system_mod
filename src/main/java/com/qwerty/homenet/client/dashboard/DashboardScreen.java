@@ -1,20 +1,30 @@
 package com.qwerty.homenet.client.dashboard;
 
 import com.mojang.blaze3d.platform.NativeImage;
-import com.qwerty.homenet.HomeNet;
+import com.mojang.blaze3d.platform.NativeImage.Format;
+import com.qwerty.homenet.data.ComplexOutlines;
 import com.qwerty.homenet.data.DeviceRegistry;
 import com.qwerty.homenet.data.ZoneData;
 import com.qwerty.homenet.network.DashboardDataPacket;
 import com.qwerty.homenet.network.ModNetwork;
 import com.qwerty.homenet.network.ZoneEditPacket;
+import com.qwerty.homenet.network.ZoneGroupPacket;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.BlockPos.MutableBlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -22,291 +32,380 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
-import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.levelgen.Heightmap.Types;
 import net.minecraft.world.level.material.MapColor;
-import org.lwjgl.glfw.GLFW;
+import net.minecraft.world.level.material.MapColor.Brightness;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-/**
- * 홈네트워크 대시보드 (MTR 대시보드 방식).
- * - 지도: 왼쪽/오른쪽 드래그로 이동, 휠로 확대/축소
- * - "단지 추가" → 지도에서 드래그해서 구역을 그림 → 이름/색상 정하고 저장
- * - 목록에서 단지를 누르면 그 위치로 이동, 수정/삭제
- * - 기기 위치가 점으로 표시되고, 마우스를 올리면 종류와 세대 번호가 보임
- */
 public class DashboardScreen extends Screen {
     private static final int PANEL_W = 150;
     private static final int ROW_H = 22;
-    private static final int[] PALETTE = {0xE53935, 0xFB8C00, 0xFDD835, 0x43A047, 0x00ACC1, 0x1E88E5,
-            0x5E35B1, 0xD81B60, 0x6D4C41, 0x546E7A, 0x00897B, 0x7CB342};
-
-    private enum Mode { VIEW, DRAW, EDIT, CONFIRM_DELETE }
-
+    private static final int[] PALETTE = new int[]{15022389, 16485376, 16635957, 4431943, 44225, 2001125, 6174129, 14162784, 7162945, 5533306, 35195, 8172354};
     private List<ZoneData.Zone> zones;
+    private List<ZoneData.Zone> outlineSnapshot;
+    private int outlineEdit = -2;
+    private final Map<Integer, Integer> zoneColors = new HashMap<>();
+    private final Map<Integer, List<ComplexOutlines.Segment>> zoneBorders = new HashMap<>();
     private List<DeviceRegistry.Entry> devices;
-
-    private double centerX, centerZ;
-    private float zoom = 2f;
-    private Mode mode = Mode.VIEW;
+    private double centerX;
+    private double centerZ;
+    private float zoom = 2.0F;
+    private DashboardScreen.Mode mode = DashboardScreen.Mode.VIEW;
     private int listScroll;
-
-    // 그리기 / 이동
-    private boolean drawing, panning;
-    private int dragX1, dragZ1, dragX2, dragZ2;
-
-    // 편집
+    private final Set<Integer> groupSelection = new LinkedHashSet<>();
+    private String groupName = "";
+    private boolean drawing;
+    private boolean panning;
+    private int dragX1;
+    private int dragZ1;
+    private int dragX2;
+    private int dragZ2;
     private int editId = -1;
     private String editName = "";
     private int editColor = PALETTE[0];
-    private int ex1, ez1, ex2, ez2;
+    private int ex1;
+    private int ez1;
+    private int ex2;
+    private int ez2;
     private EditBox nameBox;
     private int deleteId;
-
-    // 지도 텍스처
     private DynamicTexture tex;
     private ResourceLocation texLoc;
-    private int texW, texH;
+    private int texW;
+    private int texH;
     private boolean dirty = true;
     private int refreshTimer;
     private final Map<Long, int[]> chunkCache = new HashMap<>();
 
     public DashboardScreen(DashboardDataPacket data) {
-        super(Component.translatable("item." + HomeNet.MODID + ".dashboard"));
+        super(Component.translatable("item.qwertys_homenet.dashboard"));
         this.zones = data.zones();
         this.devices = data.devices();
-        var player = Minecraft.getInstance().player;
+        LocalPlayer player = Minecraft.getInstance().player;
         if (player != null) {
-            centerX = player.getX();
-            centerZ = player.getZ();
+            this.centerX = player.getX();
+            this.centerZ = player.getZ();
         }
     }
 
     public void update(DashboardDataPacket data) {
         this.zones = data.zones();
         this.devices = data.devices();
-        if (mode == Mode.VIEW) rebuildWidgets();
+        this.groupSelection.removeIf(id -> this.zones.stream().noneMatch(z -> z.id() == id));
+        if (this.mode == DashboardScreen.Mode.VIEW || this.mode == DashboardScreen.Mode.GROUP) {
+            this.rebuildWidgets();
+        }
     }
 
     private static MutableComponent tr(String key, Object... args) {
-        return Component.translatable("gui." + HomeNet.MODID + ".dashboard." + key, args);
+        return Component.translatable("gui.qwertys_homenet.dashboard." + key, args);
     }
-
-    // ================================================================== 위젯
 
     @Override
     protected void init() {
-        nameBox = null;
-        int x = 8, w = PANEL_W - 16;
-        switch (mode) {
-            case VIEW -> {
-                addRenderableWidget(Button.builder(tr("add_zone"), b -> {
-                    editId = -1;
-                    setMode(Mode.DRAW);
+        this.nameBox = null;
+        int x = 8;
+        int w = 134;
+        switch (this.mode) {
+            case VIEW:
+                this.addRenderableWidget(Button.builder(tr("add_zone"), b -> {
+                    this.editId = -1;
+                    this.setMode(DashboardScreen.Mode.DRAW);
                 }).bounds(x, 24, w, 20).build());
-                int y0 = 52;
-                int rows = Math.max(1, (height - y0 - 8) / ROW_H);
-                listScroll = Mth.clamp(listScroll, 0, Math.max(0, zones.size() - rows));
-                for (int i = 0; i < rows && i + listScroll < zones.size(); i++) {
-                    ZoneData.Zone z = zones.get(i + listScroll);
-                    int y = y0 + i * ROW_H;
-                    int count = devicesIn(z);
-                    addRenderableWidget(Button.builder(Component.literal(z.name() + " (" + count + ")"), b -> focus(z))
-                            .bounds(x + 8, y, w - 56, 20).build());
-                    addRenderableWidget(Button.builder(Component.literal("✎"), b -> startEdit(z))
-                            .bounds(x + w - 46, y, 22, 20).build());
-                    addRenderableWidget(Button.builder(Component.literal("✕"), b -> {
-                        deleteId = z.id();
-                        setMode(Mode.CONFIRM_DELETE);
+                this.addRenderableWidget(Button.builder(Component.literal("구획 묶기 / 분리"), button -> {
+                    this.groupSelection.clear();
+                    this.groupName = "";
+                    this.listScroll = 0;
+                    this.setMode(DashboardScreen.Mode.GROUP);
+                }).bounds(x, 48, w, 20).build());
+                int y0 = 76;
+                int rows = Math.max(1, (this.height - y0 - 56) / 22);
+                this.listScroll = Mth.clamp(this.listScroll, 0, Math.max(0, this.zones.size() - rows));
+
+                for (int i = 0; i < rows && i + this.listScroll < this.zones.size(); i++) {
+                    ZoneData.Zone z = this.zones.get(i + this.listScroll);
+                    int y = y0 + i * 22;
+                    int count = this.devicesIn(z);
+                    this.addRenderableWidget(
+                        Button.builder(
+                                Component.literal(
+                                    this.font.plainSubstrByWidth(z.name() + (z.complex().isEmpty() ? "" : " / " + z.complex()) + " (" + count + ")", w - 64)
+                                ),
+                                b -> this.focus(z)
+                            )
+                            .bounds(x + 8, y, w - 56, 20)
+                            .build()
+                    );
+                    this.addRenderableWidget(Button.builder(Component.literal("✎"), b -> this.startEdit(z)).bounds(x + w - 46, y, 22, 20).build());
+                    this.addRenderableWidget(Button.builder(Component.literal("✕"), b -> {
+                        this.deleteId = z.id();
+                        this.setMode(DashboardScreen.Mode.CONFIRM_DELETE);
                     }).bounds(x + w - 22, y, 22, 20).build());
                 }
-            }
-            case DRAW -> addRenderableWidget(Button.builder(tr("cancel"), b -> setMode(editId < 0 ? Mode.VIEW : Mode.EDIT))
-                    .bounds(x, 24, w, 20).build());
-            case EDIT -> {
-                nameBox = new EditBox(font, x, 62, w, 18, tr("name"));
-                nameBox.setMaxLength(32);
-                nameBox.setValue(editName);
-                nameBox.setResponder(s -> editName = s);
-                addRenderableWidget(nameBox);
-                addRenderableWidget(Button.builder(tr("color"), b -> {
+                break;
+            case GROUP:
+                this.nameBox = this.addRenderableWidget(new EditBox(this.font, x, 48, w, 18, Component.literal("단지 이름")));
+                this.nameBox.setMaxLength(32);
+                this.nameBox.setValue(this.groupName);
+                this.nameBox.setHint(Component.literal("같은 단지 이름 입력"));
+                this.nameBox.setResponder(value -> this.groupName = value);
+                int groupRows = Math.max(1, (this.height - 196) / 22);
+                this.listScroll = Mth.clamp(this.listScroll, 0, Math.max(0, this.zones.size() - groupRows));
+
+                for (int i = 0; i < groupRows && i + this.listScroll < this.zones.size(); i++) {
+                    ZoneData.Zone z = this.zones.get(i + this.listScroll);
+                    String text = (this.groupSelection.contains(z.id()) ? "[✓] " : "[ ] ") + z.name() + (z.complex().isEmpty() ? "" : " / " + z.complex());
+                    this.addRenderableWidget(Button.builder(Component.literal(this.font.plainSubstrByWidth(text, w - 8)), button -> {
+                        if (!this.groupSelection.remove(z.id())) {
+                            this.groupSelection.add(z.id());
+                        }
+
+                        this.rebuildWidgets();
+                    }).bounds(x, 90 + i * 22, w, 20).build());
+                }
+
+                this.addRenderableWidget(Button.builder(Component.literal("선택 구획 묶기"), button -> {
+                    if (!this.groupSelection.isEmpty() && !this.groupName.isBlank()) {
+                        ModNetwork.sendToServer(new ZoneGroupPacket(this.groupName, this.groupSelection.stream().mapToInt(Integer::intValue).toArray(), false));
+                        this.setMode(DashboardScreen.Mode.VIEW);
+                    }
+                }).bounds(x, this.height - 78, w, 20).build());
+                this.addRenderableWidget(Button.builder(Component.literal("선택 구획 분리"), button -> {
+                    if (!this.groupSelection.isEmpty()) {
+                        ModNetwork.sendToServer(new ZoneGroupPacket("", this.groupSelection.stream().mapToInt(Integer::intValue).toArray(), true));
+                        this.setMode(DashboardScreen.Mode.VIEW);
+                    }
+                }).bounds(x, this.height - 54, w, 20).build());
+                this.addRenderableWidget(
+                    Button.builder(tr("cancel"), button -> this.setMode(DashboardScreen.Mode.VIEW)).bounds(x, this.height - 30, w, 20).build()
+                );
+                break;
+            case DRAW:
+                this.addRenderableWidget(
+                    Button.builder(tr("cancel"), b -> this.setMode(this.editId < 0 ? DashboardScreen.Mode.VIEW : DashboardScreen.Mode.EDIT))
+                        .bounds(x, 24, w, 20)
+                        .build()
+                );
+                break;
+            case EDIT:
+                this.nameBox = new EditBox(this.font, x, 62, w, 18, tr("name"));
+                this.nameBox.setMaxLength(32);
+                this.nameBox.setValue(this.editName);
+                this.nameBox.setResponder(s -> this.editName = s);
+                this.addRenderableWidget(this.nameBox);
+                this.addRenderableWidget(Button.builder(tr("color"), b -> {
                     int idx = 0;
-                    for (int i = 0; i < PALETTE.length; i++) if (PALETTE[i] == editColor) idx = i;
-                    editColor = PALETTE[(idx + 1) % PALETTE.length];
+
+                    for (int ix = 0; ix < PALETTE.length; ix++) {
+                        if (PALETTE[ix] == this.editColor) {
+                            idx = ix;
+                        }
+                    }
+
+                    this.editColor = PALETTE[(idx + 1) % PALETTE.length];
                 }).bounds(x + 20, 100, w - 20, 20).build());
-                addRenderableWidget(Button.builder(tr("redraw"), b -> setMode(Mode.DRAW)).bounds(x, 142, w, 20).build());
-                addRenderableWidget(Button.builder(tr("save"), b -> save()).bounds(x, 168, w, 20).build());
-                addRenderableWidget(Button.builder(tr("cancel"), b -> setMode(Mode.VIEW)).bounds(x, 192, w, 20).build());
-                setFocused(nameBox);
-            }
-            case CONFIRM_DELETE -> {
-                addRenderableWidget(Button.builder(tr("delete"), b -> {
-                    ModNetwork.sendToServer(new ZoneEditPacket(ZoneEditPacket.DELETE, deleteId, "", 0, 0, 0, 0, 0));
-                    setMode(Mode.VIEW);
+                this.addRenderableWidget(Button.builder(tr("redraw"), b -> this.setMode(DashboardScreen.Mode.DRAW)).bounds(x, 142, w, 20).build());
+                this.addRenderableWidget(Button.builder(tr("save"), b -> this.save()).bounds(x, 168, w, 20).build());
+                this.addRenderableWidget(Button.builder(tr("cancel"), b -> this.setMode(DashboardScreen.Mode.VIEW)).bounds(x, 192, w, 20).build());
+                this.setFocused(this.nameBox);
+                break;
+            case CONFIRM_DELETE:
+                this.addRenderableWidget(Button.builder(tr("delete"), b -> {
+                    ModNetwork.sendToServer(new ZoneEditPacket(2, this.deleteId, "", 0, 0, 0, 0, 0));
+                    this.setMode(DashboardScreen.Mode.VIEW);
                 }).bounds(x, 90, w, 20).build());
-                addRenderableWidget(Button.builder(tr("cancel"), b -> setMode(Mode.VIEW)).bounds(x, 114, w, 20).build());
-            }
+                this.addRenderableWidget(Button.builder(tr("cancel"), b -> this.setMode(DashboardScreen.Mode.VIEW)).bounds(x, 114, w, 20).build());
         }
-        if (texW != width - PANEL_W || texH != height) dirty = true;
+
+        if (this.texW != this.width - 150 || this.texH != this.height) {
+            this.dirty = true;
+        }
     }
 
-    private void setMode(Mode m) {
-        mode = m;
-        drawing = false;
-        rebuildWidgets();
+    private void setMode(DashboardScreen.Mode m) {
+        this.mode = m;
+        this.drawing = false;
+        this.rebuildWidgets();
     }
 
     private int devicesIn(ZoneData.Zone z) {
         int n = 0;
-        for (DeviceRegistry.Entry e : devices) {
-            if (z.contains(e.pos().getX(), e.pos().getZ()) && zoneAt(e.pos()) == z.id()) n++;
+
+        for (DeviceRegistry.Entry e : this.devices) {
+            if (z.contains(e.pos().getX(), e.pos().getZ()) && this.zoneAt(e.pos()) == z.id()) {
+                n++;
+            }
         }
+
         return n;
     }
 
     private int zoneAt(BlockPos p) {
         ZoneData.Zone best = null;
-        for (ZoneData.Zone z : zones) {
-            if (z.contains(p.getX(), p.getZ()) && (best == null || z.area() < best.area())) best = z;
+
+        for (ZoneData.Zone z : this.zones) {
+            if (z.contains(p.getX(), p.getZ()) && (best == null || z.area() < best.area())) {
+                best = z;
+            }
         }
+
         return best == null ? 0 : best.id();
     }
 
     private void focus(ZoneData.Zone z) {
-        centerX = (z.x1() + z.x2() + 1) / 2.0;
-        centerZ = (z.z1() + z.z2() + 1) / 2.0;
-        int mapW = width - PANEL_W;
-        float fit = Math.min(mapW / (float) (z.x2() - z.x1() + 8), height / (float) (z.z2() - z.z1() + 8));
-        zoom = Mth.clamp(fit, 0.25f, 16f);
-        dirty = true;
+        this.centerX = (z.x1() + z.x2() + 1) / 2.0;
+        this.centerZ = (z.z1() + z.z2() + 1) / 2.0;
+        int mapW = this.width - 150;
+        float fit = Math.min((float)mapW / (z.x2() - z.x1() + 8), (float)this.height / (z.z2() - z.z1() + 8));
+        this.zoom = Mth.clamp(fit, 0.25F, 16.0F);
+        this.dirty = true;
     }
 
     private void startEdit(ZoneData.Zone z) {
-        editId = z.id();
-        editName = z.name();
-        editColor = z.color();
-        ex1 = z.x1(); ez1 = z.z1(); ex2 = z.x2(); ez2 = z.z2();
-        focus(z);
-        setMode(Mode.EDIT);
+        this.editId = z.id();
+        this.editName = z.name();
+        this.editColor = z.color();
+        this.ex1 = z.x1();
+        this.ez1 = z.z1();
+        this.ex2 = z.x2();
+        this.ez2 = z.z2();
+        this.focus(z);
+        this.setMode(DashboardScreen.Mode.EDIT);
     }
 
     private void save() {
-        String name = editName.trim().isEmpty() ? tr("default_name", zones.size() + 1).getString() : editName.trim();
-        int action = editId < 0 ? ZoneEditPacket.ADD : ZoneEditPacket.UPDATE;
-        ModNetwork.sendToServer(new ZoneEditPacket(action, Math.max(0, editId), name, editColor, ex1, ez1, ex2, ez2));
-        setMode(Mode.VIEW);
+        String name = this.editName.trim().isEmpty() ? tr("default_name", this.zones.size() + 1).getString() : this.editName.trim();
+        int action = this.editId < 0 ? 0 : 1;
+        ModNetwork.sendToServer(new ZoneEditPacket(action, Math.max(0, this.editId), name, this.editColor, this.ex1, this.ez1, this.ex2, this.ez2));
+        this.setMode(DashboardScreen.Mode.VIEW);
     }
 
-    // ================================================================== 좌표
+    private int mapX0() {
+        return 150;
+    }
 
-    private int mapX0() { return PANEL_W; }
-    private int mapW() { return width - PANEL_W; }
+    private int mapW() {
+        return this.width - 150;
+    }
 
-    private double worldX(double sx) { return centerX + (sx - mapX0() - mapW() / 2.0) / zoom; }
-    private double worldZ(double sy) { return centerZ + (sy - height / 2.0) / zoom; }
-    private float screenX(double wx) { return (float) (mapX0() + mapW() / 2.0 + (wx - centerX) * zoom); }
-    private float screenY(double wz) { return (float) (height / 2.0 + (wz - centerZ) * zoom); }
+    private double worldX(double sx) {
+        return this.centerX + (sx - this.mapX0() - this.mapW() / 2.0) / this.zoom;
+    }
 
-    private boolean overMap(double mx) { return mx >= PANEL_W; }
+    private double worldZ(double sy) {
+        return this.centerZ + (sy - this.height / 2.0) / this.zoom;
+    }
 
-    // ================================================================== 입력
+    private float screenX(double wx) {
+        return (float)(this.mapX0() + this.mapW() / 2.0 + (wx - this.centerX) * this.zoom);
+    }
+
+    private float screenY(double wz) {
+        return (float)(this.height / 2.0 + (wz - this.centerZ) * this.zoom);
+    }
+
+    private boolean overMap(double mx) {
+        return mx >= 150.0;
+    }
 
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
-        if (super.mouseClicked(mx, my, button)) return true;
-        if (!overMap(mx)) return false;
-        if (button == 0 && mode == Mode.DRAW) {
-            drawing = true;
-            dragX1 = dragX2 = Mth.floor(worldX(mx));
-            dragZ1 = dragZ2 = Mth.floor(worldZ(my));
+        if (super.mouseClicked(mx, my, button)) {
+            return true;
+        } else if (!this.overMap(mx)) {
+            return false;
+        } else if (button == 0 && this.mode == DashboardScreen.Mode.DRAW) {
+            this.drawing = true;
+            this.dragX1 = this.dragX2 = Mth.floor(this.worldX(mx));
+            this.dragZ1 = this.dragZ2 = Mth.floor(this.worldZ(my));
+            return true;
+        } else if (button != 0 && button != 1) {
+            return false;
+        } else {
+            this.panning = true;
             return true;
         }
-        if (button == 0 || button == 1) {
-            panning = true;
-            return true;
-        }
-        return false;
     }
 
     @Override
     public boolean mouseDragged(double mx, double my, int button, double dx, double dy) {
-        if (drawing) {
-            dragX2 = Mth.floor(worldX(mx));
-            dragZ2 = Mth.floor(worldZ(my));
+        if (this.drawing) {
+            this.dragX2 = Mth.floor(this.worldX(mx));
+            this.dragZ2 = Mth.floor(this.worldZ(my));
             return true;
-        }
-        if (panning) {
-            centerX -= dx / zoom;
-            centerZ -= dy / zoom;
-            dirty = true;
+        } else if (this.panning) {
+            this.centerX = this.centerX - dx / this.zoom;
+            this.centerZ = this.centerZ - dy / this.zoom;
+            this.dirty = true;
             return true;
+        } else {
+            return super.mouseDragged(mx, my, button, dx, dy);
         }
-        return super.mouseDragged(mx, my, button, dx, dy);
     }
 
     @Override
     public boolean mouseReleased(double mx, double my, int button) {
-        if (drawing) {
-            drawing = false;
-            ex1 = Math.min(dragX1, dragX2);
-            ex2 = Math.max(dragX1, dragX2);
-            ez1 = Math.min(dragZ1, dragZ2);
-            ez2 = Math.max(dragZ1, dragZ2);
-            if (editId < 0) {
-                editName = "";
-                editColor = PALETTE[zones.size() % PALETTE.length];
+        if (this.drawing) {
+            this.drawing = false;
+            this.ex1 = Math.min(this.dragX1, this.dragX2);
+            this.ex2 = Math.max(this.dragX1, this.dragX2);
+            this.ez1 = Math.min(this.dragZ1, this.dragZ2);
+            this.ez2 = Math.max(this.dragZ1, this.dragZ2);
+            if (this.editId < 0) {
+                this.editName = "";
+                this.editColor = PALETTE[this.zones.size() % PALETTE.length];
             }
-            setMode(Mode.EDIT);
+
+            this.setMode(DashboardScreen.Mode.EDIT);
             return true;
+        } else {
+            this.panning = false;
+            return super.mouseReleased(mx, my, button);
         }
-        panning = false;
-        return super.mouseReleased(mx, my, button);
     }
 
     @Override
     public boolean mouseScrolled(double mx, double my, double delta) {
-        if (overMap(mx)) {
-            double wx = worldX(mx), wz = worldZ(my);
-            zoom = Mth.clamp(zoom * (delta > 0 ? 1.25f : 0.8f), 0.25f, 16f);
-            // 마우스 아래 지점이 그대로 있도록
-            centerX = wx - (mx - mapX0() - mapW() / 2.0) / zoom;
-            centerZ = wz - (my - height / 2.0) / zoom;
-            dirty = true;
+        if (this.overMap(mx)) {
+            double wx = this.worldX(mx);
+            double wz = this.worldZ(my);
+            this.zoom = Mth.clamp(this.zoom * (delta > 0.0 ? 1.25F : 0.8F), 0.25F, 16.0F);
+            this.centerX = wx - (mx - this.mapX0() - this.mapW() / 2.0) / this.zoom;
+            this.centerZ = wz - (my - this.height / 2.0) / this.zoom;
+            this.dirty = true;
+            return true;
+        } else if (this.mode != DashboardScreen.Mode.VIEW && this.mode != DashboardScreen.Mode.GROUP) {
+            return false;
+        } else {
+            this.listScroll = Math.max(0, this.listScroll - (int)Math.signum(delta));
+            this.rebuildWidgets();
             return true;
         }
-        if (mode == Mode.VIEW) {
-            listScroll = Math.max(0, listScroll - (int) Math.signum(delta));
-            rebuildWidgets();
-            return true;
-        }
-        return false;
     }
 
     @Override
     public boolean keyPressed(int key, int scan, int mods) {
-        if (key == GLFW.GLFW_KEY_ESCAPE && mode != Mode.VIEW) {
-            setMode(Mode.VIEW);
+        if (key == 256 && this.mode != DashboardScreen.Mode.VIEW) {
+            this.setMode(DashboardScreen.Mode.VIEW);
+            return true;
+        } else if (this.mode != DashboardScreen.Mode.EDIT || key != 257 && key != 335) {
+            return super.keyPressed(key, scan, mods);
+        } else {
+            this.save();
             return true;
         }
-        if (mode == Mode.EDIT && (key == GLFW.GLFW_KEY_ENTER || key == GLFW.GLFW_KEY_KP_ENTER)) {
-            save();
-            return true;
-        }
-        return super.keyPressed(key, scan, mods);
     }
 
     @Override
     public void tick() {
         super.tick();
-        if (nameBox != null) nameBox.tick();
-        // 지도는 주기적으로 다시 읽음 (청크가 새로 로드될 수 있으므로)
-        if (++refreshTimer >= 60) {
-            refreshTimer = 0;
-            chunkCache.clear();
-            dirty = true;
+        if (this.nameBox != null) {
+            this.nameBox.tick();
+        }
+
+        if (++this.refreshTimer >= 60) {
+            this.refreshTimer = 0;
+            this.chunkCache.clear();
+            this.dirty = true;
         }
     }
 
@@ -318,182 +417,311 @@ public class DashboardScreen extends Screen {
     @Override
     public void removed() {
         super.removed();
-        if (tex != null) {
-            Minecraft.getInstance().getTextureManager().release(texLoc);
-            tex = null;
+        if (this.tex != null) {
+            Minecraft.getInstance().getTextureManager().release(this.texLoc);
+            this.tex = null;
         }
     }
-
-    // ================================================================== 지도 텍스처
 
     private void rebuildMap() {
-        int w = Math.max(1, mapW()), h = Math.max(1, height);
-        if (tex == null || texW != w || texH != h) {
-            if (tex != null) Minecraft.getInstance().getTextureManager().release(texLoc);
-            tex = new DynamicTexture(new NativeImage(NativeImage.Format.RGBA, w, h, false));
-            texLoc = Minecraft.getInstance().getTextureManager().register("qwertys_homenet_dashboard", tex);
-            texW = w;
-            texH = h;
-        }
-        NativeImage img = tex.getPixels();
-        if (img == null) return;
-        for (int i = 0; i < w; i++) {
-            int wx = Mth.floor(centerX + (i + 0.5 - w / 2.0) / zoom);
-            for (int j = 0; j < h; j++) {
-                int wz = Mth.floor(centerZ + (j + 0.5 - h / 2.0) / zoom);
-                img.setPixelRGBA(i, j, colorAt(wx, wz));
+        int w = Math.max(1, this.mapW());
+        int h = Math.max(1, this.height);
+        if (this.tex == null || this.texW != w || this.texH != h) {
+            if (this.tex != null) {
+                Minecraft.getInstance().getTextureManager().release(this.texLoc);
             }
+
+            this.tex = new DynamicTexture(new NativeImage(Format.RGBA, w, h, false));
+            this.texLoc = Minecraft.getInstance().getTextureManager().register("qwertys_homenet_dashboard", this.tex);
+            this.texW = w;
+            this.texH = h;
         }
-        tex.upload();
-        dirty = false;
+
+        NativeImage img = this.tex.getPixels();
+        if (img != null) {
+            for (int i = 0; i < w; i++) {
+                int wx = Mth.floor(this.centerX + (i + 0.5 - w / 2.0) / this.zoom);
+
+                for (int j = 0; j < h; j++) {
+                    int wz = Mth.floor(this.centerZ + (j + 0.5 - h / 2.0) / this.zoom);
+                    img.setPixelRGBA(i, j, this.colorAt(wx, wz));
+                }
+            }
+
+            this.tex.upload();
+            this.dirty = false;
+        }
     }
 
-    /** ABGR (NativeImage 형식) */
     private int colorAt(int x, int z) {
-        int cx = x >> 4, cz = z >> 4;
+        int cx = x >> 4;
+        int cz = z >> 4;
         long key = ChunkPos.asLong(cx, cz);
-        int[] colors = chunkCache.get(key);
+        int[] colors = this.chunkCache.get(key);
         if (colors == null) {
-            colors = computeChunk(cx, cz);
-            if (colors == null) return ((x ^ z) & 8) == 0 ? 0xFF1C1C1C : 0xFF222222;
-            chunkCache.put(key, colors);
+            colors = this.computeChunk(cx, cz);
+            if (colors == null) {
+                return ((x ^ z) & 8) == 0 ? -14935012 : -14540254;
+            }
+
+            this.chunkCache.put(key, colors);
         }
+
         return colors[(z & 15) * 16 + (x & 15)];
     }
 
     private int[] computeChunk(int cx, int cz) {
         ClientLevel level = Minecraft.getInstance().level;
-        if (level == null || !level.hasChunk(cx, cz)) return null;
-        LevelChunk chunk = level.getChunk(cx, cz);
-        int[] out = new int[256];
-        int[] heights = new int[256];
-        BlockPos.MutableBlockPos mp = new BlockPos.MutableBlockPos();
-        for (int lz = 0; lz < 16; lz++) {
-            for (int lx = 0; lx < 16; lx++) {
-                int y = chunk.getHeight(Heightmap.Types.WORLD_SURFACE, lx, lz);
-                int x = (cx << 4) + lx, z = (cz << 4) + lz;
-                MapColor color = MapColor.NONE;
-                int tries = 0;
-                while (y > level.getMinBuildHeight() && tries++ < 12) {
-                    mp.set(x, y, z);
-                    BlockState s = chunk.getBlockState(mp);
-                    color = s.getMapColor(level, mp);
-                    if (color != MapColor.NONE) break;
-                    y--;
-                }
-                heights[lz * 16 + lx] = y;
-                MapColor.Brightness b = MapColor.Brightness.NORMAL;
-                if (lz > 0) {
-                    int north = heights[(lz - 1) * 16 + lx];
-                    if (y > north) b = MapColor.Brightness.HIGH;
-                    else if (y < north) b = MapColor.Brightness.LOW;
-                }
-                out[lz * 16 + lx] = color == MapColor.NONE ? 0xFF101010 : color.calculateRGBColor(b);
-            }
-        }
-        return out;
-    }
+        if (level != null && level.hasChunk(cx, cz)) {
+            LevelChunk chunk = level.getChunk(cx, cz);
+            int[] out = new int[256];
+            int[] heights = new int[256];
+            MutableBlockPos mp = new MutableBlockPos();
 
-    // ================================================================== 그리기
+            for (int lz = 0; lz < 16; lz++) {
+                for (int lx = 0; lx < 16; lx++) {
+                    int y = chunk.getHeight(Types.WORLD_SURFACE, lx, lz);
+                    int x = (cx << 4) + lx;
+                    int z = (cz << 4) + lz;
+                    MapColor color = MapColor.NONE;
+
+                    for (int tries = 0; y > level.getMinBuildHeight() && tries++ < 12; y--) {
+                        mp.set(x, y, z);
+                        BlockState s = chunk.getBlockState(mp);
+                        color = s.getMapColor(level, mp);
+                        if (color != MapColor.NONE) {
+                            break;
+                        }
+                    }
+
+                    heights[lz * 16 + lx] = y;
+                    Brightness b = Brightness.NORMAL;
+                    if (lz > 0) {
+                        int north = heights[(lz - 1) * 16 + lx];
+                        if (y > north) {
+                            b = Brightness.HIGH;
+                        } else if (y < north) {
+                            b = Brightness.LOW;
+                        }
+                    }
+
+                    out[lz * 16 + lx] = color == MapColor.NONE ? -15724528 : color.calculateRGBColor(b);
+                }
+            }
+
+            return out;
+        } else {
+            return null;
+        }
+    }
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        g.fill(0, 0, width, height, 0xFF0C0E12);
-        if (dirty || tex == null) rebuildMap();
-        if (texLoc != null) g.blit(texLoc, mapX0(), 0, 0f, 0f, texW, texH, texW, texH);
+        g.fill(0, 0, this.width, this.height, -15987182);
+        if (this.dirty || this.tex == null) {
+            this.rebuildMap();
+        }
 
-        g.enableScissor(mapX0(), 0, width, height);
-        // 단지
-        for (ZoneData.Zone z : zones) {
-            if (mode == Mode.EDIT && z.id() == editId) continue;
-            drawZoneRect(g, z.x1(), z.z1(), z.x2(), z.z2(), z.color(), z.name());
+        if (this.texLoc != null) {
+            g.blit(this.texLoc, this.mapX0(), 0, 0.0F, 0.0F, this.texW, this.texH, this.texW, this.texH);
         }
-        if (mode == Mode.EDIT) drawZoneRect(g, ex1, ez1, ex2, ez2, editColor, editName.isEmpty() ? "?" : editName);
-        if (drawing) {
-            drawZoneRect(g, Math.min(dragX1, dragX2), Math.min(dragZ1, dragZ2), Math.max(dragX1, dragX2), Math.max(dragZ1, dragZ2),
-                    0xFFFFFF, (Math.abs(dragX2 - dragX1) + 1) + " x " + (Math.abs(dragZ2 - dragZ1) + 1));
+
+        g.enableScissor(this.mapX0(), 0, this.width, this.height);
+        this.ensureZoneBorders();
+
+        for (ZoneData.Zone z : this.zones) {
+            if (this.mode != DashboardScreen.Mode.EDIT || z.id() != this.editId) {
+                this.drawZoneRect(
+                    g, z.x1(), z.z1(), z.x2(), z.z2(), this.zoneColor(z), z.name() + (z.complex().isEmpty() ? "" : " [" + z.complex() + "]"), false
+                );
+            }
         }
-        // 기기
+
+        for (ZoneData.Zone zx : this.zones) {
+            if (this.mode != DashboardScreen.Mode.EDIT || zx.id() != this.editId) {
+                this.drawZoneBorders(g, zx, this.zoneColor(zx));
+            }
+        }
+
+        if (this.mode == DashboardScreen.Mode.EDIT) {
+            this.drawZoneRect(g, this.ex1, this.ez1, this.ex2, this.ez2, this.editColor, this.editName.isEmpty() ? "?" : this.editName);
+        }
+
+        if (this.drawing) {
+            this.drawZoneRect(
+                g,
+                Math.min(this.dragX1, this.dragX2),
+                Math.min(this.dragZ1, this.dragZ2),
+                Math.max(this.dragX1, this.dragX2),
+                Math.max(this.dragZ1, this.dragZ2),
+                16777215,
+                Math.abs(this.dragX2 - this.dragX1) + 1 + " x " + (Math.abs(this.dragZ2 - this.dragZ1) + 1)
+            );
+        }
+
         DeviceRegistry.Entry hover = null;
-        for (DeviceRegistry.Entry e : devices) {
-            float sx = screenX(e.pos().getX() + 0.5), sy = screenY(e.pos().getZ() + 0.5);
-            int r = zoom >= 2 ? 3 : 2;
-            g.fill(Math.round(sx) - r - 1, Math.round(sy) - r - 1, Math.round(sx) + r + 1, Math.round(sy) + r + 1, 0xFF000000);
+
+        for (DeviceRegistry.Entry e : this.devices) {
+            float sx = this.screenX(e.pos().getX() + 0.5);
+            float sy = this.screenY(e.pos().getZ() + 0.5);
+            int r = this.zoom >= 2.0F ? 3 : 2;
+            g.fill(Math.round(sx) - r - 1, Math.round(sy) - r - 1, Math.round(sx) + r + 1, Math.round(sy) + r + 1, -16777216);
             g.fill(Math.round(sx) - r, Math.round(sy) - r, Math.round(sx) + r, Math.round(sy) + r, 0xFF000000 | kindColor(e.kind()));
-            if (Math.abs(mouseX - sx) <= r + 2 && Math.abs(mouseY - sy) <= r + 2) hover = e;
+            if (Math.abs(mouseX - sx) <= r + 2 && Math.abs(mouseY - sy) <= r + 2) {
+                hover = e;
+            }
         }
-        // 플레이어
-        var player = Minecraft.getInstance().player;
+
+        LocalPlayer player = Minecraft.getInstance().player;
         if (player != null) {
-            int px = Math.round(screenX(player.getX())), py = Math.round(screenY(player.getZ()));
-            g.fill(px - 3, py - 3, px + 3, py + 3, 0xFF000000);
-            g.fill(px - 2, py - 2, px + 2, py + 2, 0xFFFFFFFF);
+            int px = Math.round(this.screenX(player.getX()));
+            int py = Math.round(this.screenY(player.getZ()));
+            g.fill(px - 3, py - 3, px + 3, py + 3, -16777216);
+            g.fill(px - 2, py - 2, px + 2, py + 2, -1);
         }
+
         g.disableScissor();
-
-        // 안내 / 좌표
-        if (mode == Mode.DRAW) g.drawCenteredString(font, tr("draw_hint"), mapX0() + mapW() / 2, 8, 0xFFFFFF55);
-        if (overMap(mouseX)) {
-            String c = "X " + Mth.floor(worldX(mouseX)) + "  Z " + Mth.floor(worldZ(mouseY)) + "   x" + String.format("%.2f", zoom);
-            g.drawString(font, c, width - font.width(c) - 6, height - 12, 0xFFDDDDDD);
+        if (this.mode == DashboardScreen.Mode.DRAW) {
+            g.drawCenteredString(this.font, tr("draw_hint"), this.mapX0() + this.mapW() / 2, 8, -171);
         }
 
-        // 왼쪽 패널
-        g.fill(0, 0, PANEL_W, height, 0xF0141A24);
-        g.fill(PANEL_W - 1, 0, PANEL_W, height, 0xFF3A4660);
-        g.drawString(font, title, 8, 8, 0xFFFFFFFF);
-        switch (mode) {
-            case VIEW -> {
-                if (zones.isEmpty()) {
-                    g.drawWordWrap(font, tr("empty"), 8, 56, PANEL_W - 16, 0xFF9AA6B6);
-                }
-                int y0 = 52;
-                int rows = Math.max(1, (height - y0 - 8) / ROW_H);
-                for (int i = 0; i < rows && i + listScroll < zones.size(); i++) {
-                    ZoneData.Zone z = zones.get(i + listScroll);
-                    int y = y0 + i * ROW_H;
-                    g.fill(8, y + 3, 14, y + 17, 0xFF000000 | z.color());
-                }
-                g.drawWordWrap(font, tr("help"), 8, height - 46, PANEL_W - 16, 0xFF6E7A8E);
-            }
-            case DRAW -> g.drawWordWrap(font, tr("draw_hint"), 8, 52, PANEL_W - 16, 0xFFFFFF55);
-            case EDIT -> {
-                g.drawString(font, tr(editId < 0 ? "new_zone" : "edit_zone"), 8, 32, 0xFFFFFFFF);
-                g.drawString(font, tr("name"), 8, 50, 0xFF9AA6B6);
-                g.drawString(font, tr("color_label"), 8, 88, 0xFF9AA6B6);
-                g.fill(8, 101, 26, 119, 0xFF000000 | editColor);
-                g.drawString(font, tr("size", ex2 - ex1 + 1, ez2 - ez1 + 1), 8, 126, 0xFF9AA6B6);
-            }
-            case CONFIRM_DELETE -> {
-                ZoneData.Zone z = null;
-                for (ZoneData.Zone zz : zones) if (zz.id() == deleteId) z = zz;
-                g.drawWordWrap(font, tr("delete_confirm", z == null ? "?" : z.name()), 8, 40, PANEL_W - 16, 0xFFFF8080);
-            }
+        if (this.overMap(mouseX)) {
+            String c = "X " + Mth.floor(this.worldX(mouseX)) + "  Z " + Mth.floor(this.worldZ(mouseY)) + "   x" + String.format("%.2f", this.zoom);
+            g.drawString(this.font, c, this.width - this.font.width(c) - 6, this.height - 12, -2236963);
         }
+
+        g.fill(0, 0, 150, this.height, -267118044);
+        g.fill(149, 0, 150, this.height, -12958112);
+        g.drawString(this.font, this.title, 8, 8, -1);
+        switch (this.mode) {
+            case VIEW:
+                if (this.zones.isEmpty()) {
+                    g.drawWordWrap(this.font, tr("empty"), 8, 56, 134, -6641994);
+                }
+
+                int y0 = 76;
+                int rows = Math.max(1, (this.height - y0 - 56) / 22);
+
+                for (int i = 0; i < rows && i + this.listScroll < this.zones.size(); i++) {
+                    ZoneData.Zone zxx = this.zones.get(i + this.listScroll);
+                    int y = y0 + i * 22;
+                    g.fill(8, y + 3, 14, y + 17, 0xFF000000 | zxx.color());
+                }
+
+                g.drawWordWrap(this.font, tr("help"), 8, this.height - 46, 134, -9536882);
+                break;
+            case GROUP:
+                g.drawString(this.font, "여러 구획 → 하나의 단지", 8, 27, -5649979);
+                g.drawString(this.font, "선택 " + this.groupSelection.size() + "개 · 휠로 목록 이동", 8, 73, -3419431);
+                break;
+            case DRAW:
+                g.drawWordWrap(this.font, tr("draw_hint"), 8, 52, 134, -171);
+                break;
+            case EDIT:
+                g.drawString(this.font, tr(this.editId < 0 ? "new_zone" : "edit_zone"), 8, 32, -1);
+                g.drawString(this.font, tr("name"), 8, 50, -6641994);
+                g.drawString(this.font, tr("color_label"), 8, 88, -6641994);
+                g.fill(8, 101, 26, 119, 0xFF000000 | this.editColor);
+                g.drawString(this.font, tr("size", this.ex2 - this.ex1 + 1, this.ez2 - this.ez1 + 1), 8, 126, -6641994);
+                break;
+            case CONFIRM_DELETE:
+                ZoneData.Zone zxx = null;
+
+                for (ZoneData.Zone zz : this.zones) {
+                    if (zz.id() == this.deleteId) {
+                        zxx = zz;
+                    }
+                }
+
+                g.drawWordWrap(this.font, tr("delete_confirm", zxx == null ? "?" : zxx.name()), 8, 40, 134, -32640);
+        }
+
         super.render(g, mouseX, mouseY, partialTick);
-
-        if (hover != null && overMap(mouseX)) {
+        if (hover != null && this.overMap(mouseX)) {
             List<Component> lines = new ArrayList<>();
-            lines.add(Component.translatable("block." + HomeNet.MODID + "." + blockKey(hover.kind())));
-            if (!hover.unit().isEmpty()) lines.add(tr("unit", hover.unit()));
-            lines.add(Component.literal(hover.pos().toShortString()).withStyle(s -> s.withColor(0x9AA6B6)));
-            g.renderComponentTooltip(font, lines, mouseX, mouseY);
+            lines.add(Component.translatable("block.qwertys_homenet." + blockKey(hover.kind())));
+            if (!hover.unit().isEmpty()) {
+                lines.add(tr("unit", hover.unit()));
+            }
+
+            lines.add(Component.literal(hover.pos().toShortString()).withStyle(s -> s.withColor(10135222)));
+            g.renderComponentTooltip(this.font, lines, mouseX, mouseY);
+        }
+    }
+
+    private int zoneColor(ZoneData.Zone zone) {
+        return this.mode == DashboardScreen.Mode.GROUP && this.groupSelection.contains(zone.id())
+            ? 16777215
+            : this.zoneColors.getOrDefault(zone.id(), zone.color());
+    }
+
+    private void ensureZoneBorders() {
+        int editing = this.mode == DashboardScreen.Mode.EDIT ? this.editId : -1;
+        if (this.outlineSnapshot != this.zones || this.outlineEdit != editing) {
+            this.outlineSnapshot = this.zones;
+            this.outlineEdit = editing;
+            this.zoneBorders.clear();
+            this.zoneColors.clear();
+            List<ZoneData.Zone> visible = this.zones.stream().filter(z -> z.id() != editing).toList();
+
+            for (ZoneData.Zone zone : visible) {
+                this.zoneBorders.put(zone.id(), ComplexOutlines.of(zone, visible));
+                this.zoneColors.put(zone.id(), ComplexOutlines.color(zone, this.zones));
+            }
+        }
+    }
+
+    private void drawZoneBorders(GuiGraphics g, ZoneData.Zone zone, int color) {
+        for (ComplexOutlines.Segment edge : this.zoneBorders.getOrDefault(zone.id(), List.of())) {
+            int x1 = Math.round(this.screenX(edge.x1()));
+            int x2 = Math.round(this.screenX(edge.x2()));
+            int y1 = Math.round(this.screenY(edge.z1()));
+            int y2 = Math.round(this.screenY(edge.z2()));
+            int c = 0xFF000000 | color;
+            switch (edge.side()) {
+                case TOP:
+                    g.fill(x1, y1, Math.max(x1 + 1, x2), y1 + 1, c);
+                    break;
+                case BOTTOM:
+                    g.fill(x1, y1 - 1, Math.max(x1 + 1, x2), y1, c);
+                    break;
+                case LEFT:
+                    g.fill(x1, y1, x1 + 1, Math.max(y1 + 1, y2), c);
+                    break;
+                case RIGHT:
+                    g.fill(x1 - 1, y1, x1, Math.max(y1 + 1, y2), c);
+            }
         }
     }
 
     private void drawZoneRect(GuiGraphics g, int x1, int z1, int x2, int z2, int color, String name) {
-        int sx1 = Math.round(screenX(x1)), sy1 = Math.round(screenY(z1));
-        int sx2 = Math.round(screenX(x2 + 1)), sy2 = Math.round(screenY(z2 + 1));
-        if (sx2 - sx1 < 2) sx2 = sx1 + 2;
-        if (sy2 - sy1 < 2) sy2 = sy1 + 2;
-        g.fill(sx1, sy1, sx2, sy2, 0x50000000 | color);
+        this.drawZoneRect(g, x1, z1, x2, z2, color, name, true);
+    }
+
+    private void drawZoneRect(GuiGraphics g, int x1, int z1, int x2, int z2, int color, String name, boolean border) {
+        int sx1 = Math.round(this.screenX(x1));
+        int sy1 = Math.round(this.screenY(z1));
+        int sx2 = Math.round(this.screenX(x2 + 1L));
+        int sy2 = Math.round(this.screenY(z2 + 1L));
+        if (sx2 - sx1 < 2) {
+            sx2 = sx1 + 2;
+        }
+
+        if (sy2 - sy1 < 2) {
+            sy2 = sy1 + 2;
+        }
+
+        g.fill(sx1, sy1, sx2, sy2, 1342177280 | color);
         int c = 0xFF000000 | color;
-        g.fill(sx1, sy1, sx2, sy1 + 1, c);
-        g.fill(sx1, sy2 - 1, sx2, sy2, c);
-        g.fill(sx1, sy1, sx1 + 1, sy2, c);
-        g.fill(sx2 - 1, sy1, sx2, sy2, c);
-        if (sx2 - sx1 > font.width(name) + 4 && sy2 - sy1 > 12) {
-            g.drawCenteredString(font, name, (sx1 + sx2) / 2, (sy1 + sy2) / 2 - 4, 0xFFFFFFFF);
+        if (border) {
+            g.fill(sx1, sy1, sx2, sy1 + 1, c);
+            g.fill(sx1, sy2 - 1, sx2, sy2, c);
+            g.fill(sx1, sy1, sx1 + 1, sy2, c);
+            g.fill(sx2 - 1, sy1, sx2, sy2, c);
+        }
+
+        if (sx2 - sx1 > this.font.width(name) + 4 && sy2 - sy1 > 12) {
+            g.drawCenteredString(this.font, name, (sx1 + sx2) / 2, (sy1 + sy2) / 2 - 4, -1);
         }
     }
 
@@ -506,13 +734,21 @@ public class DashboardScreen extends Screen {
 
     private static int kindColor(DeviceRegistry.Kind k) {
         return switch (k) {
-            case WALLPAD -> 0x4FC3F7;
-            case VIDEO_PHONE -> 0x80DEEA;
-            case INTERPHONE -> 0xAED581;
-            case GUARD_CONSOLE -> 0xFFB74D;
-            case LOBBY_PHONE -> 0xBA68C8;
-            case DOOR_CAMERA -> 0xF06292;
-            case DOOR_PHONE -> 0xE57373;
+            case DOOR_CAMERA -> 15753874;
+            case WALLPAD -> 5227511;
+            case VIDEO_PHONE -> 8445674;
+            case INTERPHONE -> 11457921;
+            case GUARD_CONSOLE -> 16758605;
+            case LOBBY_PHONE -> 12216520;
+            case DOOR_PHONE -> 15037299;
         };
+    }
+
+    private static enum Mode {
+        VIEW,
+        DRAW,
+        EDIT,
+        CONFIRM_DELETE,
+        GROUP;
     }
 }

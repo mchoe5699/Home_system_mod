@@ -1,9 +1,8 @@
 package com.qwerty.homenet.intercom;
 
-import com.qwerty.homenet.HomeNet;
+import java.util.Locale;
 import net.minecraft.network.chat.Component;
 
-/** 인터폰 화면에 표시되는 상태 */
 public enum DoorStatus {
     IDLE,
     CALLING,
@@ -18,7 +17,7 @@ public enum DoorStatus {
     TIMEOUT;
 
     public Component display(String arg) {
-        return Component.translatable("door_status." + HomeNet.MODID + "." + name().toLowerCase(java.util.Locale.ROOT), arg);
+        return Component.translatable("door_status.qwertys_homenet." + this.name().toLowerCase(Locale.ROOT), arg);
     }
 
     public static DoorStatus byId(int id) {

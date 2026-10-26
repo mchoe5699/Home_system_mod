@@ -1,7 +1,6 @@
 package com.qwerty.homenet.client;
 
 import com.qwerty.homenet.block.DeviceType;
-import com.qwerty.homenet.blockentity.DeviceBlockEntity;
 import com.qwerty.homenet.network.DeviceConfigOpenPacket;
 import com.qwerty.homenet.network.DeviceConfigPacket;
 import com.qwerty.homenet.network.ModNetwork;
@@ -10,9 +9,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import org.lwjgl.glfw.GLFW;
 
-/** 제어 블록 / 스마트 조명 설정: 이름, 기기 종류, 켜기/끄기 테스트 */
 public class DeviceConfigScreen extends HomeNetScreen {
     private final BlockPos pos;
     private String name;
@@ -31,54 +28,55 @@ public class DeviceConfigScreen extends HomeNetScreen {
     @Override
     protected void init() {
         super.init();
-        nameBox = new EditBox(font, left + 12, top + 40, panelW - 24, 18, tr("device_name"));
-        nameBox.setMaxLength(DeviceBlockEntity.MAX_NAME);
-        nameBox.setValue(name);
-        nameBox.setResponder(s -> name = s);
-        nameBox.setHint(type.displayName());
-        addRenderableWidget(nameBox);
-
-        addRenderableWidget(Button.builder(tr("device_type", type.displayName()), b -> {
-            type = type.next();
-            rebuildWidgets();
-        }).bounds(left + 12, top + 66, panelW - 24, 20).build());
-
-        addRenderableWidget(Button.builder(tr("test_toggle", type.stateName(on)), b -> {
-            ModNetwork.sendToServer(new DeviceConfigPacket(pos, name, type.ordinal(), true));
-            on = !on;
-            rebuildWidgets();
-        }).bounds(left + 12, top + 92, 94, 20).build());
-
-        addRenderableWidget(Button.builder(tr("save"), b -> save())
-                .bounds(left + panelW - 106, top + 92, 94, 20).build());
+        this.nameBox = new EditBox(this.font, this.left + 12, this.top + 40, this.panelW - 24, 18, tr("device_name", new Object[0]));
+        this.nameBox.setMaxLength(20);
+        this.nameBox.setValue(this.name);
+        this.nameBox.setResponder(s -> this.name = s);
+        this.nameBox.setHint(this.type.displayName());
+        this.addRenderableWidget(this.nameBox);
+        this.addRenderableWidget(Button.builder(tr("device_type", new Object[]{this.type.displayName()}), b -> {
+            this.type = this.type.next();
+            this.rebuildWidgets();
+        }).bounds(this.left + 12, this.top + 66, this.panelW - 24, 20).build());
+        this.addRenderableWidget(Button.builder(tr("test_toggle", new Object[]{this.type.stateName(this.on)}), b -> {
+            ModNetwork.sendToServer(new DeviceConfigPacket(this.pos, this.name, this.type.ordinal(), true));
+            this.on = !this.on;
+            this.rebuildWidgets();
+        }).bounds(this.left + 12, this.top + 92, 94, 20).build());
+        this.addRenderableWidget(
+            Button.builder(tr("save", new Object[0]), b -> this.save()).bounds(this.left + this.panelW - 106, this.top + 92, 94, 20).build()
+        );
     }
 
     private void save() {
-        ModNetwork.sendToServer(new DeviceConfigPacket(pos, name, type.ordinal(), false));
-        onClose();
+        ModNetwork.sendToServer(new DeviceConfigPacket(this.pos, this.name, this.type.ordinal(), false));
+        this.onClose();
     }
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        renderBackground(g);
-        drawDevice(g, title, null);
-        g.drawString(font, tr("device_name"), left + 12, top + 28, TEXT_DIM, false);
-        g.drawString(font, tr("device_link_hint"), left + 12, top + 120, TEXT_DIM, false);
+        this.renderBackground(g);
+        this.drawDevice(g, this.title, null);
+        g.drawString(this.font, tr("device_name", new Object[0]), this.left + 12, this.top + 28, -6641994, false);
+        g.drawString(this.font, tr("device_link_hint", new Object[0]), this.left + 12, this.top + 120, -6641994, false);
         super.render(g, mouseX, mouseY, partialTick);
     }
 
     @Override
     public boolean keyPressed(int key, int scan, int mods) {
-        if (key == GLFW.GLFW_KEY_ENTER || key == GLFW.GLFW_KEY_KP_ENTER) {
-            save();
+        if (key != 257 && key != 335) {
+            return super.keyPressed(key, scan, mods);
+        } else {
+            this.save();
             return true;
         }
-        return super.keyPressed(key, scan, mods);
     }
 
     @Override
     public void tick() {
         super.tick();
-        if (nameBox != null) nameBox.tick();
+        if (this.nameBox != null) {
+            this.nameBox.tick();
+        }
     }
 }

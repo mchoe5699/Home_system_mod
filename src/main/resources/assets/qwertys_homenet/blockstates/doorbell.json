@@ -1,0 +1,1 @@
+{"variants": {"facing=north": {"model": "qwertys_homenet:block/doorbell", "y": 0}, "facing=east": {"model": "qwertys_homenet:block/doorbell", "y": 90}, "facing=south": {"model": "qwertys_homenet:block/doorbell", "y": 180}, "facing=west": {"model": "qwertys_homenet:block/doorbell", "y": 270}}}

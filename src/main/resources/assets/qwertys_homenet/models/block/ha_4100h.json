@@ -1,0 +1,7 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "particle": "qwertys_homenet:block/ha4100h/shell"
+  },
+  "elements": []
+}

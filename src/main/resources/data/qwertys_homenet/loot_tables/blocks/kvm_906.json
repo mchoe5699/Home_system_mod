@@ -1,0 +1,42 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "qwertys_homenet:kvm_906",
+          "functions": [
+            {
+              "function": "minecraft:copy_nbt",
+              "source": "block_entity",
+              "ops": [
+                {
+                  "source": "KvmDesign",
+                  "target": "BlockEntityTag.KvmDesign",
+                  "op": "replace"
+                },
+                {
+                  "source": "Unit",
+                  "target": "BlockEntityTag.Unit",
+                  "op": "replace"
+                },
+                {
+                  "source": "Power",
+                  "target": "BlockEntityTag.Power",
+                  "op": "replace"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ]
+    }
+  ]
+}

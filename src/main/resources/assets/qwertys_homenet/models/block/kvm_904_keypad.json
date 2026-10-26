@@ -1,0 +1,85 @@
+{
+  "parent": "block/block",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "shell": "qwertys_homenet:block/kvm/shell",
+    "edge": "qwertys_homenet:block/kvm/edge",
+    "seam": "qwertys_homenet:block/kvm/seam",
+    "black": "qwertys_homenet:block/kvm/black",
+    "recess": "qwertys_homenet:block/kvm/recess",
+    "rim": "qwertys_homenet:block/kvm/rim",
+    "glass": "qwertys_homenet:block/kvm/glass",
+    "back": "qwertys_homenet:block/kvm/back_904",
+    "cradle": "qwertys_homenet:block/kvm/cradle",
+    "handset": "qwertys_homenet:block/kvm/handset",
+    "particle": "qwertys_homenet:block/kvm/shell"
+  },
+  "elements": [],
+  "display": {
+    "gui": {
+      "rotation": [
+        0,
+        180,
+        0
+      ],
+      "scale": [
+        1.5,
+        1.5,
+        1.5
+      ]
+    },
+    "fixed": {
+      "rotation": [
+        0,
+        180,
+        0
+      ],
+      "scale": [
+        1.5,
+        1.5,
+        1.5
+      ]
+    },
+    "ground": {
+      "translation": [
+        0,
+        3,
+        0
+      ],
+      "scale": [
+        0.6,
+        0.6,
+        0.6
+      ]
+    },
+    "thirdperson_righthand": {
+      "rotation": [
+        75,
+        225,
+        0
+      ],
+      "translation": [
+        0,
+        2.5,
+        0
+      ],
+      "scale": [
+        0.6,
+        0.6,
+        0.6
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        0,
+        225,
+        0
+      ],
+      "scale": [
+        0.8,
+        0.8,
+        0.8
+      ]
+    }
+  }
+}

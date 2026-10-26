@@ -1,5 +1,6 @@
 package com.qwerty.homenet.block;
 
+import com.qwerty.homenet.blockentity.ReceiverBlockEntity;
 import com.qwerty.homenet.blockentity.WallpadBlockEntity;
 import com.qwerty.homenet.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
@@ -14,7 +15,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
+import net.minecraft.world.level.block.state.StateDefinition.Builder;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
@@ -23,13 +25,12 @@ public class WallpadBlock extends WallMountedBlock {
     public static final BooleanProperty RINGING = BooleanProperty.create("ringing");
 
     public WallpadBlock(Properties props) {
-        // KHN-893N 본체 비율 705:475, 가로 9.6 픽셀, 두께 0.75 픽셀 (로비폰 1.0 보다 얇게)
-        super(props, 4.8, 4.766, 11.234, 0.75);
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(RINGING, false));
+        super(props, 5.0, 4.0, 12.0, 0.9);
+        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(RINGING, false));
     }
 
     @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
         builder.add(FACING, RINGING);
     }
 
@@ -42,26 +43,30 @@ public class WallpadBlock extends WallMountedBlock {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        return level.isClientSide ? null : createTickerHelper(type, ModBlockEntities.WALLPAD.get(), WallpadBlockEntity::serverTick);
+        return level.isClientSide ? null : createTickerHelper(type, ModBlockEntities.WALLPAD.get(), ReceiverBlockEntity::serverTick);
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        if (holdingLinker(player, hand)) return InteractionResult.PASS; // 링커 아이템이 처리
-        if (level.isClientSide) return InteractionResult.SUCCESS;
-        if (level.getBlockEntity(pos) instanceof WallpadBlockEntity be && player instanceof ServerPlayer sp) {
-            be.openFor(sp);
+        if (holdingLinker(player, hand)) {
+            return InteractionResult.PASS;
+        } else if (level.isClientSide) {
+            return InteractionResult.SUCCESS;
+        } else {
+            if (level.getBlockEntity(pos) instanceof WallpadBlockEntity be && player instanceof ServerPlayer sp) {
+                be.openFor(sp);
+            }
+
+            return InteractionResult.CONSUME;
         }
-        return InteractionResult.CONSUME;
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
-        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof WallpadBlockEntity be) {
+        if (!isMoving && !state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof WallpadBlockEntity be) {
             be.onBroken();
         }
+
         super.onRemove(state, level, pos, newState, isMoving);
     }
 }

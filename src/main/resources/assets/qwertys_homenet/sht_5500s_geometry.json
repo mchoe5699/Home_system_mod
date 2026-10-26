@@ -1,0 +1,13 @@
+{
+  "widthBlocks": 0.8,
+  "depthBlocks": 0.52,
+  "deckSlope": 8,
+  "panelSlope": 67.5,
+  "functionKeys": 8,
+  "speedDialKeys": 18,
+  "dialKeys": 12,
+  "controlKeys": 6,
+  "alarmStopKeys": 1,
+  "wireFree": true,
+  "modelOnly": true
+}
